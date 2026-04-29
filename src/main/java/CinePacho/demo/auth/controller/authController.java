@@ -1,4 +1,4 @@
 package CinePacho.demo.auth.controller;
 
-public class AuthController {
+public class authController {
 }
