@@ -5,10 +5,11 @@ import CinePacho.demo.shared.enumeration.UserType;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
+
+//Orquesator de Factories según el tipo de usuario
 
 @Component
 public class UserFactoryRegistry {
@@ -23,7 +24,7 @@ public class UserFactoryRegistry {
                 ));
     }
 
-    public void createEspecificEntity(UserType type, UserEntity user, Object registrationData) {
+    public void createSpecificEntity(UserType type, UserEntity user, Object registrationData) {
         factories.get(type).createSpecificEntity(user, registrationData);
     }
 

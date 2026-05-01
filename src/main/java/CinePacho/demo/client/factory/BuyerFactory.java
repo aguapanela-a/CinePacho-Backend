@@ -5,7 +5,9 @@ import CinePacho.demo.client.entitites.BuyerEntity;
 import CinePacho.demo.client.repository.BuyerRepository;
 import CinePacho.demo.shared.enumeration.UserType;
 import CinePacho.demo.shared.factory.UserFactory;
+import org.springframework.stereotype.Component;
 
+@Component
 public class BuyerFactory implements UserFactory<Void> {
 
     private final BuyerRepository buyerRepository;

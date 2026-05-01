@@ -27,7 +27,7 @@ public class AuthService {
         UserEntity user = userCreationService.createUser(registerDTO.name(), registerDTO.password(), registerDTO.userType());
 
         //crea la entidad concreta de manera genérica y la guarda
-        userFactoryRegistry.createEspecificEntity(user.getUserType(), user, registerDTO);
+        userFactoryRegistry.createSpecificEntity(user.getUserType(), user, registerDTO);
 
         //TODO: paquete de seguridad con JwtUtil.java (generar/validar tokens)
         //TODO: lógica de generar el token y devolverlo en el AuthResponseDTO
