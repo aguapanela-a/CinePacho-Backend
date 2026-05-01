@@ -1,0 +1,30 @@
+package CinePacho.demo.client.factory;
+
+import CinePacho.demo.auth.entities.UserEntity;
+import CinePacho.demo.client.entitites.BuyerEntity;
+import CinePacho.demo.client.repository.BuyerRepository;
+import CinePacho.demo.shared.enumeration.UserType;
+import CinePacho.demo.shared.factory.UserFactory;
+
+public class BuyerFactory implements UserFactory<Void> {
+
+    private final BuyerRepository buyerRepository;
+
+    public BuyerFactory(BuyerRepository buyerRepository) {
+        this.buyerRepository = buyerRepository;
+    }
+
+    @Override
+    public UserType getSupportedType() {
+        return UserType.BUYER;
+    }
+
+    //crea una entidad concreta Buyer y completa sus campos que el User no trae
+    @Override
+    public void createSpecificEntity(UserEntity user, Void registrationData) {
+        BuyerEntity buyer = new BuyerEntity();
+        buyer.setUser(user);
+        buyer.setPoints(0);
+        buyerRepository.save(buyer);
+    }
+}

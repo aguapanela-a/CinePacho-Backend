@@ -27,4 +27,7 @@ public class UserEntity {
     @Enumerated(EnumType.STRING)
     UserType userType;
 
+    @Column(unique = true)
+    private String email;
+
 }
