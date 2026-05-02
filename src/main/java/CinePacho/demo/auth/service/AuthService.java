@@ -7,6 +7,7 @@ import CinePacho.demo.shared.factory.UserFactoryRegistry;
 import CinePacho.demo.shared.user.UserCreationService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
 public class AuthService {
@@ -19,20 +20,31 @@ public class AuthService {
         this.userFactoryRegistry = userFactoryRegistry;
     }
 
+    @Transactional
     public AuthResponseDTO register(RegisterDTO registerDTO){
 
-        //TODO: lógica de validar correo electrónico
 
-        //Crea la entidad Usuario con los datos de registro
         UserEntity user = userCreationService.createUser(registerDTO.name(), registerDTO.password(), registerDTO.userType());
+
+        //TODO: lógica de validar correo electrónico: busca que no exista y envía correo de verificación
 
         //crea la entidad concreta de manera genérica y la guarda
         userFactoryRegistry.createSpecificEntity(user.getUserType(), user, registerDTO);
 
-        //TODO: paquete de seguridad con JwtUtil.java (generar/validar tokens)
-        //TODO: lógica de generar el token y devolverlo en el AuthResponseDTO
+        //TODO: el registro CREA el usuario y llama a login para que genere el token de acceso
+
+
 
         return new AuthResponseDTO(null, user.getUserType(), user.getUsername());
+    }
 
+
+    //TODO: crear paquete de seguridad con JwtUtil.java (generar/validar tokens) - y AuthenticationManager
+    public AuthResponseDTO login(String username, String password){
+        //TODO: usar authenticationManager.authenticate para verificar credenciales
+        //TODO: traer al User
+        //TODO: generar el token con la info del user ( uuid del usuario, el rol y el nombre) y devolverlo en el AuthResponseDTO
+
+        return new AuthResponseDTO(null, null, null);
     }
 }

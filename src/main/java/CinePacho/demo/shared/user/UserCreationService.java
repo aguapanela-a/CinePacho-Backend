@@ -27,6 +27,8 @@ public class UserCreationService {
         return userRepository.save(userEntity);
     }
 
+
+    //TODO: el siguiente método debería ir en otro servicio, pues este es solo para crear usuarios
     public UserEntity findUserByUsername(String username) {
         return userRepository.findUserEntityByUsername(username);
     }
