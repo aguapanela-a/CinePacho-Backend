@@ -14,5 +14,6 @@ public class RegisterResponseDTO {
     private UserType userType;
     private String username;
     
+    private String message;
 }
 
