@@ -8,6 +8,7 @@ import CinePacho.demo.auth.entities.UserEntity;
 import CinePacho.demo.auth.entities.VerificationToken;
 import CinePacho.demo.auth.repository.UserRepository;
 import CinePacho.demo.auth.repository.VerificationTokenRepository;
+import CinePacho.demo.exception.CinePachoException;
 import CinePacho.demo.shared.factory.UserFactoryRegistry;
 import CinePacho.demo.shared.user.UserCreationService;
 import io.jsonwebtoken.Jwt;
@@ -34,7 +35,7 @@ public class AuthService {
 
         //TODO: lógica de validar correo electrónico
         if (userRepository.existsByEmail(registerDTO.email())) {
-            throw new IllegalArgumentException("Email already in use: " + registerDTO.email());
+            throw new CinePachoException("Email already in use: " + registerDTO.email());
         }
 
         //TODO
@@ -78,14 +79,14 @@ public class AuthService {
     @Transactional
     public String verifyEmail(String token) {
         VerificationToken vToken = tokenRepository.findByToken(token)
-                .orElseThrow(() -> new RuntimeException("Token inválido"));
+                .orElseThrow(() -> new CinePachoException("Token inválido"));
 
         if (vToken.isUsed()) {
-            throw new RuntimeException("El token ya fue usado");
+            throw new CinePachoException("El token ya fue usado");
         }
 
         if (vToken.isExpired()) {
-            throw new RuntimeException("El token ha expirado");
+            throw new CinePachoException("El token ha expirado");
         }
 
         // Activar usuario
@@ -106,15 +107,15 @@ public class AuthService {
     public AuthResponseDTO login(LoginRequestDTO loginDTO){
 
         UserEntity user = userRepository.findByEmail(loginDTO.email())
-            .orElseThrow(() -> new IllegalArgumentException("Usuario no encontrado"));
+            .orElseThrow(() -> new CinePachoException("Usuario no encontrado"));
 
         if(!user.isEnabled()) {
-            throw new RuntimeException("Debes verificar tu correo antes de iniciar sesión");
+            throw new CinePachoException("Debes verificar tu correo antes de iniciar sesión");
         }
         
         //TODO: lógica de validar la contraseña (comparar con la almacenada en la base de datos)
         if (!passwordEncoder.matches(loginDTO.password(), user.getPassword())) {
-            throw new IllegalArgumentException("Credenciales incorrectas");
+            throw new CinePachoException("Credenciales incorrectas");
         }
 
         //TODO: lógica de generar el token y devolverlo en el AuthResponseDTO
