@@ -20,7 +20,7 @@ public class ExceptionController {
     //Errores 403 forbidden
     @ExceptionHandler(HttpClientErrorException.Forbidden.class)
     public ResponseEntity<ErrorDTO> cinePachoException(HttpClientErrorException.Forbidden ex){
-        ErrorDTO error = new ErrorDTO(HttpStatus.FORBIDDEN.value(), ex.getMessage());
+        ErrorDTO error = new ErrorDTO(HttpStatus.FORBIDDEN.value(), "La solicitud falló por permisos insuficientes: " + ex.getMessage());
         return ResponseEntity.status(HttpStatus.FORBIDDEN).body(error);
     }
 
@@ -28,7 +28,7 @@ public class ExceptionController {
     //Errores de servidor
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ErrorDTO> exception(Exception ex){
-        ErrorDTO error = new ErrorDTO(HttpStatus.INTERNAL_SERVER_ERROR.value(), ex.getMessage());
+        ErrorDTO error = new ErrorDTO(HttpStatus.INTERNAL_SERVER_ERROR.value(),"Ocurrió un error interno en el servidor. Inténtalo más tarde." + ex.getMessage());
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(error);
     }
 }

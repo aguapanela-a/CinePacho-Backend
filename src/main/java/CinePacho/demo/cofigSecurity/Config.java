@@ -25,7 +25,7 @@ public class Config {
 //                .sessionManagement(session -> session //Decide como se recordarán los usuarios autenticados
 //                        .sessionCreationPolicy(SessionCreationPolicy.STATELESS) //No crear sesiones de usuario jsessionid para que sea el JWT el unico que se valide
 //                )
-                //Filtro para validar JWT
+                //Filtro para validar JWT//
                 .build();
     }
 

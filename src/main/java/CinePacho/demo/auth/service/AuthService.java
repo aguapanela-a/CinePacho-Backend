@@ -33,13 +33,10 @@ public class AuthService {
     @Transactional
     public RegisterResponseDTO register(RegisterRequestDTO registerDTO){
 
-        //TODO: lógica de validar correo electrónico
         if (userRepository.existsByEmail(registerDTO.email())) {
             throw new CinePachoException("Email already in use: " + registerDTO.email());
         }
 
-        //TODO
-        System.out.println("si entró al servicio y verfició que correo mo esté en uso");
 
         //Crea la entidad Usuario con los datos de registro y la guarda
         //y crea la entidad concreta de manera genérica
@@ -52,22 +49,14 @@ public class AuthService {
         );
 
 
-        //TODO
-        System.out.println("si entró al servicio y creó la entidad ");
-
         // Crear token temporal de verificación
         VerificationToken verificationToken = new VerificationToken(user);
         tokenRepository.save(verificationToken);
-
-        //TODO
-        System.out.println("si entró al servicio y creó el token");
 
         
         //enviar correo de verificación
         emailService.sendVerificationEmail(user, verificationToken.getToken());
 
-        //TODO
-        System.out.println("si entró al servicio y envió el correo");
 
         return new RegisterResponseDTO(
             user.getUserType(),
@@ -113,7 +102,7 @@ public class AuthService {
             throw new CinePachoException("Debes verificar tu correo antes de iniciar sesión");
         }
         
-        //TODO: lógica de validar la contraseña (comparar con la almacenada en la base de datos)
+
         if (!passwordEncoder.matches(loginDTO.password(), user.getPassword())) {
             throw new CinePachoException("Credenciales incorrectas");
         }

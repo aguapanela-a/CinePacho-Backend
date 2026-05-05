@@ -8,7 +8,7 @@ import CinePacho.demo.shared.factory.UserFactory;
 import org.springframework.stereotype.Component;
 
 @Component
-public class BuyerFactory implements UserFactory<Void> {
+public class BuyerFactory implements UserFactory<Object> {
 
     private final BuyerRepository buyerRepository;
 
@@ -23,7 +23,7 @@ public class BuyerFactory implements UserFactory<Void> {
 
     //crea una entidad concreta Buyer y completa sus campos que el User no trae
     @Override
-    public void createSpecificEntity(UserEntity user, Void registrationData) {
+    public void createSpecificEntity(UserEntity user, Object registrationData) {
         BuyerEntity buyer = new BuyerEntity();
         buyer.setUser(user);
         buyer.setPoints(0);

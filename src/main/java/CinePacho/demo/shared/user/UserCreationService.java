@@ -35,7 +35,7 @@ public class UserCreationService {
         return userRepository.save(userEntity);
     }
 
-    public UserEntity findUserByUsername(String username) {
-        return userRepository.findUserEntityByUsername(username);
-    }
+//    public UserEntity findUserByUsername(String username) {
+//        return userRepository.findUserEntityByUsername(username);
+//    }
 }
