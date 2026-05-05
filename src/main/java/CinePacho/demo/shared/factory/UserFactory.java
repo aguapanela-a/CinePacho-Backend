@@ -1,6 +1,6 @@
 package CinePacho.demo.shared.factory;
 
-import CinePacho.demo.auth.entities.UserEntity;
+import CinePacho.demo.auth.entities.user.UserEntity;
 import CinePacho.demo.shared.enumeration.UserType;
 
 //Interfaz genérica para crear todos los tipos de entidades

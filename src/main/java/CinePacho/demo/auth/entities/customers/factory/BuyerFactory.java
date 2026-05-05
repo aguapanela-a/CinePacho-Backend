@@ -1,8 +1,8 @@
-package CinePacho.demo.client.factory;
+package CinePacho.demo.auth.entities.customers.factory;
 
-import CinePacho.demo.auth.entities.UserEntity;
-import CinePacho.demo.client.entitites.BuyerEntity;
-import CinePacho.demo.client.repository.BuyerRepository;
+import CinePacho.demo.auth.entities.user.UserEntity;
+import CinePacho.demo.auth.entities.customers.BuyerEntity;
+import CinePacho.demo.auth.entities.customers.repository.BuyerRepository;
 import CinePacho.demo.shared.enumeration.UserType;
 import CinePacho.demo.shared.factory.UserFactory;
 import org.springframework.stereotype.Component;

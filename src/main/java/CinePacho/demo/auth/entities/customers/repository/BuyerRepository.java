@@ -1,10 +1,8 @@
-package CinePacho.demo.client.repository;
+package CinePacho.demo.auth.entities.customers.repository;
 
-import CinePacho.demo.client.entitites.BuyerEntity;
+import CinePacho.demo.auth.entities.customers.BuyerEntity;
 import org.springframework.data.jpa.repository.JpaRepository;
-import org.springframework.stereotype.Repository;
 
-import java.util.List;
 import java.util.UUID;
 
 public interface BuyerRepository extends JpaRepository<BuyerEntity, UUID> {

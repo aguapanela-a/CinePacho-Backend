@@ -1,7 +1,9 @@
-package CinePacho.demo.auth.entities;
+package CinePacho.demo.auth.entities.token;
 
 import java.time.LocalDateTime;
 import java.util.UUID;
+
+import CinePacho.demo.auth.entities.user.UserEntity;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;

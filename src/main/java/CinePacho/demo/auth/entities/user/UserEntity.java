@@ -1,4 +1,4 @@
-package CinePacho.demo.auth.entities;
+package CinePacho.demo.auth.entities.user;
 
 import CinePacho.demo.shared.enumeration.UserType;
 import jakarta.persistence.*;

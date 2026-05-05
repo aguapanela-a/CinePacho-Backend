@@ -1,7 +1,7 @@
 package CinePacho.demo.auth.repository;
 
 
-import CinePacho.demo.auth.entities.UserEntity;
+import CinePacho.demo.auth.entities.user.UserEntity;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 

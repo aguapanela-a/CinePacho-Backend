@@ -1,6 +1,6 @@
 package CinePacho.demo.shared.user;
 
-import CinePacho.demo.auth.entities.UserEntity;
+import CinePacho.demo.auth.entities.user.UserEntity;
 import CinePacho.demo.auth.repository.UserRepository;
 import CinePacho.demo.shared.enumeration.UserType;
 import CinePacho.demo.shared.factory.UserFactoryRegistry;

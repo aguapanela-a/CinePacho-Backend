@@ -1,6 +1,6 @@
 package CinePacho.demo.shared.factory;
 
-import CinePacho.demo.auth.entities.UserEntity;
+import CinePacho.demo.auth.entities.user.UserEntity;
 import CinePacho.demo.shared.enumeration.UserType;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;

@@ -1,9 +1,7 @@
-package CinePacho.demo.client.entitites;
+package CinePacho.demo.auth.entities.customers;
 
-import CinePacho.demo.auth.entities.UserEntity;
-import CinePacho.demo.shared.enumeration.UserType;
+import CinePacho.demo.auth.entities.user.UserEntity;
 import jakarta.persistence.*;
-import lombok.Generated;
 import lombok.Getter;
 import lombok.Setter;
 
