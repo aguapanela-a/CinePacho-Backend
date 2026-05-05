@@ -1,5 +1,7 @@
 package CinePacho.demo.auth.controller;
 
+import CinePacho.demo.auth.dto.response.RegisterResponseDTO;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -18,13 +20,18 @@ import lombok.RequiredArgsConstructor;
 
 @RestController
 @RequestMapping("/api/auth")
-@RequiredArgsConstructor
+//@RequiredArgsConstructor
 public class AuthController {
 
     private final AuthService authService;
 
+    @Autowired
+    public AuthController(AuthService authService) {
+        this.authService = authService;
+    }
+
     @PostMapping("/register")
-    public ResponseEntity<String> register(
+    public ResponseEntity<RegisterResponseDTO> register(
             @Valid @RequestBody RegisterRequestDTO dto) {
         return ResponseEntity.status(HttpStatus.CREATED)
                 .body(authService.register(dto));
@@ -38,7 +45,7 @@ public class AuthController {
 
     // El usuario llega aquí desde el link del correo
     @GetMapping("/verify")
-    public ResponseEntity<String> verify(@RequestParam String token) {
+    public ResponseEntity<String> verify(@RequestParam("token") String token) {
         return ResponseEntity.ok(authService.verifyEmail(token));
     }
 }

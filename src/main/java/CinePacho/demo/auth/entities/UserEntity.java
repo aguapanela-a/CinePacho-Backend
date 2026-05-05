@@ -25,7 +25,7 @@ public class UserEntity {
     private String password;
 
     @Enumerated(EnumType.STRING)
-    UserType userType;
+    private UserType userType;
 
     @Column(unique = true)
     private String email;

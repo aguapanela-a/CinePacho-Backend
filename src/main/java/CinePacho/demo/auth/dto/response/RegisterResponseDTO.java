@@ -10,10 +10,8 @@ import lombok.Getter;
 @Setter
 public class RegisterResponseDTO {
 
-    private String token;
     private UserType userType;
     private String username;
-    
     private String message;
 }
 

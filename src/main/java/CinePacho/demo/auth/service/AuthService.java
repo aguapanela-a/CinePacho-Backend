@@ -13,6 +13,7 @@ import CinePacho.demo.shared.user.UserCreationService;
 import io.jsonwebtoken.Jwt;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.access.expression.SecurityExpressionRoot;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -20,7 +21,6 @@ import org.springframework.stereotype.Service;
 @RequiredArgsConstructor
 public class AuthService {
     private final UserCreationService userCreationService;
-    private final UserFactoryRegistry userFactoryRegistry;
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
     private final EmailService emailService;
@@ -36,40 +36,40 @@ public class AuthService {
         if (userRepository.existsByEmail(registerDTO.email())) {
             throw new IllegalArgumentException("Email already in use: " + registerDTO.email());
         }
-        
 
-        //Crea la entidad Usuario con los datos de registro
+        //TODO
+        System.out.println("si entró al servicio y verfició que correo mo esté en uso");
+
+        //Crea la entidad Usuario con los datos de registro y la guarda
+        //y crea la entidad concreta de manera genérica
         UserEntity user = userCreationService.createUser(
             registerDTO.name(), 
             registerDTO.password(), 
-            registerDTO.userType()
+            registerDTO.userType(),
+            registerDTO.email(),
+            registerDTO
         );
 
 
+        //TODO
+        System.out.println("si entró al servicio y creó la entidad ");
 
-        //crea la entidad concreta de manera genérica y la guarda
-        userFactoryRegistry.createSpecificEntity(user.getUserType(), user, registerDTO);
-
-        //ya la guarda en la base de datis lo de factory? o se agrega
-        // userRepository.save(user);   --> "?"
-
-
-        //TODO: paquete de seguridad con JwtUtil.java (generar/validar tokens)
-        //TODO: lógica de generar el token y devolverlo en el AuthResponseDTO
-
-
-        // Crear token de verificación
+        // Crear token temporal de verificación
         VerificationToken verificationToken = new VerificationToken(user);
         tokenRepository.save(verificationToken);
 
+        //TODO
+        System.out.println("si entró al servicio y creó el token");
 
         
         //enviar correo de verificación
         emailService.sendVerificationEmail(user, verificationToken.getToken());
 
+        //TODO
+        System.out.println("si entró al servicio y envió el correo");
+
         return new RegisterResponseDTO(
-            verificationToken.getToken(), 
-            user.getUserType(), 
+            user.getUserType(),
             user.getUsername(),
             "User registered successfully. Please check your email to verify your account."
         );
@@ -102,21 +102,22 @@ public class AuthService {
     }
 
 
-    
-
+    @Transactional
     public AuthResponseDTO login(LoginRequestDTO loginDTO){
 
         UserEntity user = userRepository.findByEmail(loginDTO.email())
-            .orElseThrow(() -> new IllegalArgumentException("Invalid email or password"));
+            .orElseThrow(() -> new IllegalArgumentException("Usuario no encontrado"));
+
+        if(!user.isEnabled()) {
+            throw new RuntimeException("Debes verificar tu correo antes de iniciar sesión");
+        }
         
         //TODO: lógica de validar la contraseña (comparar con la almacenada en la base de datos)
         if (!passwordEncoder.matches(loginDTO.password(), user.getPassword())) {
-            throw new IllegalArgumentException("Invalid email or password");
+            throw new IllegalArgumentException("Credenciales incorrectas");
         }
 
-
         //TODO: lógica de generar el token y devolverlo en el AuthResponseDTO
-
 
         return new AuthResponseDTO(
             null, 

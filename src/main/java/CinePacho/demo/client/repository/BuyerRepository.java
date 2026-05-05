@@ -7,7 +7,6 @@ import org.springframework.stereotype.Repository;
 import java.util.List;
 import java.util.UUID;
 
-@Repository
 public interface BuyerRepository extends JpaRepository<BuyerEntity, UUID> {
-    BuyerEntity findBuyerEntitiesByName(String name);
+    BuyerEntity findByUser_Email(String userEmail);
 }

@@ -12,6 +12,7 @@ public record RegisterRequestDTO(
         @Email(message = "El correo no es válido")
         String email,
 
+        @Size(min = 2, max = 30, message = "El nombre de usuario debe ser de 2 a 30 carácteres")
         @NotBlank(message = "El nombre no puede estar vacío")
         String name,
 
@@ -19,7 +20,7 @@ public record RegisterRequestDTO(
         @Size(min = 8, message = "La contraseña debe ser de mínimo 8 carácteres")
         String password,
 
-        @NotNull(message = "Debe incluir su tipo de usuario")
+        @NotNull(message = "Debe incluir un tipo de usuario válido")
         UserType userType
 ) {
 }
