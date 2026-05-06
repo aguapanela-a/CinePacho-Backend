@@ -2,11 +2,10 @@ package CinePacho.demo.auth.service;
 
 import CinePacho.demo.auth.dto.response.AuthResponseDTO;
 import CinePacho.demo.auth.dto.request.LoginRequestDTO;
-import CinePacho.demo.auth.dto.request.RegisterRequestDTO;
 import CinePacho.demo.auth.dto.response.RegisterResponseDTO;
 import CinePacho.demo.auth.entities.user.UserEntity;
 import CinePacho.demo.auth.entities.token.VerificationToken;
-import CinePacho.demo.auth.repository.UserRepository;
+import CinePacho.demo.shared.user.UserRepository;
 import CinePacho.demo.auth.repository.VerificationTokenRepository;
 import CinePacho.demo.auth.securityJWT.JwtService;
 import CinePacho.demo.exception.CinePachoException;

@@ -1,7 +1,7 @@
 package CinePacho.demo.shared.user;
 
 import CinePacho.demo.auth.entities.user.UserEntity;
-import CinePacho.demo.auth.repository.UserRepository;
+import CinePacho.demo.exception.CinePachoException;
 import CinePacho.demo.shared.enumeration.UserType;
 import CinePacho.demo.shared.factory.UserFactory;
 import CinePacho.demo.shared.factory.UserFactoryRegistry;
@@ -34,7 +34,7 @@ public class UserCreationService {
         UserFactory factory = userFactoryRegistry.getFactory(userEntity.getUserType());
 
         if (factory == null) {
-            throw new RuntimeException(
+            throw new CinePachoException(
                 "No existe una factory para el tipo de usuario: " + userEntity.getUserType()
             );
         }

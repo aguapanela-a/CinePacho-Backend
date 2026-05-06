@@ -5,7 +5,7 @@ import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 
-import CinePacho.demo.auth.repository.UserRepository;
+import CinePacho.demo.shared.user.UserRepository;
 import lombok.RequiredArgsConstructor;
 
 @Service

@@ -1,4 +1,4 @@
-package CinePacho.demo.auth.repository;
+package CinePacho.demo.shared.user;
 
 
 import CinePacho.demo.auth.entities.user.UserEntity;
