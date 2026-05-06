@@ -9,6 +9,7 @@ import CinePacho.demo.auth.entities.token.VerificationToken;
 import CinePacho.demo.auth.repository.UserRepository;
 import CinePacho.demo.auth.repository.VerificationTokenRepository;
 import CinePacho.demo.exception.CinePachoException;
+import CinePacho.demo.shared.registerData.RegisterData;
 import CinePacho.demo.shared.user.UserCreationService;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
@@ -28,7 +29,7 @@ public class AuthService {
 
 
     @Transactional
-    public RegisterResponseDTO register(RegisterRequestDTO registerDTO){
+    public RegisterResponseDTO register(RegisterData registerDTO){
 
         if (userRepository.existsByEmail(registerDTO.email())) {
             throw new CinePachoException("Email already in use: " + registerDTO.email());

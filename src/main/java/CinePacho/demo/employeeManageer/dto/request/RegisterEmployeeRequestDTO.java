@@ -3,6 +3,7 @@ package CinePacho.demo.employeeManageer.dto.request;
 import CinePacho.demo.shared.enumeration.UserType;
 import CinePacho.demo.shared.registerData.RegisterData;
 import jakarta.validation.constraints.*;
+import org.springframework.stereotype.Component;
 
 import java.math.BigDecimal;
 

@@ -1,6 +1,7 @@
 package CinePacho.demo.auth.controller;
 
 import CinePacho.demo.auth.dto.response.RegisterResponseDTO;
+import CinePacho.demo.shared.registerData.RegisterData;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -32,7 +33,7 @@ public class AuthController {
 
     @PostMapping("/register")
     public ResponseEntity<RegisterResponseDTO> register(
-            @Valid @RequestBody RegisterRequestDTO dto) {
+            @Valid @RequestBody RegisterData dto) {
         return ResponseEntity.status(HttpStatus.CREATED)
                 .body(authService.register(dto));
     }
