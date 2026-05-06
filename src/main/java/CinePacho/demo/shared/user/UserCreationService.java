@@ -3,6 +3,7 @@ package CinePacho.demo.shared.user;
 import CinePacho.demo.auth.entities.user.UserEntity;
 import CinePacho.demo.auth.repository.UserRepository;
 import CinePacho.demo.shared.enumeration.UserType;
+import CinePacho.demo.shared.factory.UserFactory;
 import CinePacho.demo.shared.factory.UserFactoryRegistry;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -28,6 +29,14 @@ public class UserCreationService {
         userEntity.setPassword(passwordEncoder.encode(password));
         userEntity.setUserType(userType);
         userEntity.setEmail(email);
+
+        UserFactory factory = userFactoryRegistry.getFactory(userEntity.getUserType());
+
+        if (factory == null) {
+            throw new RuntimeException(
+                "No existe una factory para el tipo de usuario: " + userEntity.getUserType()
+            );
+        }
 
         //crear entidad concreta
         userFactoryRegistry.createSpecificEntity(userEntity.getUserType(),userEntity, extraData);

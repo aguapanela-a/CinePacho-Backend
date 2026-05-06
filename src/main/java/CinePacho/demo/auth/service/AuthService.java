@@ -8,6 +8,7 @@ import CinePacho.demo.auth.entities.user.UserEntity;
 import CinePacho.demo.auth.entities.token.VerificationToken;
 import CinePacho.demo.auth.repository.UserRepository;
 import CinePacho.demo.auth.repository.VerificationTokenRepository;
+import CinePacho.demo.auth.securityJWT.JwtService;
 import CinePacho.demo.exception.CinePachoException;
 import CinePacho.demo.shared.user.UserCreationService;
 import jakarta.transaction.Transactional;
@@ -23,7 +24,7 @@ public class AuthService {
     private final PasswordEncoder passwordEncoder;
     private final EmailService emailService;
     private final VerificationTokenRepository tokenRepository;
-    // private final JwtService jwtService;
+    private final JwtService jwtService;
     // private final JwtUtil jwtUtil;
 
 
@@ -52,7 +53,12 @@ public class AuthService {
 
         
         //enviar correo de verificación
-        emailService.sendVerificationEmail(user, verificationToken.getToken());
+        try{
+            emailService.sendVerificationEmail(user, verificationToken.getToken());
+
+        } catch (Exception e) {
+            throw new CinePachoException("Error al enviar el correo de verificación a " + user.getEmail() + ": " + e.getMessage());
+        }
 
 
         return new RegisterResponseDTO(
@@ -98,16 +104,13 @@ public class AuthService {
         if(!user.isEnabled()) {
             throw new CinePachoException("Debes verificar tu correo antes de iniciar sesión");
         }
-        
-
+    
         if (!passwordEncoder.matches(loginDTO.password(), user.getPassword())) {
             throw new CinePachoException("Credenciales incorrectas");
         }
 
-        //TODO: lógica de generar el token y devolverlo en el AuthResponseDTO
-
         return new AuthResponseDTO(
-            null, 
+            jwtService.generateToken(user),
             user.getUserType(), 
             user.getUsername()
         );

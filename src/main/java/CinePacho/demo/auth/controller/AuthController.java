@@ -16,7 +16,6 @@ import CinePacho.demo.auth.dto.request.RegisterRequestDTO;
 import CinePacho.demo.auth.dto.response.AuthResponseDTO;
 import CinePacho.demo.auth.service.AuthService;
 import jakarta.validation.Valid;
-import lombok.RequiredArgsConstructor;
 
 @RestController
 @RequestMapping("/api/auth")

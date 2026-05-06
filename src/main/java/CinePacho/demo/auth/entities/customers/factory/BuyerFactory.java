@@ -27,6 +27,7 @@ public class BuyerFactory implements UserFactory<Object> {
         BuyerEntity buyer = new BuyerEntity();
         buyer.setUser(user);
         buyer.setPoints(0);
+        buyer.setCorreo(user.getEmail());
         buyerRepository.save(buyer);
     }
 }
