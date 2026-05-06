@@ -31,18 +31,16 @@ public class UserCreationService {
         userEntity.setUserType(userType);
         userEntity.setEmail(email);
 
-        UserFactory factory = userFactoryRegistry.getFactory(userEntity.getUserType());
+        //Guardo UserEntity para generar el UUID
+        UserEntity savedUser = userRepository.save(userEntity);
 
-        if (factory == null) {
-            throw new CinePachoException(
-                "No existe una factory para el tipo de usuario: " + userEntity.getUserType()
-            );
+
+        //Si si existe la factory cree la entidad concreta
+        if (userFactoryRegistry.getFactory(userEntity.getUserType()) != null) {
+            userFactoryRegistry.createSpecificEntity(savedUser.getUserType(),savedUser, extraData);
         }
 
-        //crear entidad concreta
-        userFactoryRegistry.createSpecificEntity(userEntity.getUserType(),userEntity, extraData);
-
-        return userRepository.save(userEntity);
+        return savedUser;
     }
 
 //    public UserEntity findUserByUsername(String username) {
