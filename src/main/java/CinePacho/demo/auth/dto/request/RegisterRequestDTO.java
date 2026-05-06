@@ -1,6 +1,7 @@
 package CinePacho.demo.auth.dto.request;
 
 import CinePacho.demo.shared.enumeration.UserType;
+import CinePacho.demo.shared.registerData.RegisterData;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
@@ -22,5 +23,5 @@ public record RegisterRequestDTO(
 
         @NotNull(message = "Debe incluir un tipo de usuario válido")
         UserType userType
-) {
+) implements RegisterData {
 }

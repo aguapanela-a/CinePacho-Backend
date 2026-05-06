@@ -1,5 +1,6 @@
 package CinePacho.demo.auth.entities.customers.factory;
 
+import CinePacho.demo.auth.dto.request.RegisterRequestDTO;
 import CinePacho.demo.auth.entities.user.UserEntity;
 import CinePacho.demo.auth.entities.customers.BuyerEntity;
 import CinePacho.demo.auth.entities.customers.repository.BuyerRepository;
@@ -8,7 +9,7 @@ import CinePacho.demo.shared.factory.UserFactory;
 import org.springframework.stereotype.Component;
 
 @Component
-public class BuyerFactory implements UserFactory<Object> {
+public class BuyerFactory implements UserFactory<RegisterRequestDTO> {
 
     private final BuyerRepository buyerRepository;
 
@@ -23,7 +24,7 @@ public class BuyerFactory implements UserFactory<Object> {
 
     //crea una entidad concreta Buyer y completa sus campos que el User no trae
     @Override
-    public void createSpecificEntity(UserEntity user, Object registrationData) {
+    public void createSpecificEntity(UserEntity user, RegisterRequestDTO registrationData) {
         BuyerEntity buyer = new BuyerEntity();
         buyer.setUser(user);
         buyer.setPoints(0);

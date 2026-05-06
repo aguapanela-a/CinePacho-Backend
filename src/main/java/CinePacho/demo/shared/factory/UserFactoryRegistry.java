@@ -2,6 +2,7 @@ package CinePacho.demo.shared.factory;
 
 import CinePacho.demo.auth.entities.user.UserEntity;
 import CinePacho.demo.shared.enumeration.UserType;
+import CinePacho.demo.shared.registerData.RegisterData;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -24,7 +25,7 @@ public class UserFactoryRegistry {
                 ));
     }
 
-    public void createSpecificEntity(UserType type, UserEntity user, Object registrationData) {
+    public void createSpecificEntity(UserType type, UserEntity user, RegisterData registrationData) {
         factories.get(type).createSpecificEntity(user, registrationData);
     }
 

@@ -4,6 +4,7 @@ import CinePacho.demo.auth.entities.user.UserEntity;
 import CinePacho.demo.auth.repository.UserRepository;
 import CinePacho.demo.shared.enumeration.UserType;
 import CinePacho.demo.shared.factory.UserFactoryRegistry;
+import CinePacho.demo.shared.registerData.RegisterData;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
@@ -21,7 +22,7 @@ public class UserCreationService {
         this.passwordEncoder = passwordEncoder;
     }
 
-    public UserEntity createUser(String name, String password, UserType userType, String email, Object extraData ) {
+    public UserEntity createUser(String name, String password, UserType userType, String email, RegisterData extraData ) {
         //Crear UserEntity
         UserEntity userEntity = new UserEntity();
         userEntity.setUsername(name);
