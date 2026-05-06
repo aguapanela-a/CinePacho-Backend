@@ -12,7 +12,7 @@ public class EmployeeService {
     private UserCreationService userCreationService;
 
     @Autowired
-    public void setUserCreationService(UserCreationService userCreationService) {
+    public EmployeeService(UserCreationService userCreationService) {
         this.userCreationService = userCreationService;
     }
 
