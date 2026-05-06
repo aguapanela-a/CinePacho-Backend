@@ -30,6 +30,7 @@ public class UserEntity {
     @Column(unique = true)
     private String email;
 
+    @Column(nullable = false)
     private boolean enabled = false;
 
 }

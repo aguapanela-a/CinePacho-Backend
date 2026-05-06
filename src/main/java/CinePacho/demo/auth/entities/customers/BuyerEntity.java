@@ -19,8 +19,9 @@ public class BuyerEntity {
     @JoinColumn(name = "userId", unique = true)
     private UserEntity user;
 
-
+    @Column
     private long points;
 
-
+    @Column(unique = true, nullable = false)
+    private String correo;
 }

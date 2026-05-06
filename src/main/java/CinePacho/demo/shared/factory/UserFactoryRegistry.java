@@ -14,6 +14,7 @@ import java.util.stream.Collectors;
 
 @Component
 public class UserFactoryRegistry {
+    
     private final Map<UserType, UserFactory> factories;
 
     @Autowired
@@ -27,6 +28,10 @@ public class UserFactoryRegistry {
 
     public void createSpecificEntity(UserType type, UserEntity user, RegisterData registrationData) {
         factories.get(type).createSpecificEntity(user, registrationData);
+    }
+
+    public UserFactory getFactory(UserType userType) {
+        return factories.get(userType);
     }
 
 }
