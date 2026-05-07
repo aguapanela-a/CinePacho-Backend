@@ -24,7 +24,7 @@ public record RegisterEmployeeRequestDTO (
         @NotNull(message = "Debe incluir un tipo de usuario válido")
         UserType userType,
 
-        @NotBlank(message = "La cédula deciudadanía es obligatoria")
+        @NotBlank(message = "La cédula de ciudadanía es obligatoria")
         @Size(min = 8, max = 10, message = "La cedula de ciudadanía debe tener entre 8 y 10 dígitos")
         String indentityCard,
 
@@ -37,5 +37,4 @@ public record RegisterEmployeeRequestDTO (
 
         @NotNull(message = "El rol del empleado es obligatorio y debe ser válido")
         String position
-)
-implements RegisterData {}
+){}

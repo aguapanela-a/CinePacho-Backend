@@ -26,7 +26,7 @@ public class UserFactoryRegistry {
                 ));
     }
 
-    public void createSpecificEntity(UserType type, UserEntity user, RegisterData registrationData) {
+    public void createSpecificEntity(UserType type, UserEntity user, Object registrationData) {
         factories.get(type).createSpecificEntity(user, registrationData);
     }
 

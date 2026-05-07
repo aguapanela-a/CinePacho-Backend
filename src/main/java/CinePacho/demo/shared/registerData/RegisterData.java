@@ -8,7 +8,7 @@ import com.fasterxml.jackson.annotation.JsonTypeInfo;
 
 //Se usa el campo "userType" del JSON como discriminador según el tipo de usuario se crea una o otra impl de la interface
 // (en este caso solo BUYER porque es el único, por ahora, que se puede registrar po sí solo)
-@JsonTypeInfo(use = JsonTypeInfo.Id.NAME, property = "userType")
+@JsonTypeInfo(use = JsonTypeInfo.Id.NAME, property = "userType", visible = true)
 @JsonSubTypes(
         {
                 @JsonSubTypes.Type(value = RegisterRequestDTO.class, name = "BUYER"),

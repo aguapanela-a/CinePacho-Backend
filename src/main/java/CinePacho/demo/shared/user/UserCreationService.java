@@ -23,7 +23,7 @@ public class UserCreationService {
         this.passwordEncoder = passwordEncoder;
     }
 
-    public UserEntity createUser(String name, String password, UserType userType, String email, RegisterData extraData ) {
+    public UserEntity createUser(String name, String password, UserType userType, String email, Object extraData ) {
         //Crear UserEntity
         UserEntity userEntity = new UserEntity();
         userEntity.setUsername(name);

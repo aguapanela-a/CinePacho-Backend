@@ -1,4 +1,4 @@
-package CinePacho.demo.auth.securityJWT;
+package CinePacho.demo.auth.securityJWT.serviceSecurity;
 import java.security.Key;
 import java.util.Date;
 import java.util.function.Function;

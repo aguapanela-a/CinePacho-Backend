@@ -36,6 +36,7 @@ public class EmployeeFactory implements UserFactory<RegisterEmployeeRequestDTO> 
         employee.setSalary(extraData.salary());
         employee.setPosition(extraData.position());
 
+
         employeeRepository.save(employee);
     }
 

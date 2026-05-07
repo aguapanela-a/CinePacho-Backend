@@ -1,4 +1,4 @@
-package CinePacho.demo.cofigSecurity;
+package CinePacho.demo.auth.securityJWT.cofigSecurity;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -37,12 +37,13 @@ public class Config {
                             "/api/auth/register",
                             "/api/auth/login",
                             "/api/auth/verify"
-                        ).permitAll() //Permitir cualquier request al endpoint de Auth
+                        ).permitAll()//Permitir cualquier request al endpoint de Auth
+                        .requestMatchers("/api/admin/**").hasAuthority ("ADMIN") //a ese edpoint solamente puede entrar el admin
                         .anyRequest().authenticated() //El resto de request requieren de token
                 )
-//                .sessionManagement(session -> session //Decide como se recordarán los usuarios autenticados
-//                        .sessionCreationPolicy(SessionCreationPolicy.STATELESS) //No crear sesiones de usuario jsessionid para que sea el JWT el unico que se valide
-//                )
+                .sessionManagement(session -> session //Decide como se recordarán los usuarios autenticados
+                        .sessionCreationPolicy(SessionCreationPolicy.STATELESS) //No crear sesiones de usuario jsessionid para que sea el JWT el unico que se valide
+                )
                 .userDetailsService(userDetailService)
                 .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class) //Agregar el filtro de JWT antes del filtro de autenticación por defecto
                 .build();
