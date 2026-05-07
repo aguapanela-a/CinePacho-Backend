@@ -9,6 +9,8 @@ import CinePacho.demo.shared.factory.UserFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
+import java.util.UUID;
+
 @Component
 public class EmployeeFactory implements UserFactory<RegisterEmployeeRequestDTO> {
 
@@ -35,9 +37,16 @@ public class EmployeeFactory implements UserFactory<RegisterEmployeeRequestDTO> 
         employee.setPhoneNumber(extraData.phoneNumber());
         employee.setSalary(extraData.salary());
         employee.setPosition(extraData.position());
+        employee.setUniqueCode(nextUniqueCode());
 
 
         employeeRepository.save(employee);
+    }
+
+    private long nextUniqueCode() {
+        return employeeRepository.findTopByOrderByUniqueCodeDesc()
+                .map(EmployeeEntity::getUniqueCode)
+                .orElse(9999L) + 1;
     }
 
 }

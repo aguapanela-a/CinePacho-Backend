@@ -24,8 +24,8 @@ public class EmployeeEntity {
     @JoinColumn(name = "userId", unique = true)
     private UserEntity user;
 
-    @Column(unique = true)
-    private long uniqueCode;
+    @Column(nullable = false, unique = true)
+    private Long uniqueCode;
 
     @Column(unique = true)
     private LocalDateTime startDate;
