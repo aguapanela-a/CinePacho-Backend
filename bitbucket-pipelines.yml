@@ -11,18 +11,10 @@ pipelines:
           caches:
             - node
           script:
-            # 1. Instalamos la CLI
             - npm i -g @railway/cli
-
-            # 2. DEBUG: Verificamos qué archivos ve el robot (debe aparecer el Dockerfile)
-            - echo "Lista de archivos en el root:"
+            - echo "--- REVISANDO ARCHIVOS ---"
             - ls -la
-
-            # 3. DEBUG: Verificamos que el Token y el Service ID no estén vacíos
-            # (No imprimimos el Token por seguridad, solo vemos si existe)
-            - echo "El ID del servicio configurado es -> [$RAILWAY_SERVICE]"
-            - if [ -z "$RAILWAY_TOKEN" ]; then echo "ERROR: El Token está vacío"; else echo "Token detectado OK"; fi
-
-            # 4. Intentamos el despliegue con el flag --detach
-            # El detach hace que el pipeline no se quede esperando a que termine el build en la nube
-            - RAILWAY_TOKEN=$RAILWAY_TOKEN railway up --service=$RAILWAY_SERVICE --detach
+            - echo "--- REVISANDO VARIABLES ---"
+            - echo "ID del servicio es [$RAILWAY_SERVICE]"
+            - echo "--- INICIANDO DESPLIEGUE ---"
+            - railway up --service=$RAILWAY_SERVICE --detach
