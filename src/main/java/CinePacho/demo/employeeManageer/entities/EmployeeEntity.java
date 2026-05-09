@@ -39,6 +39,4 @@ public class EmployeeEntity {
     private BigDecimal salary;
 
     private String phoneNumber;
-
-
 }

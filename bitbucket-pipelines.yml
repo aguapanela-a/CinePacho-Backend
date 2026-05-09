@@ -1,20 +1,15 @@
-image: node:18
-
-clone:
-  depth: full
+image: atlassian/default-image:3
 
 pipelines:
+  # Automated pipeline for syncing Bitbucket repository with its GitHub mirror, ensuring real-time updates across platforms
   branches:
-    main:
+    '*':
       - step:
-          name: Deploy to railway
-          caches:
-            - node
+          name: Sync GitHub Mirror
+          image: alpine/git:latest
+          clone:
+            enabled: false
           script:
-            - npm i -g @railway/cli
-            - echo "--- REVISANDO ARCHIVOS ---"
-            - ls -la
-            - echo "--- REVISANDO VARIABLES ---"
-            - echo "ID del servicio es [$RAILWAY_SERVICE]"
-            - echo "--- INICIANDO DESPLIEGUE ---"
-            - railway up --service=$RAILWAY_SERVICE --detach
+            - git clone --bare git@bitbucket.org:camilomardu/backcinepacho.git
+            - cd backcinepacho.git
+            - git push --mirror git@github.com:aguapanela-a/CinePacho-Backend.git

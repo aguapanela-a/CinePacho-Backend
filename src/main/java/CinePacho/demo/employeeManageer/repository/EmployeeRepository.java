@@ -15,4 +15,5 @@ public interface EmployeeRepository extends  JpaRepository<EmployeeEntity, UUID>
     EmployeeEntity findEmployeeEntityByUniqueCode(long uniqueCode);
 
     Optional<EmployeeEntity> findTopByOrderByUniqueCodeDesc();
+
 }
