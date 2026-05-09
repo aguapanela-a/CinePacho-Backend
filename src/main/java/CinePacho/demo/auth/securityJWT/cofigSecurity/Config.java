@@ -36,7 +36,15 @@ public class Config {
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration config = new CorsConfiguration();
-        config.setAllowedOrigins(List.of("http://localhost:3000")); // puerto del front
+
+        // Obtiene el valor de la variable de entorno 'FRONTEND_URL' definida en el servidor (ej. Railway)
+        String frontendUrl = System.getenv("FRONTEND_URL");
+
+        // Si la variable existe, la usa como origen permitido; de lo contrario, usa localhost por defecto para desarrollo local
+        config.setAllowedOrigins(List.of(frontendUrl != null ? frontendUrl : "http://localhost:5173"));
+
+        System.out.println("CORS Origin configurado como: " + (frontendUrl != null ? frontendUrl : "http://localhost:5173"));
+
         config.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE"));
         config.setAllowedHeaders(List.of("*"));
         config.setAllowCredentials(true);

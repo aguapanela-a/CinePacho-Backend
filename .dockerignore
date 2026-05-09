@@ -1,0 +1,8 @@
+target/
+*.log
+.git
+.gitignore
+.mvn
+README.md
+
+src/main/resources/application-local.properties
