@@ -1,15 +1,8 @@
 package CinePacho.demo.auth.service;
-
-import com.resend.core.exception.ResendException;
-import com.resend.services.emails.model.CreateEmailOptions;
 import org.springframework.beans.factory.annotation.Value;
-import com.resend.Resend;
-import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.stereotype.Service;
-
 import CinePacho.demo.auth.entities.user.UserEntity;
 import lombok.RequiredArgsConstructor;
-
 import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
