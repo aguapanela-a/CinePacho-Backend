@@ -26,7 +26,7 @@ public class MovieScreening {
 //    @JoinColumn(name = "sala_id")
 //    private SalaEntity sala;         // ← cuando se tenga la entidad sala
 
-    private LocalDateTime fechaHora;
+    private LocalDateTime dateTime;
 
     @Enumerated(EnumType.STRING)
     private ScreeningStatus status;
