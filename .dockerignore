@@ -3,6 +3,7 @@ target/
 .git
 .gitignore
 .mvn
+.env
 README.md
 
 src/main/resources/application-local.properties

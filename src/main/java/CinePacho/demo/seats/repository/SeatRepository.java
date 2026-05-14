@@ -1,0 +1,21 @@
+package CinePacho.demo.seats.repository;
+
+import CinePacho.demo.seats.entities.SeatEntity;
+import CinePacho.demo.shared.enumeration.SeatType;
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.stereotype.Repository;
+ 
+import java.util.List;
+import java.util.UUID;
+ 
+@Repository
+public interface SeatRepository extends JpaRepository<SeatEntity, UUID> {
+ 
+    List<SeatEntity> findByRoomId(UUID roomId);
+ 
+    List<SeatEntity> findByRoomIdAndType(UUID roomId, SeatType type);
+
+    long countByRoomIdAndType(UUID roomId, SeatType type);
+ 
+    boolean existsByRoomIdAndSeatNumber(UUID roomId, Integer seatNumber);
+}

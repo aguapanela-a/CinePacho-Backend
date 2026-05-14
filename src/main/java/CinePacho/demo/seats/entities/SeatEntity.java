@@ -1,0 +1,39 @@
+package CinePacho.demo.seats.entities;
+
+import jakarta.persistence.*;
+import lombok.*;
+ 
+import java.util.UUID;
+
+import CinePacho.demo.shared.enumeration.SeatType;
+ 
+@Entity
+@Table(
+    name = "seats",
+    uniqueConstraints = @UniqueConstraint(
+        name = "uk_seat_room_number",
+        columnNames = {"room_id", "seat_number"}
+    )
+)
+@Getter
+@Setter
+@NoArgsConstructor
+@AllArgsConstructor
+@Builder
+public class SeatEntity {
+ 
+    @Id
+    @GeneratedValue(strategy = GenerationType.UUID)
+    @Column(name = "id", updatable = false, nullable = false)
+    private UUID id;
+ 
+    @Column(name = "room_id", nullable = false)
+    private UUID roomId;
+ 
+    @Column(name = "seat_number", nullable = false)
+    private Integer seatNumber;
+ 
+    @Enumerated(EnumType.STRING)
+    @Column(name = "type", nullable = false, length = 20)
+    private SeatType type;
+}

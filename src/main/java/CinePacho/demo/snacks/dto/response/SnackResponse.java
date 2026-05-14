@@ -3,6 +3,7 @@ package CinePacho.demo.snacks.dto.response;
 import lombok.*;
  
 import java.util.UUID;
+import java.math.BigDecimal;
  
 @Getter
 @Setter
@@ -14,6 +15,6 @@ public class SnackResponse {
     private UUID idSnack;
     private String nameSnack;
     private String descriptionSnack;
-    private double priceSnack;
+    private BigDecimal priceSnack;
     private int quantitySnack;
 }
