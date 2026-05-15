@@ -13,11 +13,10 @@ import CinePacho.demo.seats.dto.response.SeatAvailabilitySummaryResponse;
 @Builder
 public class RoomDetailResponse {
  
-    private String idSala;
-    private String multiplexId;
+    private String idRoom;
     private Integer numberRoom;
     private Integer generalCapacity;
     private Integer preferentialCapacity;
-    private Boolean isSalaActive;
+    private Boolean isRoomActive;
     private List<SeatAvailabilitySummaryResponse> seats;  
 }

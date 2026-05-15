@@ -22,10 +22,10 @@ import java.util.stream.Collectors;
 public class RoomService {
  
     private final RoomRepository roomRepository;
-    private final SeatRepository seatRepository;   // ← inyectado ahora que existe
- 
+    private final SeatRepository seatRepository;   
+
     // ── GET ALL ─────────────────────────────────────────────────────────────────
-    public List<RoomResponse> obtenerTodas() {
+    public List<RoomResponse> getAll() {
         List<RoomResponse> rooms = roomRepository.findAll()
                 .stream()
                 .map(this::toSummary)
@@ -35,13 +35,13 @@ public class RoomService {
     }
  
     // ── GET BY ID ────────────────────────────────────────────────────────────────
-    public RoomDetailResponse obtenerPorId(UUID id) {
+    public RoomDetailResponse getById(UUID id) {
         RoomEntity room = findOrThrow(id);
         return toDetail(room);
     }
  
     // ── CREATE ───────────────────────────────────────────────────────────────────
-    public RoomDetailResponse crear(RoomRequest request) {
+    public RoomDetailResponse create(RoomRequest request) {
         if (roomRepository.existsByMultiplexIdAndNumberRoom(request.getMultiplexId(), request.getNumberRoom())) {
             throw new IllegalArgumentException(
                     "Ya existe una sala con el número " + request.getNumberRoom() + " en ese multiplex");
@@ -58,7 +58,7 @@ public class RoomService {
     }
  
     // ── UPDATE ───────────────────────────────────────────────────────────────────
-    public RoomDetailResponse actualizar(UUID id, RoomRequest request) {
+    public RoomDetailResponse update(UUID id, RoomRequest request) {
         RoomEntity room = findOrThrow(id);
  
         boolean cambioNumero = !room.getNumberRoom().equals(request.getNumberRoom())
@@ -79,7 +79,7 @@ public class RoomService {
     }
  
     // ── DELETE (lógico) ──────────────────────────────────────────────────────────
-    public void eliminar(UUID id) {
+    public void delete(UUID id) {
         RoomEntity room = findOrThrow(id);
         room.setActive(false);
         roomRepository.save(room);
@@ -93,10 +93,10 @@ public class RoomService {
  
     private RoomResponse toSummary(RoomEntity room) {
         return RoomResponse.builder()
-                .idSala(room.getId().toString())
+                .idRoom(room.getId().toString())
                 .generalCapacity(room.getGeneralCapacity())
                 .preferentialCapacity(room.getPreferentialCapacity())
-                .isSalaActive(room.getActive())
+                .isRoomActive(room.getActive())
                 .build();
     }
  
@@ -111,12 +111,11 @@ public class RoomService {
         );
  
         return RoomDetailResponse.builder()
-                .idSala(room.getId().toString())
-                .multiplexId(room.getMultiplexId().toString())
+                .idRoom(room.getId().toString())
                 .numberRoom(room.getNumberRoom())
                 .generalCapacity(room.getGeneralCapacity())
                 .preferentialCapacity(room.getPreferentialCapacity())
-                .isSalaActive(room.getActive())
+                .isRoomActive(room.getActive())
                 .seats(seats)
                 .build();
     }

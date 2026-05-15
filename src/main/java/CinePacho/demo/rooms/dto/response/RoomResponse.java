@@ -9,9 +9,9 @@ import lombok.*;
 @Builder
 public class RoomResponse {
  
-    private String idSala;
+    private String idRoom;
     private Integer generalCapacity;
     private Integer preferentialCapacity;
-    private Boolean isSalaActive;
+    private Boolean isRoomActive;
 }
  

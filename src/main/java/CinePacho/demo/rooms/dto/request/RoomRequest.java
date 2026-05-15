@@ -29,9 +29,4 @@ public class RoomRequest {
     @Positive(message = "La capacidad preferencial debe ser mayor a 0")
     private Integer preferentialCapacity;
 
-
-    @PostConstruct
-    public void test() {
-        System.out.println(System.getenv("JWT_SECRET"));
-    }
 }
