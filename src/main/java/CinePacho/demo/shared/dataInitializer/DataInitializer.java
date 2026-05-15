@@ -35,6 +35,7 @@ public class DataInitializer implements CommandLineRunner {
 
     @Override
     public void run(String... args) throws Exception {
+
         if(!userRepository.existsByEmail("admin@cinepacho.com")){
             UserEntity admin = userCreationService.createUser(
                     adminName,

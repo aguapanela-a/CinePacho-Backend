@@ -34,10 +34,10 @@ public class SnackService {
  
     public SnackResponse create(SnackRequest request) {
         SnackEntity snack = SnackEntity.builder()
-                .name(request.getName())
-                .description(request.getDescription())
-                .price(request.getPrice())
-                .quantity(request.getQuantity())
+                .name(request.getNameSnack())
+                .description(request.getDescriptionSnack())
+                .price(request.getPriceSnack())
+                .quantity(request.getQuantitySnack())
                 .build();
         return toResponse(snackRepository.save(snack));
     }
@@ -46,10 +46,10 @@ public class SnackService {
         SnackEntity snack = snackRepository.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException("Snack no encontrado con id: " + id));
  
-        snack.setName(request.getName());
-        snack.setDescription(request.getDescription());
-        snack.setPrice(request.getPrice());
-        snack.setQuantity(request.getQuantity());
+        snack.setName(request.getNameSnack());
+        snack.setDescription(request.getDescriptionSnack());
+        snack.setPrice(request.getPriceSnack());
+        snack.setQuantity(request.getQuantitySnack());
         return toResponse(snackRepository.save(snack));
     }
  
