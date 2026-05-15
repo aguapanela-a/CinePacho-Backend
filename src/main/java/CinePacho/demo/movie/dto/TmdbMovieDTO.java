@@ -8,7 +8,6 @@ import java.util.List;
 @JsonIgnoreProperties(ignoreUnknown = true)
 public record TmdbMovieDTO(
         Long id,
-        Boolean adult,
 
         @JsonProperty("backdrop_path")
         String backdropPath,
@@ -28,9 +27,6 @@ public record TmdbMovieDTO(
         String posterPath,
 
         @JsonProperty("release_date")
-        String releaseDate,
-
-        @JsonProperty("vote_average")
-        Double rating
+        String releaseDate
 ) {
 }

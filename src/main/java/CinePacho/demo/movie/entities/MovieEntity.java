@@ -16,7 +16,6 @@ public class MovieEntity {
     @Id
     private Long id;
 
-    private Boolean adult;
     private String backdropPath;
     private String originalLanguage;
     private String originalTitle;
