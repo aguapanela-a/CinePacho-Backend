@@ -23,7 +23,6 @@ public class MovieEntity {
     private String overview;
     private Double rating;
     private String posterPath;
-    private Integer duration;
     private String releaseDate;
     private String director;
 
