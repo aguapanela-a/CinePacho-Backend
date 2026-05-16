@@ -1,6 +1,7 @@
 package CinePacho.demo.movie.dto;
 
 import CinePacho.demo.movie.entities.MovieScreening;
+import CinePacho.demo.movie.enumeration.ScreeningStatus;
 import CinePacho.demo.shared.tmdbGenre.TmdbGenreMapper;
 import jakarta.validation.constraints.NotBlank;
 
@@ -9,8 +10,11 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 
 public record ScreeningResponseDTO(
+        @NotBlank
+        UUID screeningId,
 
         @NotBlank(message = "La función debe tener una fecha")
         LocalDateTime dateTime,
@@ -30,6 +34,9 @@ public record ScreeningResponseDTO(
         Double rating,
 
         String director,
+
+        @NotBlank
+        ScreeningStatus status,
 
         @NotBlank(message = "La función debe tener lista de géneros")
         List<String> genres

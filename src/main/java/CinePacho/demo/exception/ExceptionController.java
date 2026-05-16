@@ -6,6 +6,7 @@ import org.springframework.web.ErrorResponse;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.client.HttpClientErrorException;
+import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
 import tools.jackson.databind.exc.InvalidTypeIdException;
 
 @RestControllerAdvice
@@ -33,6 +34,14 @@ public class ExceptionController {
        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(error);
     }
 
+    // Atrapa el error cuando Spring no puede convertir el String al Enum
+    @ExceptionHandler(MethodArgumentTypeMismatchException.class)
+    public ResponseEntity<ErrorDTO> handleEnumMismatch(MethodArgumentTypeMismatchException ex) {
+        ErrorDTO error = new ErrorDTO(HttpStatus.BAD_REQUEST.value(),"Valor inválido para el parámetro: " + ex.getName() +
+                ". Por favor, envíe un parámetro válido.") ;
+
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(error);
+    }
 
     //Errores de servidor
     @ExceptionHandler(Exception.class)
@@ -40,4 +49,5 @@ public class ExceptionController {
         ErrorDTO error = new ErrorDTO(HttpStatus.INTERNAL_SERVER_ERROR.value(),"Ocurrió un error interno en el servidor. Inténtalo más tarde." + ex.getMessage());
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(error);
     }
+
 }

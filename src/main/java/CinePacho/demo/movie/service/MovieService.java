@@ -16,6 +16,7 @@ import org.springframework.web.reactive.function.client.WebClient;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
+import java.util.UUID;
 
 @Service
 public class MovieService {
@@ -52,7 +53,7 @@ public class MovieService {
 
     //Cuando da clic a una peli de la lista de arriba, se ejecutará este siguiente metodo,
     // el front cunado selecciona una, tendrá un json con la estructura de TmdbMovieDTO
-    // pero envia solo id para evitar errores de escritura
+    // pero envía solo id para evitar errores de escritura
 
     public MovieResponseDTO selectMovie(Long id) {
 
@@ -64,9 +65,9 @@ public class MovieService {
 
         // si no está en BD la busca en la API
         TmdbMovieDTO movieDTO = webClient.get()
-                .uri("/movie/"+id+"?language=es")
+                .uri("/movie/" + id + "?language=es")
                 .header("accept", "application/json")
-                .header("Authorization","Bearer "+accessToken)
+                .header("Authorization", "Bearer " + accessToken)
                 .retrieve()
                 .bodyToMono(TmdbMovieDTO.class)
                 .block();
@@ -86,7 +87,7 @@ public class MovieService {
 
     public ScreeningResponseDTO createScreening(String multiplexName, CreateScreeningDTO createScreeningDTO) {
 
-        //verifica que traiga una pelicula seleccionada
+        //verifica que traiga una película seleccionada
         MovieEntity movie = movieRepository.findById(createScreeningDTO.movieId()) //buca en BD por id
                 .orElseThrow(() -> new CinePachoException("Debes seleccionar una película primero")); // si no encuentra nada es porque no ha seleccionado
 
@@ -98,9 +99,11 @@ public class MovieService {
         movieScreening.setDateTime(createScreeningDTO.dateTime());
         movieScreening.setPrice(createScreeningDTO.price());
         movieScreening.setStatus(ScreeningStatus.ACTIVE);
-        movieScreeningRepository.save(movieScreening);
+
+        MovieScreening screening = movieScreeningRepository.save(movieScreening);
 
         return new ScreeningResponseDTO(
+                screening.getId(),
                 movieScreening.getDateTime(),
                 movieScreening.getPrice(),
                 movie.getOriginalLanguage(),
@@ -108,10 +111,20 @@ public class MovieService {
                 movie.getOverview(),
                 movie.getRating(),
                 movie.getDirector(),
+                screening.getStatus(),
                 getGenreList(movie)
-                );
+        );
     }
 
+
+    public void changeScreeningStatus(UUID id, ScreeningStatus screeningStatus) {
+
+        MovieScreening movieScreening = movieScreeningRepository.findById(id)
+                .orElseThrow(()-> new CinePachoException("Película no encontrada, por favor asegúrese de escribir bien el id"));
+
+        movieScreening.setStatus(screeningStatus);
+        movieScreeningRepository.save(movieScreening);
+    }
 
     private List<String> getGenreList(MovieEntity movieEntity) {
         TmdbGenreMapper genreMapper = new TmdbGenreMapper();
@@ -127,7 +140,7 @@ public class MovieService {
 
 
     private static @NonNull MovieEntity getMovieEntity(TmdbMovieDTO movieDTO) {
-        MovieEntity  movieEntity = new MovieEntity();
+        MovieEntity movieEntity = new MovieEntity();
 
         movieEntity.setId(movieDTO.id());
         movieEntity.setBackdropPath(movieDTO.backdropPath());
