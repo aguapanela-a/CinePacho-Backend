@@ -27,7 +27,7 @@ public class SnackEntity {
     private String description;
  
     @Column(name = "precio", nullable = false, precision = 10, scale = 2)
-    private double price;
+    private BigDecimal price;
 
     @Column(name = "cantidad", nullable = false)
     private int quantity;

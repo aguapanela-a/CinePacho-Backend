@@ -9,6 +9,7 @@ import CinePacho.demo.movie.repository.MovieRepository;
 import CinePacho.demo.movie.repository.MovieScreeningRepository;
 import CinePacho.demo.shared.tmdbGenre.TmdbGenreMapper;
 import org.jspecify.annotations.NonNull;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.client.WebClient;
@@ -28,6 +29,7 @@ public class MovieService {
     @Value("${tmdb.access.token}")
     private String accessToken;
 
+    @Autowired
     public MovieService(MovieRepository movieRepository, MovieScreeningRepository movieScreeningRepository, WebClient webClient) {
         this.movieRepository = movieRepository;
         this.movieScreeningRepository = movieScreeningRepository;
@@ -91,7 +93,8 @@ public class MovieService {
         MovieEntity movie = movieRepository.findById(createScreeningDTO.movieId()) //buca en BD por id
                 .orElseThrow(() -> new CinePachoException("Debes seleccionar una película primero")); // si no encuentra nada es porque no ha seleccionado
 
-        //TODO: Cuando haga merge de rooms mirar como validar que la selección traiga también un room (clase auxiliar en shared)
+        //TODO: Cuando haga merge de rooms mirar como validar que la selección traiga también con clases auxiliar en shared
+        // TODO: Room que ya está e UUID en CreateScreeningDTO y asociar al multiplex con el nombre
 
         MovieScreening movieScreening = new MovieScreening();
         movieScreening.setMovie(movie);

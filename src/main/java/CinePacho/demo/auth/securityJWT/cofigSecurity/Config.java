@@ -65,7 +65,7 @@ public class Config {
                             "/api/auth/login",
                             "/api/auth/verify"
                         ).permitAll()//Permitir cualquier request al endpoint de Auth
-                        .requestMatchers("/api/admin/**").hasAuthority ("ADMIN") //a ese edpoint solamente puede entrar el admin
+                        .requestMatchers("/api/admin/**").hasAuthority ("ADMIN") //a ese endpoint solamente puede entrar el admin
                         .anyRequest().authenticated() //El resto de request requieren de token
                 )
                 .sessionManagement(session -> session //Decide como se recordarán los usuarios autenticados

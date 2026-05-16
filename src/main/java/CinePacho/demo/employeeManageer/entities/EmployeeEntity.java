@@ -1,6 +1,7 @@
 package CinePacho.demo.employeeManageer.entities;
 
 import CinePacho.demo.auth.entities.user.UserEntity;
+import com.fasterxml.jackson.annotation.JsonFormat;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.PositiveOrZero;
 import lombok.Getter;
@@ -27,6 +28,7 @@ public class EmployeeEntity {
     @Column(nullable = false, unique = true)
     private Long uniqueCode;
 
+    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
     @Column(unique = true)
     private LocalDateTime startDate;
 

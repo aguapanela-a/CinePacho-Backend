@@ -8,6 +8,7 @@ import CinePacho.demo.movie.enumeration.ScreeningStatus;
 import CinePacho.demo.movie.service.MovieService;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -15,10 +16,11 @@ import java.util.List;
 import java.util.UUID;
 
 @RestController
-@RequestMapping
+@RequestMapping("")
 public class MovieController {
-    private MovieService movieService;
+    private final MovieService movieService;
 
+    @Autowired
     public MovieController(MovieService movieService) {
         this.movieService = movieService;
     }

@@ -1,6 +1,7 @@
 package CinePacho.demo.movie.entities;
 
 import CinePacho.demo.movie.enumeration.ScreeningStatus;
+import com.fasterxml.jackson.annotation.JsonFormat;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
@@ -27,6 +28,7 @@ public class MovieScreening {
 //    @JoinColumn(name = "sala_id")
 //    private RoomEntity room;         // ← cuando se tenga la entidad sala
 
+    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
     @Column(name = "screen_date_time", nullable = false)
     private LocalDateTime dateTime;
 

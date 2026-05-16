@@ -3,6 +3,7 @@ package CinePacho.demo.movie.dto;
 import CinePacho.demo.movie.entities.MovieScreening;
 import CinePacho.demo.movie.enumeration.ScreeningStatus;
 import CinePacho.demo.shared.tmdbGenre.TmdbGenreMapper;
+import com.fasterxml.jackson.annotation.JsonFormat;
 import jakarta.validation.constraints.NotBlank;
 
 import java.math.BigDecimal;
@@ -16,6 +17,7 @@ public record ScreeningResponseDTO(
         @NotBlank
         UUID screeningId,
 
+        @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
         @NotBlank(message = "La función debe tener una fecha")
         LocalDateTime dateTime,
 

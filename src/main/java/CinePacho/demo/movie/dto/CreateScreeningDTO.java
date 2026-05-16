@@ -1,5 +1,6 @@
 package CinePacho.demo.movie.dto;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import jakarta.validation.constraints.NotBlank;
 
 import java.math.BigDecimal;
@@ -13,6 +14,7 @@ public record CreateScreeningDTO(
         @NotBlank(message = "El UUID de la sala es obligatorio para crear la función")
         UUID roomId,            // sala donde se proyecta
 
+        @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
         @NotBlank(message = "La hora de la función es obligatoria para crearla")
         LocalDateTime dateTime,
 

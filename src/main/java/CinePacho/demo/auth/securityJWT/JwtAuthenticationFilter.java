@@ -1,6 +1,7 @@
 package CinePacho.demo.auth.securityJWT;
 
 import CinePacho.demo.auth.securityJWT.serviceSecurity.JwtService;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -17,11 +18,17 @@ import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 
 @Component
-@RequiredArgsConstructor
+
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
+
 
     private final JwtService jwtService;
     private final UserDetailsService userDetailsService;
+
+    JwtAuthenticationFilter(JwtService jwtService, UserDetailsService userDetailsService) {
+        this.jwtService = jwtService;
+        this.userDetailsService = userDetailsService;
+    }
 
     @Override
     protected void doFilterInternal(HttpServletRequest request,
