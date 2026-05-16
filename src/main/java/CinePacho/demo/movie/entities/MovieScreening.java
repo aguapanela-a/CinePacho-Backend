@@ -5,6 +5,7 @@ import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.UUID;
 
@@ -18,17 +19,21 @@ public class MovieScreening {
     @GeneratedValue(strategy = GenerationType.UUID)
     private UUID id;
 
-    @ManyToOne
-    @JoinColumn(name = "movie_id")   // ← crea la FK en esta tabla
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "movie_id", nullable = false)   // ← crea la FK en esta tabla
     private MovieEntity movie;
 
 //    @ManyToOne
 //    @JoinColumn(name = "sala_id")
-//    private SalaEntity sala;         // ← cuando se tenga la entidad sala
+//    private RoomEntity sala;         // ← cuando se tenga la entidad sala
 
+    @Column(name = "screen_date_time", nullable = false)
     private LocalDateTime dateTime;
 
     @Enumerated(EnumType.STRING)
+    @Column(length = 20)
     private ScreeningStatus status;
+
+    private BigDecimal price;
 }
 

@@ -1,18 +1,16 @@
 package CinePacho.demo.movie.service;
 
-import CinePacho.demo.movie.dto.MovieResponseDTO;
-import CinePacho.demo.movie.dto.TmdbMovieDTO;
-import CinePacho.demo.movie.dto.TmdbResponseDTO;
+import CinePacho.demo.exception.CinePachoException;
+import CinePacho.demo.movie.dto.*;
 import CinePacho.demo.movie.entities.MovieEntity;
+import CinePacho.demo.movie.entities.MovieScreening;
 import CinePacho.demo.movie.repository.MovieRepository;
 import CinePacho.demo.movie.repository.MovieScreeningRepository;
 import org.jspecify.annotations.NonNull;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.client.WebClient;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
@@ -32,6 +30,8 @@ public class MovieService {
         this.webClient = webClient;
     }
 
+
+    // el front debe desplegar una lista dinámica de películas según el caracter ingresado
     public List<TmdbMovieDTO> searchMovie(String title, int page) {
         List<TmdbMovieDTO> tmdbMovieDTOList;
 
@@ -47,11 +47,16 @@ public class MovieService {
         return tmdbMovieDTOList;
     }
 
-    //Cuando da click a una peli de la lista de arriba, se ejecutará este metodo
+    //Cuando da clic a una peli de la lista de arriba, se ejecutará este siguiente metodo,
     // el front cunado selecciona una, tendrá un json con la estructura de TmdbMovieDTO
     // pero envia solo id para evitar errores de escritura
 
-    public MovieResponseDTO addMovie(Long id) {
+    public MovieResponseDTO selectMovie(Long id) {
+
+        if (movieRepository.existsById(id)) {
+            MovieEntity movieEntity = movieRepository.getReferenceById(id);
+            return new MovieResponseDTO(movieEntity.getOriginalTitle(), movieEntity.getDirector(), "Película seleccionada con éxito");
+        }
 
         TmdbMovieDTO movieDTO = webClient.get()
                 .uri("/movie/"+id+"?language=es")
@@ -61,14 +66,31 @@ public class MovieService {
                 .bodyToMono(TmdbMovieDTO.class)
                 .block();
 
+        // si, por alguna razón, se crea un objeto nulo (no existe ese id de peli), lance una excepción
+        if (movieDTO == null) {
+            throw new CinePachoException("Petición de película inválida, por favor verifique el id ingresado!");
+        }
 
         MovieEntity movieEntity = getMovieEntity(movieDTO);
-
 
         movieRepository.save(movieEntity);
 
         return new MovieResponseDTO(movieEntity.getOriginalTitle(), movieEntity.getDirector(), "Película añadida con éxito");
     }
+
+
+    public ScreeningResponseDTO createScreening(String multiplexName, CreateScreeningDTO createScreeningDTO) {
+
+        //verifica que traiga una pelicula
+        MovieEntity movie = movieRepository.findById(createScreeningDTO.movieId()) //buca en BD por id
+                .orElseThrow(() -> new CinePachoException("Debes seleccionar una película primero")); // si no encuentra nada es porque no ha seleccionado
+
+        //Crea la función de la pelicula
+        //TODOa
+
+        return null;  // TODO, hacerlo bien xd
+    }
+
 
     private static @NonNull MovieEntity getMovieEntity(TmdbMovieDTO movieDTO) {
         MovieEntity  movieEntity = new MovieEntity();
