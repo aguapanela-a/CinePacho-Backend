@@ -4,13 +4,16 @@ import CinePacho.demo.exception.CinePachoException;
 import CinePacho.demo.movie.dto.*;
 import CinePacho.demo.movie.entities.MovieEntity;
 import CinePacho.demo.movie.entities.MovieScreening;
+import CinePacho.demo.movie.enumeration.ScreeningStatus;
 import CinePacho.demo.movie.repository.MovieRepository;
 import CinePacho.demo.movie.repository.MovieScreeningRepository;
+import CinePacho.demo.shared.tmdbGenre.TmdbGenreMapper;
 import org.jspecify.annotations.NonNull;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.client.WebClient;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
@@ -31,7 +34,7 @@ public class MovieService {
     }
 
 
-    // el front debe desplegar una lista dinámica de películas según el caracter ingresado
+    // el front debe desplegar una lista dinámica de películas según el character ingresado
     public List<TmdbMovieDTO> searchMovie(String title, int page) {
         List<TmdbMovieDTO> tmdbMovieDTOList;
 
@@ -53,11 +56,13 @@ public class MovieService {
 
     public MovieResponseDTO selectMovie(Long id) {
 
+        //Busca primero en BD
         if (movieRepository.existsById(id)) {
             MovieEntity movieEntity = movieRepository.getReferenceById(id);
             return new MovieResponseDTO(movieEntity.getOriginalTitle(), movieEntity.getDirector(), "Película seleccionada con éxito");
         }
 
+        // si no está en BD la busca en la API
         TmdbMovieDTO movieDTO = webClient.get()
                 .uri("/movie/"+id+"?language=es")
                 .header("accept", "application/json")
@@ -68,7 +73,7 @@ public class MovieService {
 
         // si, por alguna razón, se crea un objeto nulo (no existe ese id de peli), lance una excepción
         if (movieDTO == null) {
-            throw new CinePachoException("Petición de película inválida, por favor verifique el id ingresado!");
+            throw new CinePachoException("Petición de película inválida, ¡por favor verifique el id ingresado!");
         }
 
         MovieEntity movieEntity = getMovieEntity(movieDTO);
@@ -81,14 +86,43 @@ public class MovieService {
 
     public ScreeningResponseDTO createScreening(String multiplexName, CreateScreeningDTO createScreeningDTO) {
 
-        //verifica que traiga una pelicula
+        //verifica que traiga una pelicula seleccionada
         MovieEntity movie = movieRepository.findById(createScreeningDTO.movieId()) //buca en BD por id
                 .orElseThrow(() -> new CinePachoException("Debes seleccionar una película primero")); // si no encuentra nada es porque no ha seleccionado
 
-        //Crea la función de la pelicula
-        //TODOa
+        //TODO: Cuando haga merge de rooms mirar como validar que la selección traiga también un room (clase auxiliar en shared)
 
-        return null;  // TODO, hacerlo bien xd
+        MovieScreening movieScreening = new MovieScreening();
+        movieScreening.setMovie(movie);
+        //movieScreening.setRoom()
+        movieScreening.setDateTime(createScreeningDTO.dateTime());
+        movieScreening.setPrice(createScreeningDTO.price());
+        movieScreening.setStatus(ScreeningStatus.ACTIVE);
+        movieScreeningRepository.save(movieScreening);
+
+        return new ScreeningResponseDTO(
+                movieScreening.getDateTime(),
+                movieScreening.getPrice(),
+                movie.getOriginalLanguage(),
+                movie.getOriginalTitle(),
+                movie.getOverview(),
+                movie.getRating(),
+                movie.getDirector(),
+                getGenreList(movie)
+                );
+    }
+
+
+    private List<String> getGenreList(MovieEntity movieEntity) {
+        TmdbGenreMapper genreMapper = new TmdbGenreMapper();
+
+        List<String> genreList = new ArrayList<>();
+
+        movieEntity.getGenres().forEach(genreId -> {
+            genreList.add(genreMapper.getGenreName(genreId));
+        });
+
+        return genreList;
     }
 
 

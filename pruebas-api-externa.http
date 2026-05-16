@@ -1,0 +1,19 @@
+GET /3/genre/movie/list?language=es HTTP/1.1
+Accept: application/json
+Authorization: Bearer eyJhbGciOiJIUzI1NiJ9.eyJhdWQiOiI5NzEzYTlkZGNjZTRkYTFiNDExYzFmZjhlYjlmYjczOCIsIm5iZiI6MTc3ODgwMTc2NS40MTYsInN1YiI6IjZhMDY1YzY1ZDc1ZjYzMjhjOGI4ZWNhMCIsInNjb3BlcyI6WyJhcGlfcmVhZCJdLCJ2ZXJzaW9uIjoxfQ.Z-zlaWF9_i8BSUE-j1l9l0mfJ7-HMi6iL1kcTQXHL7c
+Host: api.themoviedb.org
+
+
+###
+GET /3/search/movie?query=mama&language=es&page=1 HTTP/1.1
+Accept: application/json
+Authorization: Bearer eyJhbGciOiJIUzI1NiJ9.eyJhdWQiOiI5NzEzYTlkZGNjZTRkYTFiNDExYzFmZjhlYjlmYjczOCIsIm5iZiI6MTc3ODgwMTc2NS40MTYsInN1YiI6IjZhMDY1YzY1ZDc1ZjYzMjhjOGI4ZWNhMCIsInNjb3BlcyI6WyJhcGlfcmVhZCJdLCJ2ZXJzaW9uIjoxfQ.Z-zlaWF9_i8BSUE-j1l9l0mfJ7-HMi6iL1kcTQXHL7c
+Host: api.themoviedb.org
+
+
+###
+GET /3/movie/727010?language=es HTTP/1.1
+Accept: application/json
+Authorization: Bearer eyJhbGciOiJIUzI1NiJ9.eyJhdWQiOiI5NzEzYTlkZGNjZTRkYTFiNDExYzFmZjhlYjlmYjczOCIsIm5iZiI6MTc3ODgwMTc2NS40MTYsInN1YiI6IjZhMDY1YzY1ZDc1ZjYzMjhjOGI4ZWNhMCIsInNjb3BlcyI6WyJhcGlfcmVhZCJdLCJ2ZXJzaW9uIjoxfQ.Z-zlaWF9_i8BSUE-j1l9l0mfJ7-HMi6iL1kcTQXHL7c
+Host: api.themoviedb.org
+

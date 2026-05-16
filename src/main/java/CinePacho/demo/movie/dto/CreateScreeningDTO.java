@@ -11,11 +11,11 @@ public record CreateScreeningDTO(
         Long movieId,           // id de la peli ya seleccionada
 
         @NotBlank(message = "El UUID de la sala es obligatorio para crear la función")
-        UUID salaId,            // sala donde se proyecta
+        UUID roomId,            // sala donde se proyecta
 
         @NotBlank(message = "La hora de la función es obligatoria para crearla")
-        LocalDateTime fechaHora,
+        LocalDateTime dateTime,
 
         @NotBlank(message = "El precio de la función es obligatorio para crearla")
-        BigDecimal precio
+        BigDecimal price
 ) {}

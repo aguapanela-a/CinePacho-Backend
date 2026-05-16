@@ -25,7 +25,7 @@ public class MovieScreening {
 
 //    @ManyToOne
 //    @JoinColumn(name = "sala_id")
-//    private RoomEntity sala;         // ← cuando se tenga la entidad sala
+//    private RoomEntity room;         // ← cuando se tenga la entidad sala
 
     @Column(name = "screen_date_time", nullable = false)
     private LocalDateTime dateTime;
