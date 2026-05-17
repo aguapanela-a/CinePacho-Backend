@@ -119,7 +119,7 @@ public class RoomService {
                         .roomId(room.getId().toString())
                         .availableGeneral(seatRepository.countByRoomIdAndType(room.getId(), CinePacho.demo.shared.enumeration.SeatType.GENERAL))
                         .availablePreferential(seatRepository.countByRoomIdAndType(room.getId(), CinePacho.demo.shared.enumeration.SeatType.PREFERENTIAL))
-                        .totalAvailable(seatRepository.countByRoomIdAndType(room.getId(), null)) // Total sin filtrar por tipo
+                        .totalAvailable(seatRepository.countByRoomId(room.getId())) // Total sin filtrar por tipo
                         .build()
         );
  

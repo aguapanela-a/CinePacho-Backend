@@ -16,6 +16,8 @@ public interface SeatRepository extends JpaRepository<SeatEntity, UUID> {
     List<SeatEntity> findByRoomIdAndType(UUID roomId, SeatType type);
 
     long countByRoomIdAndType(UUID roomId, SeatType type);
- 
+
     boolean existsByRoomIdAndSeatNumber(UUID roomId, Integer seatNumber);
+
+    long countByRoomId(UUID roomId); //Cuanta todas las sillas asociadas al UUID de una sala
 }
