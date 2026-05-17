@@ -1,5 +1,6 @@
 package CinePacho.demo.rooms.entities;
 
+import CinePacho.demo.multiplex.entitites.MultiplexEntity;
 import jakarta.persistence.*;
 import lombok.*;
  
@@ -19,9 +20,9 @@ public class RoomEntity {
     @Column(name = "id", updatable = false, nullable = false)
     private UUID id;
  
-    // Relación con Multiplex (solo FK por ahora; ajusta si ya tienes la entidad)
-    @Column(name = "multiplex_id", nullable = false)
-    private UUID multiplexId;
+    @JoinColumn(name = "multiplex_id", nullable = false)
+    @ManyToOne(fetch = FetchType.LAZY)
+    private MultiplexEntity multiplex;
  
     @Column(name = "number_room", nullable = false)
     private Integer numberRoom;

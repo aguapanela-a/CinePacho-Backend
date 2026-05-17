@@ -1,5 +1,6 @@
 package CinePacho.demo.multiplex.service;
 
+import CinePacho.demo.exception.CinePachoException;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -42,7 +43,7 @@ public class MultiplexService {
     // ── CREATE ───────────────────────────────────────────────────────────────────
     public MultiplexDetailResponse create(MultiplexRequest request) {
         if (multiplexRepository.existsByNameAndCity(request.getNameMultiplex(), request.getCityMultiplex())) {
-            throw new IllegalArgumentException(
+            throw new CinePachoException(
                     "Ya existe un multiplex con el nombre '" + request.getNameMultiplex()
                     + "' en la ciudad " + request.getCityMultiplex());
         }

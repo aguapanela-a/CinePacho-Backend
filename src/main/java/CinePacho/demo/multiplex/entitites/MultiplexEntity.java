@@ -2,13 +2,8 @@ package CinePacho.demo.multiplex.entitites;
 
 import java.util.UUID;
 
-import org.springframework.data.annotation.Id;
 
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Table;
+import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -23,7 +18,7 @@ import lombok.Setter;
 @AllArgsConstructor
 @Builder
 public class MultiplexEntity {
-    
+
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
     @Column(name = "id", updatable = false, nullable = false)

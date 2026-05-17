@@ -51,4 +51,5 @@ public class RoomController {
         roomService.delete(id);
         return ResponseEntity.noContent().build();
     }
+    //TODO: hacer record para respuesta de éxito al crear room
 }

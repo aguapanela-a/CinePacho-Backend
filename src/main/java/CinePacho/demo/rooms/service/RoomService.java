@@ -1,6 +1,8 @@
 package CinePacho.demo.rooms.service;
 
 
+import CinePacho.demo.multiplex.entitites.MultiplexEntity;
+import CinePacho.demo.shared.auxiliaryClass.MultiplexProvider;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -22,16 +24,15 @@ import java.util.stream.Collectors;
 public class RoomService {
  
     private final RoomRepository roomRepository;
-    private final SeatRepository seatRepository;   
+    private final SeatRepository seatRepository;
+    private final MultiplexProvider  multiplexProvider;
 
     // ── GET ALL ─────────────────────────────────────────────────────────────────
     public List<RoomResponse> getAll() {
-        List<RoomResponse> rooms = roomRepository.findAll()
+        return roomRepository.findAll()
                 .stream()
                 .map(this::toSummary)
                 .collect(Collectors.toList());
- 
-        return rooms;
     }
  
     // ── GET BY ID ────────────────────────────────────────────────────────────────
@@ -46,15 +47,20 @@ public class RoomService {
             throw new IllegalArgumentException(
                     "Ya existe una sala con el número " + request.getNumberRoom() + " en ese multiplex");
         }
- 
+
+        MultiplexEntity multiplex = multiplexProvider.obtenerMultiplexPorId(request.getMultiplexId());
+
         RoomEntity room = RoomEntity.builder()
-                .multiplexId(request.getMultiplexId())
+                .multiplex(multiplex)
                 .numberRoom(request.getNumberRoom())
                 .generalCapacity(request.getGeneralCapacity())
                 .preferentialCapacity(request.getPreferentialCapacity())
                 .build();
  
         return toDetail(roomRepository.save(room));
+        //TODO: Bug al contar cantidad de sillas por sala y tipo.
+        // justo después de guardar la entidad de la sala en la base de datos, el
+        // servicio construya e inserte físicamente las sillas en la tabla correspondiente.
     }
  
     // ── UPDATE ───────────────────────────────────────────────────────────────────
@@ -62,15 +68,15 @@ public class RoomService {
         RoomEntity room = findOrThrow(id);
  
         boolean cambioNumero = !room.getNumberRoom().equals(request.getNumberRoom())
-                || !room.getMultiplexId().equals(request.getMultiplexId());
+                || !room.getMultiplex().getId().equals(request.getMultiplexId());
  
         if (cambioNumero && roomRepository.existsByMultiplexIdAndNumberRoom(
                 request.getMultiplexId(), request.getNumberRoom())) {
             throw new IllegalArgumentException(
                     "Ya existe una sala con el número " + request.getNumberRoom() + " en ese multiplex");
         }
- 
-        room.setMultiplexId(request.getMultiplexId());
+
+        room.setMultiplex(multiplexProvider.obtenerMultiplexPorId(request.getMultiplexId()));
         room.setNumberRoom(request.getNumberRoom());
         room.setGeneralCapacity(request.getGeneralCapacity());
         room.setPreferentialCapacity(request.getPreferentialCapacity());
@@ -99,7 +105,9 @@ public class RoomService {
                 .isRoomActive(room.getActive())
                 .build();
     }
- 
+
+
+
     private RoomDetailResponse toDetail(RoomEntity room) {
         List<SeatAvailabilitySummaryResponse> seats = List.of(
                 SeatAvailabilitySummaryResponse.builder()

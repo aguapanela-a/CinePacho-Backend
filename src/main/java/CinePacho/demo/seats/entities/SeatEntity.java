@@ -1,5 +1,6 @@
 package CinePacho.demo.seats.entities;
 
+import CinePacho.demo.rooms.entities.RoomEntity;
 import jakarta.persistence.*;
 import lombok.*;
  
@@ -26,9 +27,10 @@ public class SeatEntity {
     @GeneratedValue(strategy = GenerationType.UUID)
     @Column(name = "id", updatable = false, nullable = false)
     private UUID id;
- 
-    @Column(name = "room_id", nullable = false)
-    private UUID roomId;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "room_id", nullable = false)
+    private RoomEntity room;
  
     @Column(name = "seat_number", nullable = false)
     private Integer seatNumber;

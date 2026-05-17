@@ -1,5 +1,6 @@
 package CinePacho.demo.seats.service;
 
+import CinePacho.demo.shared.auxiliaryClass.RoomProvider;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -20,6 +21,7 @@ import java.util.stream.Collectors;
 public class SeatService {
  
     private final SeatRepository seatRepository;
+    private final RoomProvider roomProvider;
  
     // GET ALL by room
     public List<SeatResponse> obtenerTodosPorSala(UUID roomId) {
@@ -56,7 +58,7 @@ public class SeatService {
         }
  
         SeatEntity seat = SeatEntity.builder()
-                .roomId(request.getRoomId())
+                .room(roomProvider.getRoom(request.getRoomId()))
                 .seatNumber(request.getSeatNumber())
                 .type(request.getType())
                 .build();
@@ -69,15 +71,15 @@ public class SeatService {
         SeatEntity seat = findOrThrow(id);
  
         boolean cambioNumero = !seat.getSeatNumber().equals(request.getSeatNumber())
-                || !seat.getRoomId().equals(request.getRoomId());
+                || !seat.getRoom().getId().equals(request.getRoomId());
  
         if (cambioNumero && seatRepository.existsByRoomIdAndSeatNumber(
                 request.getRoomId(), request.getSeatNumber())) {
             throw new IllegalArgumentException(
                     "Ya existe el asiento número " + request.getSeatNumber() + " en esa sala");
         }
- 
-        seat.setRoomId(request.getRoomId());
+
+        seat.setRoom(roomProvider.getRoom(request.getRoomId()));
         seat.setSeatNumber(request.getSeatNumber());
         seat.setType(request.getType());
  
@@ -101,7 +103,7 @@ public class SeatService {
     private SeatResponse toResponse(SeatEntity seat) {
         return SeatResponse.builder()
                 .idSeat(seat.getId().toString())
-                .roomId(seat.getRoomId().toString())
+                .roomId(seat.getRoom().getId().toString())
                 .seatNumber(seat.getSeatNumber())
                 .type(seat.getType().name())
                 .build();
