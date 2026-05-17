@@ -3,7 +3,8 @@ package CinePacho.demo.rooms.service;
 
 import CinePacho.demo.multiplex.entitites.MultiplexEntity;
 import CinePacho.demo.shared.auxiliaryClass.MultiplexProvider;
-import CinePacho.demo.shared.auxiliaryClass.SeatGenerator;
+import CinePacho.demo.shared.auxiliaryClass.SeatManager;
+import CinePacho.demo.shared.enumeration.SeatType;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -27,7 +28,10 @@ public class RoomService {
     private final RoomRepository roomRepository;
     private final SeatRepository seatRepository;
     private final MultiplexProvider  multiplexProvider;
-    private final SeatGenerator seatGenerator;
+    private final SeatManager seatManager;
+
+    private final int generalCapacity = 40;
+    private final int preferencialCapacity = 20;
 
     // ── GET ALL ─────────────────────────────────────────────────────────────────
     public List<RoomResponse> getAll() {
@@ -55,40 +59,20 @@ public class RoomService {
         RoomEntity room = RoomEntity.builder()
                 .multiplex(multiplex)
                 .numberRoom(request.getNumberRoom())
-                .generalCapacity(request.getGeneralCapacity())
-                .preferentialCapacity(request.getPreferentialCapacity())
+                .generalCapacity(generalCapacity)
+                .preferentialCapacity(preferencialCapacity)
                 .build();
 
         //Guardar entidad sala en BD
         RoomEntity roomSaved = roomRepository.save(room);
 
         //Crear e insertar sillas físicas asociadas a esa sala
-        seatGenerator.createSeat(request.getGeneralCapacity(), request.getPreferentialCapacity(),roomSaved.getId());
+        seatManager.createSeat(generalCapacity, preferencialCapacity,roomSaved.getId());
 
         return toDetail(roomSaved);
     }
- 
-    // ── UPDATE ───────────────────────────────────────────────────────────────────
-    public RoomDetailResponse update(UUID id, RoomRequest request) {
-        RoomEntity room = findOrThrow(id);
- 
-        boolean cambioNumero = !room.getNumberRoom().equals(request.getNumberRoom())
-                || !room.getMultiplex().getId().equals(request.getMultiplexId());
- 
-        if (cambioNumero && roomRepository.existsByMultiplexIdAndNumberRoom(
-                request.getMultiplexId(), request.getNumberRoom())) {
-            throw new IllegalArgumentException(
-                    "Ya existe una sala con el número " + request.getNumberRoom() + " en ese multiplex");
-        }
 
-        room.setMultiplex(multiplexProvider.obtenerMultiplexPorId(request.getMultiplexId()));
-        room.setNumberRoom(request.getNumberRoom());
-        room.setGeneralCapacity(request.getGeneralCapacity());
-        room.setPreferentialCapacity(request.getPreferentialCapacity());
- 
-        return toDetail(roomRepository.save(room));
-    }
- 
+
     // ── DELETE (lógico) ──────────────────────────────────────────────────────────
     public void delete(UUID id) {
         RoomEntity room = findOrThrow(id);

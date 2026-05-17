@@ -34,16 +34,9 @@ public class RoomController {
     }
 
     @PostMapping("admin/rooms")
-    public ResponseEntity<Void> create(@Valid @RequestBody RoomRequest request) {
-        roomService.create(request);
-        return ResponseEntity.status(HttpStatus.CREATED).build();
-    }
- 
-    @PutMapping("admin/rooms/{id}")
-    public ResponseEntity<RoomDetailResponse> update(
-            @PathVariable UUID id,
-            @Valid @RequestBody RoomRequest request) {
-        return ResponseEntity.ok(roomService.update(id, request));
+    public ResponseEntity<RoomDetailResponse> create(@Valid @RequestBody RoomRequest request) {
+
+        return ResponseEntity.ok(roomService.create(request));
     }
  
     @DeleteMapping("admin/rooms/{id}")
@@ -51,5 +44,4 @@ public class RoomController {
         roomService.delete(id);
         return ResponseEntity.noContent().build();
     }
-    //TODO: hacer record para respuesta de éxito al crear room
 }
