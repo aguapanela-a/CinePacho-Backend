@@ -3,6 +3,7 @@ package CinePacho.demo.rooms.service;
 
 import CinePacho.demo.multiplex.entitites.MultiplexEntity;
 import CinePacho.demo.shared.auxiliaryClass.MultiplexProvider;
+import CinePacho.demo.shared.auxiliaryClass.SeatGenerator;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -26,6 +27,7 @@ public class RoomService {
     private final RoomRepository roomRepository;
     private final SeatRepository seatRepository;
     private final MultiplexProvider  multiplexProvider;
+    private final SeatGenerator seatGenerator;
 
     // ── GET ALL ─────────────────────────────────────────────────────────────────
     public List<RoomResponse> getAll() {
@@ -56,11 +58,14 @@ public class RoomService {
                 .generalCapacity(request.getGeneralCapacity())
                 .preferentialCapacity(request.getPreferentialCapacity())
                 .build();
- 
-        return toDetail(roomRepository.save(room));
-        //TODO: Bug al contar cantidad de sillas por sala y tipo.
-        // justo después de guardar la entidad de la sala en la base de datos, el
-        // servicio construya e inserte físicamente las sillas en la tabla correspondiente.
+
+        //Guardar entidad sala en BD
+        RoomEntity roomSaved = roomRepository.save(room);
+
+        //Crear e insertar sillas físicas asociadas a esa sala
+        seatGenerator.createSeat(request.getGeneralCapacity(), request.getPreferentialCapacity(),roomSaved.getId());
+
+        return toDetail(roomSaved);
     }
  
     // ── UPDATE ───────────────────────────────────────────────────────────────────

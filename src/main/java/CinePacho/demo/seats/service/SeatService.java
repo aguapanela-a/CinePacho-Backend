@@ -1,5 +1,6 @@
 package CinePacho.demo.seats.service;
 
+import CinePacho.demo.exception.CinePachoException;
 import CinePacho.demo.shared.auxiliaryClass.RoomProvider;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
@@ -53,7 +54,7 @@ public class SeatService {
     // CREATE
     public SeatResponse crear(SeatRequest request) {
         if (seatRepository.existsByRoomIdAndSeatNumber(request.getRoomId(), request.getSeatNumber())) {
-            throw new IllegalArgumentException(
+            throw new CinePachoException(
                     "Ya existe el asiento número " + request.getSeatNumber() + " en esa sala");
         }
  
