@@ -37,10 +37,12 @@ public class SnackController {
     public ResponseEntity<SnackResponse> getById(@PathVariable UUID id) {
         return ResponseEntity.ok(snackService.getById(id));
     }
- 
+    
+    //Status y mensaje de error o exito
     @PostMapping("admin/snacks")
-    public ResponseEntity<SnackResponse> create(@Valid @RequestBody SnackRequest request) {
-        return ResponseEntity.status(HttpStatus.CREATED).body(snackService.create(request));
+    public ResponseEntity<Void> create(@Valid @RequestBody SnackRequest request) {
+        snackService.create(request);
+        return ResponseEntity.status(HttpStatus.CREATED).build();
     }
  
     @PutMapping("admin/snacks/{id}")

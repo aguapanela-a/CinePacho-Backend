@@ -31,6 +31,11 @@ public class AuthService {
     @Transactional
     public RegisterResponseDTO register(RegisterData registerDTO){
 
+        // Eliminar espacios en blanco y convertir el email a minúsculas para evitar problemas de formato
+        registerDTO.email().toLowerCase().trim();
+        registerDTO.name().trim();
+        registerDTO.password().trim();
+
         if (userRepository.existsByEmail(registerDTO.email())) {
             throw new CinePachoException("Email already in use: " + registerDTO.email());
         }
