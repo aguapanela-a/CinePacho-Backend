@@ -13,7 +13,7 @@ import CinePacho.demo.shared.enumeration.SeatType;
         name = "seats",
         uniqueConstraints = @UniqueConstraint(
                 name = "uk_seat_room_number_type",
-                columnNames = {"room_id", "seat_number"}
+                columnNames = {"room_id", "seat_number", "type"}
                 //para que la combinación de id de sala, numero de silla y tipo sean unicos
         )
 )
