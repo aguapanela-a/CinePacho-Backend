@@ -50,7 +50,7 @@ public class MovieController {
             @PathVariable String multiplexName,
             @RequestBody CreateScreeningDTO dto
     ) {
-        return ResponseEntity.ok(movieService.createScreening(multiplexName, dto));
+        return ResponseEntity.ok(movieService.createScreening(dto));
     }
 
 

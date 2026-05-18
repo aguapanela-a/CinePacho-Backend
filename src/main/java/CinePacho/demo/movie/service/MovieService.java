@@ -7,6 +7,9 @@ import CinePacho.demo.movie.entities.MovieScreening;
 import CinePacho.demo.movie.enumeration.ScreeningStatus;
 import CinePacho.demo.movie.repository.MovieRepository;
 import CinePacho.demo.movie.repository.MovieScreeningRepository;
+import CinePacho.demo.rooms.entities.RoomEntity;
+import CinePacho.demo.shared.auxiliaryClass.MultiplexProvider;
+import CinePacho.demo.shared.auxiliaryClass.RoomProvider;
 import CinePacho.demo.shared.tmdbGenre.TmdbGenreMapper;
 import org.jspecify.annotations.NonNull;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -25,15 +28,18 @@ public class MovieService {
     private final MovieRepository movieRepository;
     private final MovieScreeningRepository movieScreeningRepository;
     private final WebClient webClient;
+    private final RoomProvider  roomProvider;
 
     @Value("${tmdb.access.token}")
     private String accessToken;
 
     @Autowired
-    public MovieService(MovieRepository movieRepository, MovieScreeningRepository movieScreeningRepository, WebClient webClient) {
+    public MovieService(MovieRepository movieRepository, MovieScreeningRepository movieScreeningRepository, WebClient webClient, MultiplexProvider multiplexProvider, RoomProvider roomProvider) {
         this.movieRepository = movieRepository;
         this.movieScreeningRepository = movieScreeningRepository;
         this.webClient = webClient;
+
+        this.roomProvider = roomProvider;
     }
 
 
@@ -87,18 +93,18 @@ public class MovieService {
     }
 
 
-    public ScreeningResponseDTO createScreening(String multiplexName, CreateScreeningDTO createScreeningDTO) {
+    public ScreeningResponseDTO createScreening(CreateScreeningDTO createScreeningDTO) {
 
         //verifica que traiga una película seleccionada
         MovieEntity movie = movieRepository.findById(createScreeningDTO.movieId()) //buca en BD por id
                 .orElseThrow(() -> new CinePachoException("Debes seleccionar una película primero")); // si no encuentra nada es porque no ha seleccionado
 
-        //TODO: Cuando haga merge de rooms mirar como validar que la selección traiga también con clases auxiliar en shared
-        // TODO: Room que ya está e UUID en CreateScreeningDTO y asociar al multiplex con el nombre
+        // traer sala para asociar a la función
+        RoomEntity room = roomProvider.getRoom(createScreeningDTO.roomId());
 
         MovieScreening movieScreening = new MovieScreening();
         movieScreening.setMovie(movie);
-        //movieScreening.setRoom()
+        movieScreening.setRoom(room);
         movieScreening.setDateTime(createScreeningDTO.dateTime());
         movieScreening.setPrice(createScreeningDTO.price());
         movieScreening.setStatus(ScreeningStatus.ACTIVE);
