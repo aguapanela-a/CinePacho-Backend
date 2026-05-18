@@ -13,8 +13,8 @@ import lombok.Setter;
 @Builder
 public class SeatAvailabilitySummaryResponse {
 
-    private String roomId;
-    private Long availableGeneral;
-    private Long availablePreferential;
-    private Long totalAvailable;
+    private Integer availableGeneral;
+    private Integer availablePreferential;
+    private Integer totalAvailable;
+    
 }

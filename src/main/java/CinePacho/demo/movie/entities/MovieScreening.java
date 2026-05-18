@@ -36,6 +36,5 @@ public class MovieScreening {
     @Column(length = 20)
     private ScreeningStatus status;
 
-    private BigDecimal price;
 }
 

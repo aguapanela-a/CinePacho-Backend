@@ -25,7 +25,7 @@ public class SeatService {
     private final RoomProvider roomProvider;
  
     // GET ALL by room
-    public List<SeatResponse> obtenerTodosPorSala(UUID roomId) {
+    public List<SeatResponse> getAllByRoom(UUID roomId) {
         List<SeatEntity> allSeats = seatRepository.findByRoomId(roomId);
  
         return allSeats.stream()
@@ -34,12 +34,11 @@ public class SeatService {
     }
 
     // GET availability totals by room and seat type
-    public SeatAvailabilitySummaryResponse obtenerResumenDisponibilidadPorSala(UUID roomId) {
-        long availableGeneral = seatRepository.countByRoomIdAndType(roomId, SeatType.GENERAL);
-        long availablePreferential = seatRepository.countByRoomIdAndType(roomId, SeatType.PREFERENTIAL);
+    public SeatAvailabilitySummaryResponse getSeatAvailabilitySummaryResponse(UUID roomId) {
+        Integer availableGeneral = seatRepository.countByRoomIdAndType(roomId, SeatType.GENERAL);
+        Integer availablePreferential = seatRepository.countByRoomIdAndType(roomId, SeatType.PREFERENTIAL);
 
         return SeatAvailabilitySummaryResponse.builder()
-                .roomId(roomId.toString())
                 .availableGeneral(availableGeneral)
                 .availablePreferential(availablePreferential)
                 .totalAvailable(availableGeneral + availablePreferential)
@@ -47,12 +46,13 @@ public class SeatService {
     }
  
     // GET BY ID
-    public SeatResponse obtenerPorId(UUID id) {
+    public SeatResponse getById(UUID id) {
         return toResponse(findOrThrow(id));
     }
  
-    // CREATE
-    public SeatResponse crear(SeatRequest request) {
+    // CREATE 
+    //TODO: -- Implementar creación de asientos en bloque al crear una sala, con base en la capacidad general y preferencial de la sala
+    public SeatResponse create(SeatRequest request) {
         if (seatRepository.existsByRoomIdAndSeatNumber(request.getRoomId(), request.getSeatNumber())) {
             throw new CinePachoException(
                     "Ya existe el asiento número " + request.getSeatNumber() + " en esa sala");
@@ -68,7 +68,7 @@ public class SeatService {
     }
  
     // UPDATE
-    public SeatResponse actualizar(UUID id, SeatRequest request) {
+    public SeatResponse update(UUID id, SeatRequest request) {
         SeatEntity seat = findOrThrow(id);
  
         boolean cambioNumero = !seat.getSeatNumber().equals(request.getSeatNumber())
@@ -88,7 +88,7 @@ public class SeatService {
     }
  
     // DELETE (physical)
-    public void eliminar(UUID id) {
+    public void delete(UUID id) {
         if (!seatRepository.existsById(id)) {
             throw new EntityNotFoundException("Asiento no encontrado con id: " + id);
         }

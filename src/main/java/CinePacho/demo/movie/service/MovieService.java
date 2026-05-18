@@ -100,7 +100,6 @@ public class MovieService {
         movieScreening.setMovie(movie);
         //movieScreening.setRoom()
         movieScreening.setDateTime(createScreeningDTO.dateTime());
-        movieScreening.setPrice(createScreeningDTO.price());
         movieScreening.setStatus(ScreeningStatus.ACTIVE);
 
         MovieScreening screening = movieScreeningRepository.save(movieScreening);
@@ -108,7 +107,6 @@ public class MovieService {
         return new ScreeningResponseDTO(
                 screening.getId(),
                 movieScreening.getDateTime(),
-                movieScreening.getPrice(),
                 movie.getOriginalLanguage(),
                 movie.getOriginalTitle(),
                 movie.getOverview(),
