@@ -113,7 +113,7 @@ public class MultiplexService {
         List<RoomResponse> rooms = roomRepository.findByMultiplexId(m.getId())
                 .stream()
                 .map(r -> RoomResponse.builder()
-                        .idRoom(r.getId().toString())
+                        .idRoom(r.getId())
                         .isRoomActive(r.getActive())
                         .build())
                 .collect(Collectors.toList());
