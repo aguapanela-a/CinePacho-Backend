@@ -1,5 +1,4 @@
 package CinePacho.demo.shared.auxiliaryClass;
-import CinePacho.demo.shared.enumeration.SeatType;
 import org.springframework.stereotype.Component;
 
 import java.util.UUID;

@@ -48,17 +48,12 @@ public class RoomService {
     }
  
     // ── CREATE ───────────────────────────────────────────────────────────────────
-    public RoomDetailResponse create(RoomRequest request) {
-        if (roomRepository.existsByMultiplexIdAndNumberRoom(request.getMultiplexId(), request.getNumberRoom())) {
-            throw new IllegalArgumentException(
-                    "Ya existe una sala con el número " + request.getNumberRoom() + " en ese multiplex");
-        }
+    public RoomDetailResponse create(UUID multiplexId) {
 
-        MultiplexEntity multiplex = multiplexProvider.getMultiplexById(request.getMultiplexId());
+        MultiplexEntity multiplex = multiplexProvider.getMultiplexById(multiplexId);
 
         RoomEntity room = RoomEntity.builder()
                 .multiplex(multiplex)
-                .numberRoom(request.getNumberRoom())
                 .generalCapacity(generalCapacity)
                 .preferentialCapacity(preferencialCapacity)
                 .build();
@@ -108,7 +103,6 @@ public class RoomService {
  
         return RoomDetailResponse.builder()
                 .idRoom(room.getId().toString())
-                .numberRoom(room.getNumberRoom())
                 .isRoomActive(room.getActive())
                 .seats(seats)
                 .build();

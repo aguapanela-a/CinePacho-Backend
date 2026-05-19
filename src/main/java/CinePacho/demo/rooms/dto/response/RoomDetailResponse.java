@@ -14,7 +14,7 @@ import CinePacho.demo.seats.dto.response.SeatAvailabilitySummaryResponse;
 public class RoomDetailResponse {
  
     private String idRoom;
-    private Integer numberRoom;
     private Boolean isRoomActive;
+
     private List<SeatAvailabilitySummaryResponse> seats;  
 }

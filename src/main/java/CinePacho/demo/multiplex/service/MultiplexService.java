@@ -11,6 +11,7 @@ import CinePacho.demo.multiplex.dto.response.MultiplexSummaryResponse;
 import CinePacho.demo.multiplex.entitites.MultiplexEntity;
 import CinePacho.demo.multiplex.repository.MultiplexRepository;
 import CinePacho.demo.rooms.dto.response.RoomDetailResponse;
+import CinePacho.demo.rooms.dto.response.RoomResponse;
 import CinePacho.demo.rooms.repository.RoomRepository;
 
 import java.util.List;
@@ -109,11 +110,12 @@ public class MultiplexService {
     }
  
     private MultiplexDetailResponse toDetail(MultiplexEntity m) {
-        List<RoomDetailResponse> rooms = roomRepository.findByMultiplexId(m.getId())
+        List<RoomResponse> rooms = roomRepository.findByMultiplexId(m.getId())
                 .stream()
-                .map(r -> RoomDetailResponse.builder()
+                .map(r -> RoomResponse.builder()
                         .idRoom(r.getId().toString())
-                        .numberRoom(r.getNumberRoom())
+                        .generalCapacity(r.getGeneralCapacity())
+                        .preferentialCapacity(r.getPreferentialCapacity())
                         .isRoomActive(r.getActive())
                         .build())
                 .collect(Collectors.toList());

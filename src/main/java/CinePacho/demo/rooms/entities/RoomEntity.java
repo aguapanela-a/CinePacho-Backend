@@ -24,9 +24,6 @@ public class RoomEntity {
     @ManyToOne(fetch = FetchType.LAZY)
     private MultiplexEntity multiplex;
  
-    @Column(name = "number_room", nullable = false)
-    private Integer numberRoom;
- 
     @Column(name = "general_capacity", nullable = false)
     private Integer generalCapacity;
  

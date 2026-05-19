@@ -20,23 +20,18 @@ import java.util.UUID;
 public class RoomController {
  
     private final RoomService roomService;
- 
     
-    @GetMapping("/admin/rooms")
-    public ResponseEntity<List<RoomResponse>> getAll() {
-        return ResponseEntity.ok(roomService.getAll());
-    }
- 
-    
-    @GetMapping("admin/rooms/{id}")
-    public ResponseEntity<RoomDetailResponse> getById(@PathVariable UUID id) {
-        return ResponseEntity.ok(roomService.getById(id));
-    }
+    // @GetMapping("admin/rooms/{id}")
+    // public ResponseEntity<RoomDetailResponse> getById(@PathVariable UUID id) {
+    //     return ResponseEntity.ok(roomService.getById(id));
+    // }
 
-    @PostMapping("admin/rooms")
-    public ResponseEntity<Void> create(@Valid @RequestBody RoomRequest request) {
 
-        roomService.create(request);
+
+    @PostMapping("admin/{multiplexId}/rooms")
+    public ResponseEntity<Void> create(@Valid @PathVariable UUID multiplexId) {
+
+        roomService.create(multiplexId);
         return ResponseEntity.ok().build();
     }
  

@@ -10,7 +10,7 @@ import java.util.UUID;
 @Repository
 public interface RoomRepository extends JpaRepository<RoomEntity, UUID> {
  
-    boolean existsByMultiplexIdAndNumberRoom(UUID multiplexId, Integer numberRoom);
+    boolean existsByMultiplexId(UUID multiplexId);
 
     List<RoomEntity> findByMultiplexId(UUID multiplexId);
 }

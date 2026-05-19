@@ -4,7 +4,7 @@ import lombok.*;
  
 import java.util.List;
 
-import CinePacho.demo.rooms.dto.response.RoomDetailResponse;
+import CinePacho.demo.rooms.dto.response.RoomResponse;
  
 @Getter
 @Setter
@@ -17,6 +17,6 @@ public class MultiplexDetailResponse {
     private String nameMultiplex;
     private String addressMultiplex;
     private String cityMultiplex;
-    private List<RoomDetailResponse> rooms;
+    private List<RoomResponse> rooms;
 }
  

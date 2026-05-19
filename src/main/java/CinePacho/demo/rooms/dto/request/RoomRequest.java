@@ -16,9 +16,4 @@ public class RoomRequest {
     @NotNull(message = "El id del multiplex es obligatorio")
     private UUID multiplexId;
  
-    //Automatico ?
-    @NotNull(message = "El número de sala es obligatorio")
-    @Positive(message = "El número de sala debe ser mayor a 0")
-    private Integer numberRoom;
-
 }

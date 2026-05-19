@@ -94,6 +94,18 @@ public class SeatService {
         }
         seatRepository.deleteById(id);
     }
+
+    public void verifyAvailability(UUID seatId) {
+        SeatEntity seat = findOrThrow(seatId);
+        if (!seat.isAvailable()) {
+            throw new CinePachoException("El asiento con id " + seatId + " no está disponible");
+        }
+        
+        // Aquí podrías marcar el asiento como no disponible si quieres reservarlo
+        seat.setAvailable(false);
+        seatRepository.save(seat);
+
+    }
  
     // HELPERS
     private SeatEntity findOrThrow(UUID id) {
@@ -107,7 +119,10 @@ public class SeatService {
                 .roomId(seat.getRoom().getId().toString())
                 .seatNumber(seat.getSeatNumber())
                 .type(seat.getType().name())
+                .isAvailable(seat.isAvailable())
                 .build();
     }
+
+    
 }
  
