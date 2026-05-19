@@ -89,8 +89,7 @@ public class RoomService {
     private RoomResponse toSummary(RoomEntity room) {
         return RoomResponse.builder()
                 .idRoom(room.getId().toString())
-                .generalCapacity(room.getGeneralCapacity())
-                .preferentialCapacity(room.getPreferentialCapacity())
+                .numberRoom(room.getNumberRoom())
                 .isRoomActive(room.getActive())
                 .build();
     }
@@ -107,7 +106,7 @@ public class RoomService {
         );
  
         return RoomDetailResponse.builder()
-                .idRoom(room.getId().toString())
+                .idRoom(room.getId())
                 .numberRoom(room.getNumberRoom())
                 .isRoomActive(room.getActive())
                 .seats(seats)
