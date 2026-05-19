@@ -16,7 +16,7 @@ import java.util.List;
 import java.util.UUID;
 
 @RestController
-@RequestMapping("")
+@RequestMapping("/api")
 public class MovieController {
     private final MovieService movieService;
 
@@ -25,7 +25,7 @@ public class MovieController {
         this.movieService = movieService;
     }
 
-    @GetMapping("/admin/search")
+    @GetMapping("/admin/movie/search")
     public ResponseEntity<List<TmdbMovieDTO>> searchMovie(
             @Valid
             @RequestParam String query,
@@ -35,7 +35,7 @@ public class MovieController {
     }
 
 
-    @PostMapping("/admin/select/{movieId}")
+    @PostMapping("/admin/movie/select/{movieId}")
     public ResponseEntity<MovieResponseDTO> selectMovie(
             @Valid
             @PathVariable Long movieId
@@ -44,20 +44,18 @@ public class MovieController {
     }
 
 
-    @PostMapping("/admin/{multiplexName}/createScreening")
+    @PostMapping("/admin/movie/createScreening")
     public ResponseEntity<ScreeningResponseDTO> createScreening(
             @Valid
-            @PathVariable String multiplexName,
             @RequestBody CreateScreeningDTO dto
     ) {
-        return ResponseEntity.ok(movieService.createScreening(multiplexName, dto));
+        return ResponseEntity.ok(movieService.createScreening(dto));
     }
 
 
-     @PutMapping("/admin/{multiplexName}/{idScreening}/status")
+    @PutMapping("/admin/movie/changeStatus/{idScreening}")
     public ResponseEntity<StatusResponse> deleteMovie(
             @Valid
-            @PathVariable String multiplexName,
             @PathVariable UUID idScreening,
             @RequestParam ScreeningStatus status
     ){

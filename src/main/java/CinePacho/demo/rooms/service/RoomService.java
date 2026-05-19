@@ -4,12 +4,10 @@ package CinePacho.demo.rooms.service;
 import CinePacho.demo.multiplex.entitites.MultiplexEntity;
 import CinePacho.demo.shared.auxiliaryClass.MultiplexProvider;
 import CinePacho.demo.shared.auxiliaryClass.SeatManager;
-import CinePacho.demo.shared.enumeration.SeatType;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
-import CinePacho.demo.rooms.dto.request.RoomRequest;
 import CinePacho.demo.rooms.dto.response.RoomDetailResponse;
 import CinePacho.demo.rooms.dto.response.RoomResponse;
 import CinePacho.demo.rooms.entities.RoomEntity;
@@ -84,8 +82,6 @@ public class RoomService {
     private RoomResponse toSummary(RoomEntity room) {
         return RoomResponse.builder()
                 .idRoom(room.getId().toString())
-                .generalCapacity(room.getGeneralCapacity())
-                .preferentialCapacity(room.getPreferentialCapacity())
                 .isRoomActive(room.getActive())
                 .build();
     }
@@ -102,7 +98,7 @@ public class RoomService {
         );
  
         return RoomDetailResponse.builder()
-                .idRoom(room.getId().toString())
+                .idRoom(room.getId())
                 .isRoomActive(room.getActive())
                 .seats(seats)
                 .build();
