@@ -7,5 +7,5 @@ import java.util.UUID;
 
 @Component
 public interface MultiplexProvider {
-    MultiplexEntity obtenerMultiplexPorId(UUID id);
+    MultiplexEntity getMultiplexById(UUID id);
 }

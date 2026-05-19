@@ -17,7 +17,7 @@ public class MultiplexProviderImpl implements MultiplexProvider {
     }
 
     @Override
-    public MultiplexEntity obtenerMultiplexPorId(UUID id) {
+    public MultiplexEntity getMultiplexById(UUID id) {
         return multiplexRepository.findById(id).orElseThrow(()-> new CinePachoException("El ID del múltiplex no existe"));
     }
 }

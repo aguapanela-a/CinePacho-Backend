@@ -54,7 +54,7 @@ public class RoomService {
                     "Ya existe una sala con el número " + request.getNumberRoom() + " en ese multiplex");
         }
 
-        MultiplexEntity multiplex = multiplexProvider.obtenerMultiplexPorId(request.getMultiplexId());
+        MultiplexEntity multiplex = multiplexProvider.getMultiplexById(request.getMultiplexId());
 
         RoomEntity room = RoomEntity.builder()
                 .multiplex(multiplex)
@@ -100,7 +100,6 @@ public class RoomService {
     private RoomDetailResponse toDetail(RoomEntity room) {
         List<SeatAvailabilitySummaryResponse> seats = List.of(
                 SeatAvailabilitySummaryResponse.builder()
-                        .roomId(room.getId().toString())
                         .availableGeneral(seatRepository.countByRoomIdAndType(room.getId(), CinePacho.demo.shared.enumeration.SeatType.GENERAL))
                         .availablePreferential(seatRepository.countByRoomIdAndType(room.getId(), CinePacho.demo.shared.enumeration.SeatType.PREFERENTIAL))
                         .totalAvailable(seatRepository.countByRoomId(room.getId())) // Total sin filtrar por tipo
@@ -110,8 +109,6 @@ public class RoomService {
         return RoomDetailResponse.builder()
                 .idRoom(room.getId().toString())
                 .numberRoom(room.getNumberRoom())
-                .generalCapacity(room.getGeneralCapacity())
-                .preferentialCapacity(room.getPreferentialCapacity())
                 .isRoomActive(room.getActive())
                 .seats(seats)
                 .build();

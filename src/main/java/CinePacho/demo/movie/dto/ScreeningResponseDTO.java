@@ -21,9 +21,6 @@ public record ScreeningResponseDTO(
         @NotBlank(message = "La función debe tener una fecha")
         LocalDateTime dateTime,
 
-        @NotBlank(message = "La función debe tener una precio")
-        BigDecimal price,
-
         @NotBlank(message = "La función debe tener un idioma")
         String originalLanguage,
 

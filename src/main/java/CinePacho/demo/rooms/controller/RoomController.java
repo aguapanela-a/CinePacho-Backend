@@ -34,9 +34,10 @@ public class RoomController {
     }
 
     @PostMapping("admin/rooms")
-    public ResponseEntity<RoomDetailResponse> create(@Valid @RequestBody RoomRequest request) {
+    public ResponseEntity<Void> create(@Valid @RequestBody RoomRequest request) {
 
-        return ResponseEntity.ok(roomService.create(request));
+        roomService.create(request);
+        return ResponseEntity.ok().build();
     }
  
     @DeleteMapping("admin/rooms/{id}")

@@ -3,7 +3,6 @@ package CinePacho.demo.movie.dto;
 import com.fasterxml.jackson.annotation.JsonFormat;
 import jakarta.validation.constraints.NotBlank;
 
-import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.UUID;
 
@@ -16,8 +15,6 @@ public record CreateScreeningDTO(
 
         @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
         @NotBlank(message = "La hora de la función es obligatoria para crearla")
-        LocalDateTime dateTime,
+        LocalDateTime dateTime
 
-        @NotBlank(message = "El precio de la función es obligatorio para crearla")
-        BigDecimal price
 ) {}
