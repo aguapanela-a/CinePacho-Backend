@@ -114,8 +114,6 @@ public class MultiplexService {
                 .stream()
                 .map(r -> RoomResponse.builder()
                         .idRoom(r.getId().toString())
-                        .generalCapacity(r.getGeneralCapacity())
-                        .preferentialCapacity(r.getPreferentialCapacity())
                         .isRoomActive(r.getActive())
                         .build())
                 .collect(Collectors.toList());

@@ -36,7 +36,7 @@ public class RoomController {
 
         roomService.create(multiplexId);
 
-        return ResponseEntity.ok(new ResponseSummary("Sala de cine creada con éxito", detail.getIdRoom())).;
+        return ResponseEntity.ok(new ResponseSummary("Sala de cine creada con éxito", detail.getIdRoom()));
     }
  
     @DeleteMapping("admin/rooms/{id}")

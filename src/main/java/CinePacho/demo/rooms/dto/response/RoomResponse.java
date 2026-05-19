@@ -10,7 +10,6 @@ import lombok.*;
 public class RoomResponse {
  
     private String idRoom;
-    private Integer numberRoom;
     private Boolean isRoomActive;
 }
  
