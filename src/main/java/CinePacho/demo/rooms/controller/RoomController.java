@@ -1,6 +1,7 @@
 package CinePacho.demo.rooms.controller;
 
 import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotBlank;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -34,15 +35,22 @@ public class RoomController {
     }
 
     @PostMapping("admin/rooms")
-    public ResponseEntity<Void> create(@Valid @RequestBody RoomRequest request) {
+    public ResponseEntity<ResponseSummary> create(@Valid @RequestBody RoomRequest request) {
 
-        roomService.create(request);
-        return ResponseEntity.ok().build();
+        RoomDetailResponse detail = roomService.create(request);
+
+        return ResponseEntity.ok(new ResponseSummary("Sala de cine creada con éxito", detail.getIdRoom()));
     }
  
     @DeleteMapping("admin/rooms/{id}")
-    public ResponseEntity<Void> delete(@PathVariable UUID id) {
+    public ResponseEntity<ResponseSummary> delete(@PathVariable UUID id) {
         roomService.delete(id);
-        return ResponseEntity.noContent().build();
+        return ResponseEntity.ok(new ResponseSummary("Sala de cine eliminada con éxito", id));
     }
+
+    public record ResponseSummary(
+            String message,
+            @NotBlank
+            UUID roomId
+    ) {}
 }
