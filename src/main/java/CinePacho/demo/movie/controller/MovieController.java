@@ -44,20 +44,18 @@ public class MovieController {
     }
 
 
-    @PostMapping("/admin/movie/{multiplexName}/createScreening")
+    @PostMapping("/admin/movie/createScreening")
     public ResponseEntity<ScreeningResponseDTO> createScreening(
             @Valid
-            @PathVariable String multiplexName,
             @RequestBody CreateScreeningDTO dto
     ) {
         return ResponseEntity.ok(movieService.createScreening(dto));
     }
 
 
-     @PutMapping("/admin/movie/{multiplexName}/{idScreening}/status")
-    public ResponseEntity<StatusResponse> changeScreeningStatus(
+    @PutMapping("/admin/movie/changeStatus/{idScreening}")
+    public ResponseEntity<StatusResponse> deleteMovie(
             @Valid
-            @PathVariable String multiplexName,
             @PathVariable UUID idScreening,
             @RequestParam ScreeningStatus status
     ){

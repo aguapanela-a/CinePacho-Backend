@@ -3,6 +3,7 @@ package CinePacho.demo.rooms.dto.response;
 import lombok.*;
  
 import java.util.List;
+import java.util.UUID;
 
 import CinePacho.demo.seats.dto.response.SeatAvailabilitySummaryResponse;
  
@@ -13,10 +14,8 @@ import CinePacho.demo.seats.dto.response.SeatAvailabilitySummaryResponse;
 @Builder
 public class RoomDetailResponse {
  
-    private String idRoom;
+    private UUID idRoom;
     private Integer numberRoom;
-    private Integer generalCapacity;
-    private Integer preferentialCapacity;
     private Boolean isRoomActive;
     private List<SeatAvailabilitySummaryResponse> seats;  
 }
