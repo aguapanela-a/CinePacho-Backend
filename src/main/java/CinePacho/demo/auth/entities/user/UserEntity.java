@@ -15,10 +15,11 @@ import java.util.UUID;
 
 @Entity
 @Table(name = "users")
-@Setter @Getter
+@Setter
 @NoArgsConstructor
 public class UserEntity implements UserDetails {
 
+    @Getter
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
     private UUID userId;
@@ -29,9 +30,11 @@ public class UserEntity implements UserDetails {
     @Column(unique = true)
     private String password;
 
+    @Getter
     @Enumerated(EnumType.STRING)
     private UserType userType;
 
+    @Getter
     @Column(unique = true)
     private String email;
 
@@ -48,4 +51,13 @@ public class UserEntity implements UserDetails {
         return this.email;
     }
 
+    @Override
+    public String getPassword() {
+        return this.password;
+    }
+
+    @Override
+    public boolean isEnabled() {
+        return enabled;
+    }
 }

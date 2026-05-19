@@ -16,11 +16,14 @@ public class MovieEntity {
     @Id
     private Long id;
 
+    @Column(columnDefinition = "TEXT")
     private String backdropPath;
     private String originalLanguage;
     private String originalTitle;
+    @Column(columnDefinition = "TEXT")
     private String overview;
     private Double rating;
+    @Column(columnDefinition = "TEXT")
     private String posterPath;
     private String releaseDate;
     private String director;

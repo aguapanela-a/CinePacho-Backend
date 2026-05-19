@@ -16,7 +16,7 @@ import java.util.List;
 import java.util.UUID;
 
 @RestController
-@RequestMapping("")
+@RequestMapping("/api")
 public class MovieController {
     private final MovieService movieService;
 
