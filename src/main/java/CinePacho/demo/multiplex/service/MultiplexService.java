@@ -58,12 +58,15 @@ public class MultiplexService {
                 .city(request.getCityMultiplex())
                 .build();
 
+        MultiplexEntity multiplexSaved = multiplexRepository.save(multiplex);
+
         //ciclo for que genera la cantidad de salas especificadas para este multiplex
         for (int i = 0; i < request.getNumberOfRooms(); i++) {
-            roomManager.createRoom(multiplex.getId());
+            roomManager.createRoom(multiplexSaved.getId());
         }
 
-        return toDetail(multiplexRepository.save(multiplex));
+
+        return toDetail(multiplexSaved);
     }
  
     // ── UPDATE ───────────────────────────────────────────────────────────────────

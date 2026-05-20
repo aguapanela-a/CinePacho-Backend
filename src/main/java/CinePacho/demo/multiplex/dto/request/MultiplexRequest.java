@@ -28,7 +28,7 @@ public class MultiplexRequest {
     @Size(max = 100, message = "La ciudad del multiplex no puede superar los 100 caracteres")
     private String cityMultiplex;
 
-    @NotBlank(message = "Debe especificar la cantidad de salas que tendrá el nuevo multiplex")
+    //@Positive
     @Range(min = 5, max = 15, message = "La cantidad de salas debe ser entre 5 y 15 por multiplex")
-    private int numberOfRooms;
+    private Integer numberOfRooms;
 }

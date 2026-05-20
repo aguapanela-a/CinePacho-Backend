@@ -2,7 +2,6 @@ package CinePacho.demo.rooms.service;
 
 import CinePacho.demo.exception.CinePachoException;
 import CinePacho.demo.multiplex.entitites.MultiplexEntity;
-import CinePacho.demo.multiplex.service.MultiplexProviderImpl;
 import CinePacho.demo.rooms.entities.RoomEntity;
 import CinePacho.demo.rooms.repository.RoomRepository;
 import CinePacho.demo.shared.auxiliaryClass.MultiplexProvider;
@@ -45,10 +44,13 @@ public class RoomManagerImpl implements RoomManager {
                 .preferentialCapacity(preferencialCapacity)
                 .build();
 
+        //pone que la hora de creación sea la actual
+        room.prePersist();
+
         //Guardar entidad sala en BD
         RoomEntity roomSaved = roomRepository.save(room);
 
         //Crear e insertar sillas físicas asociadas a esa sala
-        seatManager.createSeat(generalCapacity, preferencialCapacity,roomSaved.getId());
+        seatManager.createSeat(generalCapacity, preferencialCapacity, roomSaved);
     }
 }

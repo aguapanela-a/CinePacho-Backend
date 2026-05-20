@@ -1,5 +1,6 @@
 package CinePacho.demo.seats.service;
 
+import CinePacho.demo.rooms.entities.RoomEntity;
 import CinePacho.demo.seats.entities.SeatEntity;
 import CinePacho.demo.seats.repository.SeatRepository;
 import CinePacho.demo.shared.auxiliaryClass.RoomManager;
@@ -13,16 +14,14 @@ import java.util.UUID;
 public class SeatManagerImpl implements SeatManager {
 
     private final SeatRepository seatRepository;
-    private final RoomManager roomManager;
 
-    public SeatManagerImpl(SeatRepository seatRepository, RoomManager roomManager) {
+    public SeatManagerImpl(SeatRepository seatRepository) {
         this.seatRepository = seatRepository;
-        this.roomManager = roomManager;
     }
 
 
     @Override
-    public void createSeat(int general, int preferential, UUID roomId) {
+    public void createSeat(int general, int preferential, RoomEntity room) {
 
         // Crear sillas generales
         for (int i = 0; i < general; i++) {
@@ -30,7 +29,7 @@ public class SeatManagerImpl implements SeatManager {
 
             seat.setSeatNumber(i);
             seat.setType(SeatType.GENERAL);
-            seat.setRoom(roomManager.getRoom(roomId));
+            seat.setRoom(room);
 
             seatRepository.save(seat);
         }
@@ -41,7 +40,7 @@ public class SeatManagerImpl implements SeatManager {
 
             seat.setSeatNumber(i + general);
             seat.setType(SeatType.PREFERENTIAL);
-            seat.setRoom(roomManager.getRoom(roomId));
+            seat.setRoom(room);
 
             seatRepository.save(seat);
         }

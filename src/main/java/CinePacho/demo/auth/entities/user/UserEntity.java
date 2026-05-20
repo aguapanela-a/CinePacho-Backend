@@ -23,7 +23,7 @@ public class UserEntity implements UserDetails {
     @GeneratedValue(strategy = GenerationType.UUID)
     private UUID userId;
 
-    @Getter
+
     @Column(unique = true)
     private String username;
 
