@@ -36,12 +36,12 @@ public class RoomManagerImpl implements RoomManager {
         MultiplexEntity multiplex = multiplexProvider.getMultiplexById(multiplexID);
 
         int generalCapacity = 40;
-        int preferencialCapacity = 20;
+        int preferentialCapacity = 20;
 
         RoomEntity room = RoomEntity.builder()
                 .multiplex(multiplex)
                 .generalCapacity(generalCapacity)
-                .preferentialCapacity(preferencialCapacity)
+                .preferentialCapacity(preferentialCapacity)
                 .build();
 
         //pone que la hora de creación sea la actual
@@ -51,6 +51,6 @@ public class RoomManagerImpl implements RoomManager {
         RoomEntity roomSaved = roomRepository.save(room);
 
         //Crear e insertar sillas físicas asociadas a esa sala
-        seatManager.createSeat(generalCapacity, preferencialCapacity, roomSaved);
+        seatManager.createSeat(generalCapacity, preferentialCapacity, roomSaved);
     }
 }
