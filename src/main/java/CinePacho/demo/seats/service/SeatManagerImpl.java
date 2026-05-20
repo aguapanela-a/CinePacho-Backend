@@ -2,28 +2,22 @@ package CinePacho.demo.seats.service;
 
 import CinePacho.demo.seats.entities.SeatEntity;
 import CinePacho.demo.seats.repository.SeatRepository;
-import CinePacho.demo.shared.auxiliaryClass.RoomProvider;
+import CinePacho.demo.shared.auxiliaryClass.RoomManager;
 import CinePacho.demo.shared.auxiliaryClass.SeatManager;
 import CinePacho.demo.shared.enumeration.SeatType;
-import jakarta.transaction.Transactional;
-import lombok.ToString;
-import org.springframework.data.domain.Limit;
-import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Component;
 
-import java.awt.print.Pageable;
-import java.util.List;
 import java.util.UUID;
 
 @Component
 public class SeatManagerImpl implements SeatManager {
 
     private final SeatRepository seatRepository;
-    private final RoomProvider roomProvider;
+    private final RoomManager roomManager;
 
-    public SeatManagerImpl(SeatRepository seatRepository, RoomProvider roomProvider) {
+    public SeatManagerImpl(SeatRepository seatRepository, RoomManager roomManager) {
         this.seatRepository = seatRepository;
-        this.roomProvider = roomProvider;
+        this.roomManager = roomManager;
     }
 
 
@@ -36,7 +30,7 @@ public class SeatManagerImpl implements SeatManager {
 
             seat.setSeatNumber(i);
             seat.setType(SeatType.GENERAL);
-            seat.setRoom(roomProvider.getRoom(roomId));
+            seat.setRoom(roomManager.getRoom(roomId));
 
             seatRepository.save(seat);
         }
@@ -47,7 +41,7 @@ public class SeatManagerImpl implements SeatManager {
 
             seat.setSeatNumber(i + general);
             seat.setType(SeatType.PREFERENTIAL);
-            seat.setRoom(roomProvider.getRoom(roomId));
+            seat.setRoom(roomManager.getRoom(roomId));
 
             seatRepository.save(seat);
         }

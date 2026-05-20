@@ -13,5 +13,7 @@ public interface RoomRepository extends JpaRepository<RoomEntity, UUID> {
     boolean existsByMultiplexId(UUID multiplexId);
 
     List<RoomEntity> findByMultiplexId(UUID multiplexId);
+
+    RoomEntity findTopByMultiplexIdOrderByCreatedAtDesc(UUID multiplexId);
 }
  

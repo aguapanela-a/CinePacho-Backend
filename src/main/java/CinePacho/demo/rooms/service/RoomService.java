@@ -3,6 +3,7 @@ package CinePacho.demo.rooms.service;
 
 import CinePacho.demo.multiplex.entitites.MultiplexEntity;
 import CinePacho.demo.shared.auxiliaryClass.MultiplexProvider;
+import CinePacho.demo.shared.auxiliaryClass.RoomManager;
 import CinePacho.demo.shared.auxiliaryClass.SeatManager;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
@@ -25,11 +26,7 @@ public class RoomService {
  
     private final RoomRepository roomRepository;
     private final SeatRepository seatRepository;
-    private final MultiplexProvider  multiplexProvider;
-    private final SeatManager seatManager;
-
-    private final int generalCapacity = 40;
-    private final int preferencialCapacity = 20;
+    private final RoomManager roomManager;
 
     // ── GET ALL ─────────────────────────────────────────────────────────────────
     public List<RoomResponse> getAll() {
@@ -44,23 +41,16 @@ public class RoomService {
         RoomEntity room = findOrThrow(id);
         return toDetail(room);
     }
- 
+
+    //TODO: consumir RoomManager.createRoom(UUID multiplexId) para crear una unica sala
     // ── CREATE ───────────────────────────────────────────────────────────────────
     public RoomDetailResponse create(UUID multiplexId) {
 
-        MultiplexEntity multiplex = multiplexProvider.getMultiplexById(multiplexId);
+        //Crea y guarda una sala con todas sus sillas
+        roomManager.createRoom(multiplexId);
 
-        RoomEntity room = RoomEntity.builder()
-                .multiplex(multiplex)
-                .generalCapacity(generalCapacity)
-                .preferentialCapacity(preferencialCapacity)
-                .build();
-
-        //Guardar entidad sala en BD
-        RoomEntity roomSaved = roomRepository.save(room);
-
-        //Crear e insertar sillas físicas asociadas a esa sala
-        seatManager.createSeat(generalCapacity, preferencialCapacity,roomSaved.getId());
+        //Trae la ultima sala creada de este multiplex
+        RoomEntity roomSaved = roomRepository.findTopByMultiplexIdOrderByCreatedAtDesc(multiplexId);
 
         return toDetail(roomSaved);
     }

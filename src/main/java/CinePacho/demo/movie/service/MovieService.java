@@ -9,7 +9,7 @@ import CinePacho.demo.movie.repository.MovieRepository;
 import CinePacho.demo.movie.repository.MovieScreeningRepository;
 import CinePacho.demo.rooms.entities.RoomEntity;
 import CinePacho.demo.shared.auxiliaryClass.MultiplexProvider;
-import CinePacho.demo.shared.auxiliaryClass.RoomProvider;
+import CinePacho.demo.shared.auxiliaryClass.RoomManager;
 import CinePacho.demo.shared.tmdbGenre.TmdbGenreMapper;
 import org.jspecify.annotations.NonNull;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -28,18 +28,18 @@ public class MovieService {
     private final MovieRepository movieRepository;
     private final MovieScreeningRepository movieScreeningRepository;
     private final WebClient webClient;
-    private final RoomProvider  roomProvider;
+    private final RoomManager roomManager;
 
     @Value("${tmdb.access.token}")
     private String accessToken;
 
     @Autowired
-    public MovieService(MovieRepository movieRepository, MovieScreeningRepository movieScreeningRepository, WebClient webClient, MultiplexProvider multiplexProvider, RoomProvider roomProvider) {
+    public MovieService(MovieRepository movieRepository, MovieScreeningRepository movieScreeningRepository, WebClient webClient, MultiplexProvider multiplexProvider, RoomManager roomManager) {
         this.movieRepository = movieRepository;
         this.movieScreeningRepository = movieScreeningRepository;
         this.webClient = webClient;
 
-        this.roomProvider = roomProvider;
+        this.roomManager = roomManager;
     }
 
 
@@ -100,7 +100,7 @@ public class MovieService {
                 .orElseThrow(() -> new CinePachoException("Debes seleccionar una película primero")); // si no encuentra nada es porque no ha seleccionado
 
         // traer sala para asociar a la función
-        RoomEntity room = roomProvider.getRoom(createScreeningDTO.roomId());
+        RoomEntity room = roomManager.getRoom(createScreeningDTO.roomId());
 
         MovieScreening movieScreening = new MovieScreening();
         movieScreening.setMovie(movie);

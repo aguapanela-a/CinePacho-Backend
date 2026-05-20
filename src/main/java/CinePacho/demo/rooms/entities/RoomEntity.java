@@ -3,7 +3,8 @@ package CinePacho.demo.rooms.entities;
 import CinePacho.demo.multiplex.entitites.MultiplexEntity;
 import jakarta.persistence.*;
 import lombok.*;
- 
+
+import java.time.LocalDateTime;
 import java.util.UUID;
  
 @Entity
@@ -33,4 +34,13 @@ public class RoomEntity {
     @Column(name = "active", nullable = false)
     @Builder.Default
     private Boolean active = true;
+
+    @Column(nullable = false, updatable = false)
+    private LocalDateTime createdAt;
+
+    @PrePersist
+    public void prePersist() {
+        this.createdAt = LocalDateTime.now();
+    }
+
 }
