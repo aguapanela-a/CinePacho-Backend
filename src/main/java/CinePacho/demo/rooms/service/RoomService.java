@@ -1,10 +1,8 @@
 package CinePacho.demo.rooms.service;
 
 
-import CinePacho.demo.multiplex.entitites.MultiplexEntity;
 import CinePacho.demo.shared.auxiliaryClass.MultiplexProvider;
 import CinePacho.demo.shared.auxiliaryClass.RoomManager;
-import CinePacho.demo.shared.auxiliaryClass.SeatManager;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -27,6 +25,7 @@ public class RoomService {
     private final RoomRepository roomRepository;
     private final SeatRepository seatRepository;
     private final RoomManager roomManager;
+    private final MultiplexProvider multiplexProvider;
 
     // ── GET ALL ─────────────────────────────────────────────────────────────────
     public List<RoomResponse> getAll() {
@@ -47,7 +46,7 @@ public class RoomService {
     public RoomDetailResponse create(UUID multiplexId) {
 
         //Crea y guarda una sala con todas sus sillas
-        roomManager.createRoom(multiplexId);
+        roomManager.createRoom(multiplexProvider.getMultiplexById(multiplexId));
 
         //Trae la ultima sala creada de este multiplex
         RoomEntity roomSaved = roomRepository.findTopByMultiplexIdOrderByCreatedAtDesc(multiplexId);

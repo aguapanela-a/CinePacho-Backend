@@ -8,7 +8,6 @@ import CinePacho.demo.movie.enumeration.ScreeningStatus;
 import CinePacho.demo.movie.repository.MovieRepository;
 import CinePacho.demo.movie.repository.MovieScreeningRepository;
 import CinePacho.demo.rooms.entities.RoomEntity;
-import CinePacho.demo.shared.auxiliaryClass.MultiplexProvider;
 import CinePacho.demo.shared.auxiliaryClass.RoomManager;
 import CinePacho.demo.shared.tmdbGenre.TmdbGenreMapper;
 import org.jspecify.annotations.NonNull;
@@ -34,7 +33,7 @@ public class MovieService {
     private String accessToken;
 
     @Autowired
-    public MovieService(MovieRepository movieRepository, MovieScreeningRepository movieScreeningRepository, WebClient webClient, MultiplexProvider multiplexProvider, RoomManager roomManager) {
+    public MovieService(MovieRepository movieRepository, MovieScreeningRepository movieScreeningRepository, WebClient webClient, RoomManager roomManager) {
         this.movieRepository = movieRepository;
         this.movieScreeningRepository = movieScreeningRepository;
         this.webClient = webClient;

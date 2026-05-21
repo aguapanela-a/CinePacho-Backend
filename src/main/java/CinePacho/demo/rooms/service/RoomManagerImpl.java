@@ -31,9 +31,7 @@ public class RoomManagerImpl implements RoomManager {
     }
 
     @Override
-    public void createRoom(UUID multiplexID) {
-
-        MultiplexEntity multiplex = multiplexProvider.getMultiplexById(multiplexID);
+    public void createRoom(MultiplexEntity multiplex) {
 
         int generalCapacity = 40;
         int preferentialCapacity = 20;

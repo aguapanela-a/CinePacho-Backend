@@ -1,7 +1,6 @@
 package CinePacho.demo.multiplex.service;
 
 import CinePacho.demo.exception.CinePachoException;
-import CinePacho.demo.seats.repository.SeatRepository;
 import CinePacho.demo.shared.auxiliaryClass.RoomManager;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
@@ -12,7 +11,6 @@ import CinePacho.demo.multiplex.dto.response.MultiplexDetailResponse;
 import CinePacho.demo.multiplex.dto.response.MultiplexSummaryResponse;
 import CinePacho.demo.multiplex.entitites.MultiplexEntity;
 import CinePacho.demo.multiplex.repository.MultiplexRepository;
-import CinePacho.demo.rooms.dto.response.RoomDetailResponse;
 import CinePacho.demo.rooms.dto.response.RoomResponse;
 import CinePacho.demo.rooms.repository.RoomRepository;
 
@@ -62,7 +60,7 @@ public class MultiplexService {
 
         //ciclo for que genera la cantidad de salas especificadas para este multiplex
         for (int i = 0; i < request.getNumberOfRooms(); i++) {
-            roomManager.createRoom(multiplexSaved.getId());
+            roomManager.createRoom(multiplexSaved);
         }
 
 
