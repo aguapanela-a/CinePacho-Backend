@@ -7,6 +7,6 @@ import java.util.UUID;
 
 @Component
 public interface RoomManager {
-    public RoomEntity getRoom(UUID id);
-    public void createRoom(UUID multiplexID);
+     RoomEntity getRoom(UUID id);
+     void createRoom(UUID multiplexID);
 }
