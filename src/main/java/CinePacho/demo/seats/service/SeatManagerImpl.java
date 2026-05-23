@@ -3,12 +3,10 @@ package CinePacho.demo.seats.service;
 import CinePacho.demo.rooms.entities.RoomEntity;
 import CinePacho.demo.seats.entities.SeatEntity;
 import CinePacho.demo.seats.repository.SeatRepository;
-import CinePacho.demo.shared.auxiliaryClass.RoomManager;
 import CinePacho.demo.shared.auxiliaryClass.SeatManager;
 import CinePacho.demo.shared.enumeration.SeatType;
 import org.springframework.stereotype.Component;
 
-import java.util.UUID;
 
 @Component
 public class SeatManagerImpl implements SeatManager {

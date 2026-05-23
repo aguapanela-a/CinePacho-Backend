@@ -50,8 +50,9 @@ public class SeatService {
         return toResponse(findOrThrow(id));
     }
  
+
+    // Disponibilidad de un asiento específico
     // CREATE 
-    //TODO: -- Implementar creación de asientos en bloque al crear una sala, con base en la capacidad general y preferencial de la sala
     public SeatResponse create(SeatRequest request) {
         if (seatRepository.existsByRoomIdAndSeatNumber(request.getRoomId(), request.getSeatNumber())) {
             throw new CinePachoException(

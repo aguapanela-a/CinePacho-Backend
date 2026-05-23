@@ -59,6 +59,13 @@ public class MultiplexService {
         MultiplexEntity multiplexSaved = multiplexRepository.save(multiplex);
 
         //ciclo for que genera la cantidad de salas especificadas para este multiplex
+
+        if (request.getNumberOfRooms() < 5) {
+            throw new CinePachoException("El número mínimo de salas debe ser mayor o igual a 5.");
+        } else if (request.getNumberOfRooms() > 15) {
+            throw new CinePachoException("El número máximo de salas debe ser menor o igual a 15.");
+        }
+
         for (int i = 0; i < request.getNumberOfRooms(); i++) {
             roomManager.createRoom(multiplexSaved);
         }
