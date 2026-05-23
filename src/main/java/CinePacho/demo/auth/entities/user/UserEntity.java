@@ -15,7 +15,7 @@ import java.util.UUID;
 
 @Entity
 @Table(name = "users")
-@Setter @Getter
+@Setter
 @NoArgsConstructor
 public class UserEntity implements UserDetails {
 
@@ -23,18 +23,22 @@ public class UserEntity implements UserDetails {
     @GeneratedValue(strategy = GenerationType.UUID)
     private UUID userId;
 
+
     @Column(unique = true)
     private String username;
 
     @Column(unique = true)
     private String password;
 
+    @Getter
     @Enumerated(EnumType.STRING)
     private UserType userType;
 
+    @Getter
     @Column(unique = true)
     private String email;
 
+    @Getter
     @Column(nullable = false)
     private boolean enabled = false;
 
@@ -46,6 +50,11 @@ public class UserEntity implements UserDetails {
     @Override
     public String getUsername() {
         return this.email;
+    }
+
+    @Override
+    public String getPassword() {
+        return this.password;
     }
 
 }

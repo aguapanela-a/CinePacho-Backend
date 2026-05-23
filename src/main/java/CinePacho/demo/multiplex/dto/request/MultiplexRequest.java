@@ -8,6 +8,7 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import org.hibernate.validator.constraints.Range;
 
 @NoArgsConstructor
 @AllArgsConstructor
@@ -26,4 +27,8 @@ public class MultiplexRequest {
     @NotBlank(message = "La ciudad del multiplex es obligatoria")
     @Size(max = 100, message = "La ciudad del multiplex no puede superar los 100 caracteres")
     private String cityMultiplex;
+
+    //@Positive
+    @Range(min = 5, max = 15, message = "La cantidad de salas debe ser entre 5 y 15 por multiplex")
+    private Integer numberOfRooms;
 }

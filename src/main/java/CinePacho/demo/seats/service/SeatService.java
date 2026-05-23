@@ -1,7 +1,7 @@
 package CinePacho.demo.seats.service;
 
 import CinePacho.demo.exception.CinePachoException;
-import CinePacho.demo.shared.auxiliaryClass.RoomProvider;
+import CinePacho.demo.shared.auxiliaryClass.RoomManager;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -22,7 +22,7 @@ import java.util.stream.Collectors;
 public class SeatService {
  
     private final SeatRepository seatRepository;
-    private final RoomProvider roomProvider;
+    private final RoomManager roomManager;
  
     // GET ALL by room
     public List<SeatResponse> getAllByRoom(UUID roomId) {
@@ -59,7 +59,7 @@ public class SeatService {
         }
  
         SeatEntity seat = SeatEntity.builder()
-                .room(roomProvider.getRoom(request.getRoomId()))
+                .room(roomManager.getRoom(request.getRoomId()))
                 .seatNumber(request.getSeatNumber())
                 .type(request.getType())
                 .build();
@@ -80,7 +80,7 @@ public class SeatService {
                     "Ya existe el asiento número " + request.getSeatNumber() + " en esa sala");
         }
 
-        seat.setRoom(roomProvider.getRoom(request.getRoomId()));
+        seat.setRoom(roomManager.getRoom(request.getRoomId()));
         seat.setSeatNumber(request.getSeatNumber());
         seat.setType(request.getType());
  
@@ -93,6 +93,18 @@ public class SeatService {
             throw new EntityNotFoundException("Asiento no encontrado con id: " + id);
         }
         seatRepository.deleteById(id);
+    }
+
+    public void verifyAvailability(UUID seatId) {
+        SeatEntity seat = findOrThrow(seatId);
+        if (!seat.isAvailable()) {
+            throw new CinePachoException("El asiento con id " + seatId + " no está disponible");
+        }
+        
+        // Aquí podrías marcar el asiento como no disponible si quieres reservarlo
+        seat.setAvailable(false);
+        seatRepository.save(seat);
+
     }
  
     // HELPERS
@@ -107,7 +119,10 @@ public class SeatService {
                 .roomId(seat.getRoom().getId().toString())
                 .seatNumber(seat.getSeatNumber())
                 .type(seat.getType().name())
+                .isAvailable(seat.isAvailable())
                 .build();
     }
+
+    
 }
  

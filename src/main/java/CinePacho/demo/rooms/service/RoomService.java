@@ -1,15 +1,12 @@
 package CinePacho.demo.rooms.service;
 
 
-import CinePacho.demo.multiplex.entitites.MultiplexEntity;
 import CinePacho.demo.shared.auxiliaryClass.MultiplexProvider;
-import CinePacho.demo.shared.auxiliaryClass.SeatManager;
-import CinePacho.demo.shared.enumeration.SeatType;
+import CinePacho.demo.shared.auxiliaryClass.RoomManager;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
-import CinePacho.demo.rooms.dto.request.RoomRequest;
 import CinePacho.demo.rooms.dto.response.RoomDetailResponse;
 import CinePacho.demo.rooms.dto.response.RoomResponse;
 import CinePacho.demo.rooms.entities.RoomEntity;
@@ -27,11 +24,8 @@ public class RoomService {
  
     private final RoomRepository roomRepository;
     private final SeatRepository seatRepository;
-    private final MultiplexProvider  multiplexProvider;
-    private final SeatManager seatManager;
-
-    private final int generalCapacity = 40;
-    private final int preferencialCapacity = 20;
+    private final RoomManager roomManager;
+    private final MultiplexProvider multiplexProvider;
 
     // ── GET ALL ─────────────────────────────────────────────────────────────────
     public List<RoomResponse> getAll() {
@@ -46,28 +40,16 @@ public class RoomService {
         RoomEntity room = findOrThrow(id);
         return toDetail(room);
     }
- 
+
+    //TODO: consumir RoomManager.createRoom(UUID multiplexId) para crear una unica sala
     // ── CREATE ───────────────────────────────────────────────────────────────────
-    public RoomDetailResponse create(RoomRequest request) {
-        if (roomRepository.existsByMultiplexIdAndNumberRoom(request.getMultiplexId(), request.getNumberRoom())) {
-            throw new IllegalArgumentException(
-                    "Ya existe una sala con el número " + request.getNumberRoom() + " en ese multiplex");
-        }
+    public RoomDetailResponse create(UUID multiplexId) {
 
-        MultiplexEntity multiplex = multiplexProvider.getMultiplexById(request.getMultiplexId());
+        //Crea y guarda una sala con todas sus sillas
+        roomManager.createRoom(multiplexProvider.getMultiplexById(multiplexId));
 
-        RoomEntity room = RoomEntity.builder()
-                .multiplex(multiplex)
-                .numberRoom(request.getNumberRoom())
-                .generalCapacity(generalCapacity)
-                .preferentialCapacity(preferencialCapacity)
-                .build();
-
-        //Guardar entidad sala en BD
-        RoomEntity roomSaved = roomRepository.save(room);
-
-        //Crear e insertar sillas físicas asociadas a esa sala
-        seatManager.createSeat(generalCapacity, preferencialCapacity,roomSaved.getId());
+        //Trae la ultima sala creada de este multiplex
+        RoomEntity roomSaved = roomRepository.findTopByMultiplexIdOrderByCreatedAtDesc(multiplexId);
 
         return toDetail(roomSaved);
     }
@@ -88,8 +70,7 @@ public class RoomService {
  
     private RoomResponse toSummary(RoomEntity room) {
         return RoomResponse.builder()
-                .idRoom(room.getId().toString())
-                .numberRoom(room.getNumberRoom())
+                .idRoom(room.getId())
                 .isRoomActive(room.getActive())
                 .build();
     }
@@ -107,7 +88,6 @@ public class RoomService {
  
         return RoomDetailResponse.builder()
                 .idRoom(room.getId())
-                .numberRoom(room.getNumberRoom())
                 .isRoomActive(room.getActive())
                 .seats(seats)
                 .build();

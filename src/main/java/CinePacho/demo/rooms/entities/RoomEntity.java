@@ -3,7 +3,8 @@ package CinePacho.demo.rooms.entities;
 import CinePacho.demo.multiplex.entitites.MultiplexEntity;
 import jakarta.persistence.*;
 import lombok.*;
- 
+
+import java.time.LocalDateTime;
 import java.util.UUID;
  
 @Entity
@@ -24,9 +25,6 @@ public class RoomEntity {
     @ManyToOne(fetch = FetchType.LAZY)
     private MultiplexEntity multiplex;
  
-    @Column(name = "number_room", nullable = false)
-    private Integer numberRoom;
- 
     @Column(name = "general_capacity", nullable = false)
     private Integer generalCapacity;
  
@@ -36,4 +34,13 @@ public class RoomEntity {
     @Column(name = "active", nullable = false)
     @Builder.Default
     private Boolean active = true;
+
+    @Column(name = "created_at", nullable = false, updatable = false)
+    private LocalDateTime createdAt;
+
+    @PrePersist
+    public void prePersist() {
+        this.createdAt = LocalDateTime.now();
+    }
+
 }

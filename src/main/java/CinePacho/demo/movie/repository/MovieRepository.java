@@ -3,6 +3,4 @@ package CinePacho.demo.movie.repository;
 import CinePacho.demo.movie.entities.MovieEntity;
 import org.springframework.data.jpa.repository.JpaRepository;
 
-public interface MovieRepository extends JpaRepository<MovieEntity, Long> {
-    MovieEntity findByOriginalTitle(String originalTitle);
-}
+public interface MovieRepository extends JpaRepository<MovieEntity, Long> { }

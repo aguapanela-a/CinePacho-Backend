@@ -1,5 +1,7 @@
 package CinePacho.demo.rooms.dto.response;
 
+import java.util.UUID;
+
 import lombok.*;
  
 @Getter
@@ -9,8 +11,7 @@ import lombok.*;
 @Builder
 public class RoomResponse {
  
-    private String idRoom;
-    private Integer numberRoom;
+    private UUID idRoom;
     private Boolean isRoomActive;
 }
  

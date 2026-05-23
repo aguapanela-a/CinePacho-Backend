@@ -1,6 +1,7 @@
 package CinePacho.demo.multiplex.service;
 
 import CinePacho.demo.exception.CinePachoException;
+import CinePacho.demo.shared.auxiliaryClass.RoomManager;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -10,7 +11,7 @@ import CinePacho.demo.multiplex.dto.response.MultiplexDetailResponse;
 import CinePacho.demo.multiplex.dto.response.MultiplexSummaryResponse;
 import CinePacho.demo.multiplex.entitites.MultiplexEntity;
 import CinePacho.demo.multiplex.repository.MultiplexRepository;
-import CinePacho.demo.rooms.dto.response.RoomDetailResponse;
+import CinePacho.demo.rooms.dto.response.RoomResponse;
 import CinePacho.demo.rooms.repository.RoomRepository;
 
 import java.util.List;
@@ -22,7 +23,8 @@ import java.util.stream.Collectors;
 public class MultiplexService {
  
     private final MultiplexRepository multiplexRepository;
-    private final RoomRepository roomRepository;   
+    private final RoomRepository roomRepository;
+    private final RoomManager roomManager;
  
     // ── GET ALL ──────────────────────────────────────────────────────────────────
     public List<MultiplexSummaryResponse> getAll() {
@@ -39,8 +41,8 @@ public class MultiplexService {
         MultiplexEntity multiplex = findOrThrow(id);
         return toDetail(multiplex);
     }
- 
-    // ── CREATE ───────────────────────────────────────────────────────────────────
+
+
     public MultiplexDetailResponse create(MultiplexRequest request) {
         if (multiplexRepository.existsByNameAndCity(request.getNameMultiplex(), request.getCityMultiplex())) {
             throw new CinePachoException(
@@ -53,8 +55,16 @@ public class MultiplexService {
                 .address(request.getAddressMultiplex())
                 .city(request.getCityMultiplex())
                 .build();
- 
-        return toDetail(multiplexRepository.save(multiplex));
+
+        MultiplexEntity multiplexSaved = multiplexRepository.save(multiplex);
+
+        //ciclo for que genera la cantidad de salas especificadas para este multiplex
+        for (int i = 0; i < request.getNumberOfRooms(); i++) {
+            roomManager.createRoom(multiplexSaved);
+        }
+
+
+        return toDetail(multiplexSaved);
     }
  
     // ── UPDATE ───────────────────────────────────────────────────────────────────
@@ -109,11 +119,10 @@ public class MultiplexService {
     }
  
     private MultiplexDetailResponse toDetail(MultiplexEntity m) {
-        List<RoomDetailResponse> rooms = roomRepository.findByMultiplexId(m.getId())
+        List<RoomResponse> rooms = roomRepository.findByMultiplexId(m.getId())
                 .stream()
-                .map(r -> RoomDetailResponse.builder()
-                        .idRoom(r.getId().toString())
-                        .numberRoom(r.getNumberRoom())
+                .map(r -> RoomResponse.builder()
+                        .idRoom(r.getId())
                         .isRoomActive(r.getActive())
                         .build())
                 .collect(Collectors.toList());

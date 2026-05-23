@@ -39,4 +39,7 @@ public class SeatEntity {
     @Enumerated(EnumType.STRING)
     @Column(name = "type", nullable = false, length = 20)
     private SeatType type;
+
+    @Column(name = "is_available", nullable = false)
+    private boolean isAvailable;
 }

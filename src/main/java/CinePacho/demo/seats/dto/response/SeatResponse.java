@@ -12,6 +12,7 @@ public class SeatResponse {
     private String idSeat;
     private String roomId;
     private Integer seatNumber;
-    private String type;  
+    private String type;
+    private boolean isAvailable;
 }
  
