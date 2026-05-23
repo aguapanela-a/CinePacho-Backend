@@ -166,7 +166,36 @@
 
 ---
 
-# 🎬 3. Películas
+# 💺 3. Sillas (Seats)
+
+## 🔹 PUT /admin/seats/changeStatus/{seatId}
+
+**Descripción:** Cambia el estado `isAvailable` de la silla al estado contrario.
+
+**Request**
+
+No requiere body. El `seatId` se envía como parámetro de ruta.
+
+**Response**
+
+```json
+{
+  "idSeat": "string",
+  "roomId": "string",
+  "seatNumber": 0,
+  "type": "GENERAL",
+  "isAvailable": true
+}
+```
+
+**Valores posibles para `type`:**
+
+* GENERAL
+* PREFERENTIAL
+
+---
+
+# 🎬 4. Películas
 
 ## 🔹 GET /admin/movie/search?query={text}
 
@@ -258,7 +287,7 @@
 
 ---
 
-# 🍿 4. Snacks
+# 🍿 5. Snacks
 
 ## 🔹 GET /admin/snacks
 
