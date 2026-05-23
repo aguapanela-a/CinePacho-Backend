@@ -1,6 +1,5 @@
 package CinePacho.demo.seats.entities;
 
-import CinePacho.demo.auth.entities.customers.BuyerEntity;
 import CinePacho.demo.rooms.entities.RoomEntity;
 import CinePacho.demo.seats.enumeration.SeatStatus;
 import jakarta.persistence.*;

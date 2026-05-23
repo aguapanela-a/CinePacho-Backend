@@ -1,11 +1,10 @@
 package CinePacho.demo.employeeManageer.dto.request;
 
 import CinePacho.demo.shared.enumeration.UserType;
-import CinePacho.demo.shared.registerData.RegisterData;
 import jakarta.validation.constraints.*;
-import org.springframework.stereotype.Component;
 
 import java.math.BigDecimal;
+import java.util.UUID;
 
 public record RegisterEmployeeRequestDTO (
 
@@ -36,5 +35,8 @@ public record RegisterEmployeeRequestDTO (
         BigDecimal salary,
 
         @NotNull(message = "El rol del empleado es obligatorio y debe ser válido")
-        String position
+        String position,
+
+        @NotNull(message = "El multiplex es obligatorio")
+        UUID multiplexId // Multiplex asignado al empleado/gerente
 ){}

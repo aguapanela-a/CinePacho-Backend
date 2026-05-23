@@ -9,6 +9,7 @@ import CinePacho.demo.movie.repository.MovieRepository;
 import CinePacho.demo.movie.repository.MovieScreeningRepository;
 import CinePacho.demo.rooms.entities.RoomEntity;
 import CinePacho.demo.shared.auxiliaryClass.RoomManager;
+import CinePacho.demo.shared.serviceSecurity.AccessValidator;
 import CinePacho.demo.shared.tmdbGenre.TmdbGenreMapper;
 import org.jspecify.annotations.NonNull;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -28,17 +29,19 @@ public class MovieService {
     private final MovieScreeningRepository movieScreeningRepository;
     private final WebClient webClient;
     private final RoomManager roomManager;
+    private final AccessValidator accessValidator;
 
     @Value("${tmdb.access.token}")
     private String accessToken;
 
     @Autowired
-    public MovieService(MovieRepository movieRepository, MovieScreeningRepository movieScreeningRepository, WebClient webClient, RoomManager roomManager) {
+    public MovieService(MovieRepository movieRepository, MovieScreeningRepository movieScreeningRepository, WebClient webClient, RoomManager roomManager, AccessValidator accessValidator) {
         this.movieRepository = movieRepository;
         this.movieScreeningRepository = movieScreeningRepository;
         this.webClient = webClient;
 
         this.roomManager = roomManager;
+        this.accessValidator = accessValidator;
     }
 
 
@@ -100,6 +103,8 @@ public class MovieService {
 
         // traer sala para asociar a la función
         RoomEntity room = roomManager.getRoom(createScreeningDTO.roomId());
+        // Valida que el gerente sólo cree funciones en su multiplex
+        accessValidator.validateMultiplexAccess(room.getMultiplex().getId());
 
         MovieScreening movieScreening = new MovieScreening();
         movieScreening.setMovie(movie);
@@ -127,6 +132,9 @@ public class MovieService {
 
         MovieScreening movieScreening = movieScreeningRepository.findById(id)
                 .orElseThrow(()-> new CinePachoException("Película no encontrada, por favor asegúrese de escribir bien el id"));
+
+        // Valida que el gerente sólo cambie funciones de su multiplex
+        accessValidator.validateMultiplexAccess(movieScreening.getRoom().getMultiplex().getId());
 
         movieScreening.setStatus(screeningStatus);
         movieScreeningRepository.save(movieScreening);

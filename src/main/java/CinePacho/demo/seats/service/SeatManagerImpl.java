@@ -60,4 +60,16 @@ public class SeatManagerImpl implements SeatManager {
         return seatRepository.save(seat);
     }
 
+    @Override
+    public Integer countByRoomIdAndType(UUID roomId, SeatType type) {
+        // Encapsula el acceso al repositorio de sillas para otros módulos
+        return seatRepository.countByRoomIdAndType(roomId, type);
+    }
+
+    @Override
+    public Integer countByRoomId(UUID roomId) {
+        // Encapsula el acceso al repositorio de sillas para otros módulos
+        return seatRepository.countByRoomId(roomId);
+    }
+
 }

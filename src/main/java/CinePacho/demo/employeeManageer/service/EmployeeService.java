@@ -3,7 +3,9 @@ package CinePacho.demo.employeeManageer.service;
 import CinePacho.demo.auth.dto.response.RegisterResponseDTO;
 import CinePacho.demo.auth.entities.user.UserEntity;
 import CinePacho.demo.employeeManageer.dto.request.RegisterEmployeeRequestDTO;
+import CinePacho.demo.exception.CinePachoException;
 import CinePacho.demo.shared.enumeration.UserType;
+import CinePacho.demo.shared.serviceSecurity.AccessValidator;
 import CinePacho.demo.shared.user.UserCreationService;
 import CinePacho.demo.shared.user.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -14,20 +16,31 @@ import org.springframework.transaction.annotation.Transactional;
 public class EmployeeService {
     private UserCreationService userCreationService;
     private UserRepository userRepository;
+    private AccessValidator accessValidator;
 
     @Autowired
-    public EmployeeService(UserCreationService userCreationService,  UserRepository userRepository) {
+    public EmployeeService(UserCreationService userCreationService, UserRepository userRepository, AccessValidator accessValidator) {
         this.userCreationService = userCreationService;
         this.userRepository = userRepository;
+        this.accessValidator = accessValidator;
     }
 
     @Transactional
     public RegisterResponseDTO registerEmployee(RegisterEmployeeRequestDTO registerEmployeeRequestDTO){
+        if (registerEmployeeRequestDTO.userType() != UserType.EMPLOYEE
+                && registerEmployeeRequestDTO.userType() != UserType.MANAGER) {
+            // Se limita el registro de personal a empleado o gerente
+            throw new CinePachoException("El tipo de usuario no es válido para este registro");
+        }
+
+        // El gerente sólo puede registrar personal en su propio multiplex
+        accessValidator.validateMultiplexAccess(registerEmployeeRequestDTO.multiplexId());
+
         //Creación de UserEntity y entidad concreta de empleado
         UserEntity user = userCreationService.createUser(
                 registerEmployeeRequestDTO.name(),
                 registerEmployeeRequestDTO.password(),
-                UserType.EMPLOYEE,
+                registerEmployeeRequestDTO.userType(),
                 registerEmployeeRequestDTO.email(),
                 registerEmployeeRequestDTO
         );

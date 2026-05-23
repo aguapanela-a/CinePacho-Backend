@@ -2,6 +2,7 @@ package CinePacho.demo.multiplex.service;
 
 import CinePacho.demo.exception.CinePachoException;
 import CinePacho.demo.shared.auxiliaryClass.RoomManager;
+import CinePacho.demo.shared.serviceSecurity.AccessValidator;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -25,19 +26,26 @@ public class MultiplexService {
     private final MultiplexRepository multiplexRepository;
     private final RoomRepository roomRepository;
     private final RoomManager roomManager;
+    private final AccessValidator accessValidator;
  
     // ── GET ALL ──────────────────────────────────────────────────────────────────
     public List<MultiplexSummaryResponse> getAll() {
-        List<MultiplexSummaryResponse> list = multiplexRepository.findAll()
+        UUID scopedMultiplexId = accessValidator.getScopedMultiplexIdForAdminOrManager();
+        if (scopedMultiplexId != null) {
+            // El gerente sólo puede ver su multiplex asignado
+            MultiplexEntity multiplex = findOrThrow(scopedMultiplexId);
+            return List.of(toSummary(multiplex));
+        }
+        return multiplexRepository.findAll()
                 .stream()
                 .map(this::toSummary)
                 .collect(Collectors.toList());
- 
-        return list;
     }
  
     // ── GET BY ID ────────────────────────────────────────────────────────────────
     public MultiplexDetailResponse getById(UUID id) {
+        // El gerente sólo puede consultar su multiplex
+        accessValidator.validateMultiplexAccess(id);
         MultiplexEntity multiplex = findOrThrow(id);
         return toDetail(multiplex);
     }
@@ -76,6 +84,8 @@ public class MultiplexService {
  
     // ── UPDATE ───────────────────────────────────────────────────────────────────
     public MultiplexDetailResponse update(UUID id, MultiplexRequest request) {
+        // El gerente sólo puede actualizar su multiplex
+        accessValidator.validateMultiplexAccess(id);
         MultiplexEntity multiplex = findOrThrow(id);
  
         boolean cambioDatos = !multiplex.getName().equals(request.getNameMultiplex())
@@ -97,6 +107,8 @@ public class MultiplexService {
  
     // ── DELETE (físico) ──────────────────────────────────────────────────────────
     public void delete(UUID id) {
+        // El gerente sólo puede eliminar su multiplex (si la seguridad lo permite)
+        accessValidator.validateMultiplexAccess(id);
         if (!multiplexRepository.existsById(id)) {
             throw new EntityNotFoundException("Multiplex no encontrado con id: " + id);
         }

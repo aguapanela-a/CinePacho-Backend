@@ -3,6 +3,8 @@ package CinePacho.demo.rooms.service;
 
 import CinePacho.demo.shared.auxiliaryClass.MultiplexProvider;
 import CinePacho.demo.shared.auxiliaryClass.RoomManager;
+import CinePacho.demo.shared.auxiliaryClass.SeatManager;
+import CinePacho.demo.shared.serviceSecurity.AccessValidator;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -12,7 +14,6 @@ import CinePacho.demo.rooms.dto.response.RoomResponse;
 import CinePacho.demo.rooms.entities.RoomEntity;
 import CinePacho.demo.rooms.repository.RoomRepository;
 import CinePacho.demo.seats.dto.response.SeatAvailabilitySummaryResponse;
-import CinePacho.demo.seats.repository.SeatRepository;
 
 import java.util.List;
 import java.util.UUID;
@@ -23,9 +24,10 @@ import java.util.stream.Collectors;
 public class RoomService {
  
     private final RoomRepository roomRepository;
-    private final SeatRepository seatRepository;
     private final RoomManager roomManager;
     private final MultiplexProvider multiplexProvider;
+    private final SeatManager seatManager;
+    private final AccessValidator accessValidator;
 
     // ── GET ALL ─────────────────────────────────────────────────────────────────
     public List<RoomResponse> getAll() {
@@ -44,6 +46,9 @@ public class RoomService {
 
     public RoomDetailResponse create(UUID multiplexId) {
 
+        // Valida que el gerente sólo cree salas en su multiplex
+        accessValidator.validateMultiplexAccess(multiplexId);
+
         //Crea y guarda una sala con todas sus sillas
         roomManager.createRoom(multiplexProvider.getMultiplexById(multiplexId));
 
@@ -57,6 +62,8 @@ public class RoomService {
     // ── DELETE (lógico) ──────────────────────────────────────────────────────────
     public void delete(UUID id) {
         RoomEntity room = findOrThrow(id);
+        // Valida que el gerente sólo elimine salas de su multiplex
+        accessValidator.validateMultiplexAccess(room.getMultiplex().getId());
         room.setActive(false);
         roomRepository.save(room);
     }
@@ -79,9 +86,10 @@ public class RoomService {
     private RoomDetailResponse toDetail(RoomEntity room) {
         List<SeatAvailabilitySummaryResponse> seats = List.of(
                 SeatAvailabilitySummaryResponse.builder()
-                        .availableGeneral(seatRepository.countByRoomIdAndType(room.getId(), CinePacho.demo.shared.enumeration.SeatType.GENERAL))
-                        .availablePreferential(seatRepository.countByRoomIdAndType(room.getId(), CinePacho.demo.shared.enumeration.SeatType.PREFERENTIAL))
-                        .totalAvailable(seatRepository.countByRoomId(room.getId())) // Total sin filtrar por tipo
+                        // Conteo de sillas delegando el acceso al módulo de sillas
+                        .availableGeneral(seatManager.countByRoomIdAndType(room.getId(), CinePacho.demo.shared.enumeration.SeatType.GENERAL))
+                        .availablePreferential(seatManager.countByRoomIdAndType(room.getId(), CinePacho.demo.shared.enumeration.SeatType.PREFERENTIAL))
+                        .totalAvailable(seatManager.countByRoomId(room.getId())) // Total sin filtrar por tipo
                         .build()
         );
  

@@ -1,6 +1,7 @@
 package CinePacho.demo.employeeManageer.entities;
 
 import CinePacho.demo.auth.entities.user.UserEntity;
+import CinePacho.demo.multiplex.entitites.MultiplexEntity;
 import com.fasterxml.jackson.annotation.JsonFormat;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.PositiveOrZero;
@@ -24,6 +25,10 @@ public class EmployeeEntity {
     @OneToOne
     @JoinColumn(name = "userId", unique = true)
     private UserEntity user;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "multiplex_id", nullable = false)
+    private MultiplexEntity multiplex; // Multiplex asignado al personal del cine
 
     @Column(nullable = false, unique = true)
     private Long uniqueCode;

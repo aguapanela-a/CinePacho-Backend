@@ -8,6 +8,7 @@ import CinePacho.demo.auth.entities.token.VerificationToken;
 import CinePacho.demo.shared.user.UserRepository;
 import CinePacho.demo.auth.repository.VerificationTokenRepository;
 import CinePacho.demo.shared.serviceSecurity.JwtService;
+import CinePacho.demo.shared.enumeration.UserType;
 import CinePacho.demo.exception.CinePachoException;
 import CinePacho.demo.shared.registerData.RegisterData;
 import CinePacho.demo.shared.user.UserCreationService;
@@ -40,6 +41,10 @@ public class AuthService {
             throw new CinePachoException("Email already in use: " + registerDTO.email());
         }
 
+        if (registerDTO.userType() != UserType.BUYER) {
+            // El registro público sólo permite compradores
+            throw new CinePachoException("Solo se permite registrar compradores desde este endpoint");
+        }
 
         //Crea la entidad Usuario con los datos de registro y la guarda
         //y crea la entidad concreta de manera genérica

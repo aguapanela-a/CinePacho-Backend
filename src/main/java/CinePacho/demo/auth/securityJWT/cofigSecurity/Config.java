@@ -12,6 +12,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.security.core.userdetails.UserDetailsService;
+import org.springframework.http.HttpMethod;
 
 import CinePacho.demo.auth.securityJWT.JwtAuthenticationFilter;
 import org.springframework.web.cors.CorsConfiguration;
@@ -65,6 +66,20 @@ public class Config {
                             "/api/auth/login",
                             "/api/auth/verify"
                         ).permitAll()//Permitir cualquier request al endpoint de Auth
+                        // Endpoints compartidos entre BUYER y EMPLOYEE
+                        .requestMatchers("/api/seats/**").hasAnyAuthority("BUYER", "EMPLOYEE")
+                        // Multiplex: crear y eliminar sólo admin
+                        .requestMatchers(HttpMethod.POST, "/api/admin/multiplexes").hasAuthority("ADMIN")
+                        .requestMatchers(HttpMethod.DELETE, "/api/admin/multiplexes/**").hasAuthority("ADMIN")
+                        // Multiplex: consulta/actualización permitida a gerente y admin (validación por alcance en servicio)
+                        .requestMatchers("/api/admin/multiplexes").hasAnyAuthority("ADMIN", "MANAGER")
+                        .requestMatchers("/api/admin/multiplexes/**").hasAnyAuthority("ADMIN", "MANAGER")
+                        // Salas y personal: gerente y admin (validación por alcance en servicio)
+                        .requestMatchers("/api/admin/*/rooms").hasAnyAuthority("ADMIN", "MANAGER")
+                        .requestMatchers("/api/admin/rooms/**").hasAnyAuthority("ADMIN", "MANAGER")
+                        .requestMatchers("/api/admin/register_employee").hasAnyAuthority("ADMIN", "MANAGER")
+                        // Películas: gerente y admin (validación por alcance en servicio)
+                        .requestMatchers("/api/admin/movie/**").hasAnyAuthority("ADMIN", "MANAGER")
                         .requestMatchers("/api/admin/**").hasAuthority ("ADMIN") //a ese endpoint solamente puede entrar el admin
                         .anyRequest().authenticated() //El resto de request requieren de token
                 )

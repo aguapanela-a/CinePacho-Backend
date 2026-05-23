@@ -1,6 +1,5 @@
 package CinePacho.demo.rooms.dto.request;
 
-import jakarta.annotation.PostConstruct;
 import jakarta.validation.constraints.*;
 import lombok.*;
  

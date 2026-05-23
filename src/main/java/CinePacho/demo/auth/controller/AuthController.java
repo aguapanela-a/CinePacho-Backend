@@ -13,7 +13,6 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import CinePacho.demo.auth.dto.request.LoginRequestDTO;
-import CinePacho.demo.auth.dto.request.RegisterRequestDTO;
 import CinePacho.demo.auth.dto.response.AuthResponseDTO;
 import CinePacho.demo.auth.service.AuthService;
 import jakarta.validation.Valid;

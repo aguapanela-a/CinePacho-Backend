@@ -1,11 +1,8 @@
 package CinePacho.demo.shared.user;
 
 import CinePacho.demo.auth.entities.user.UserEntity;
-import CinePacho.demo.exception.CinePachoException;
 import CinePacho.demo.shared.enumeration.UserType;
-import CinePacho.demo.shared.factory.UserFactory;
 import CinePacho.demo.shared.factory.UserFactoryRegistry;
-import CinePacho.demo.shared.registerData.RegisterData;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;

@@ -18,7 +18,7 @@ public class SeatController {
 
     private final SeatService seatService;
 
-    @PutMapping("/seats/reserveSeat/{seatId}")
+    @PutMapping("/seats/{seatId}/changeStatus") // Endpoint compartido para BUYER y EMPLOYEE
     public ResponseEntity<SeatResponse> changeState(
             @PathVariable UUID seatId,
             @RequestHeader("Authorization") String token

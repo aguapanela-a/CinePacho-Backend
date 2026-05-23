@@ -4,51 +4,49 @@ import CinePacho.demo.auth.entities.user.UserEntity;
 import CinePacho.demo.employeeManageer.dto.request.RegisterEmployeeRequestDTO;
 import CinePacho.demo.employeeManageer.entities.EmployeeEntity;
 import CinePacho.demo.employeeManageer.repository.EmployeeRepository;
-import CinePacho.demo.shared.auxiliaryClass.MultiplexProvider;
 import CinePacho.demo.exception.CinePachoException;
+import CinePacho.demo.shared.auxiliaryClass.MultiplexProvider;
 import CinePacho.demo.shared.enumeration.UserType;
 import CinePacho.demo.shared.factory.UserFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-
 @Component
-public class EmployeeFactory implements UserFactory<RegisterEmployeeRequestDTO> {
+public class ManagerFactory implements UserFactory<RegisterEmployeeRequestDTO> {
 
     private final EmployeeRepository employeeRepository;
     private final MultiplexProvider multiplexProvider;
 
     @Autowired
-    public EmployeeFactory(EmployeeRepository employeeRepository, MultiplexProvider multiplexProvider) {
+    public ManagerFactory(EmployeeRepository employeeRepository, MultiplexProvider multiplexProvider) {
         this.employeeRepository = employeeRepository;
         this.multiplexProvider = multiplexProvider;
     }
 
     @Override
-    public UserType getSupportedType(){
-        return UserType.EMPLOYEE;
+    public UserType getSupportedType() {
+        return UserType.MANAGER; // Factory específica para gerentes
     }
 
     @Override
-    public void createSpecificEntity(UserEntity user, RegisterEmployeeRequestDTO extraData){
+    public void createSpecificEntity(UserEntity user, RegisterEmployeeRequestDTO extraData) {
 
-        EmployeeEntity employee = new EmployeeEntity();
+        EmployeeEntity manager = new EmployeeEntity();
 
-        employee.setUser(user);
+        manager.setUser(user);
         if (extraData.multiplexId() == null) {
-            // Validación central para evitar empleados sin multiplex asignado
-            throw new CinePachoException("El multiplex es obligatorio para registrar personal");
+            // El gerente debe quedar asignado a un multiplex
+            throw new CinePachoException("El multiplex es obligatorio para registrar un gerente");
         }
-        employee.setMultiplex(multiplexProvider.getMultiplexById(extraData.multiplexId()));
+        manager.setMultiplex(multiplexProvider.getMultiplexById(extraData.multiplexId()));
 
-        employee.setIdentityCard(extraData.indentityCard());
-        employee.setPhoneNumber(extraData.phoneNumber());
-        employee.setSalary(extraData.salary());
-        employee.setPosition(extraData.position());
-        employee.setUniqueCode(nextUniqueCode());
+        manager.setIdentityCard(extraData.indentityCard());
+        manager.setPhoneNumber(extraData.phoneNumber());
+        manager.setSalary(extraData.salary());
+        manager.setPosition(extraData.position());
+        manager.setUniqueCode(nextUniqueCode());
 
-
-        employeeRepository.save(employee);
+        employeeRepository.save(manager);
     }
 
     private long nextUniqueCode() {

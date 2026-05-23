@@ -168,9 +168,9 @@
 
 # 💺 3. Sillas (Seats)
 
-## 🔹 PUT /seats/reserveSeat/{seatId}
+## 🔹 PUT /seats/{seatId}/changeStatus
 
-**Descripción:** Cambia el estado de la silla al estado contrario si no está reservada por otro usuario.
+**Descripción:** Cambia el estado de la silla al estado contrario si no está reservada por otro usuario. (Uso compartido por BUYER y EMPLOYEE)
 
 **Request**
 
