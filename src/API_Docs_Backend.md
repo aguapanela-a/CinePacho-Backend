@@ -168,9 +168,9 @@
 
 # 💺 3. Sillas (Seats)
 
-## 🔹 PUT /admin/seats/changeStatus/{seatId}
+## 🔹 PUT /seats/reserveSeat/{seatId}
 
-**Descripción:** Cambia el estado `isAvailable` de la silla al estado contrario.
+**Descripción:** Cambia el estado de la silla al estado contrario si no está reservada por otro usuario.
 
 **Request**
 
@@ -184,7 +184,7 @@ No requiere body. El `seatId` se envía como parámetro de ruta.
   "roomId": "string",
   "seatNumber": 0,
   "type": "GENERAL",
-  "isAvailable": true
+  "SeatStatus" : "STATUS"
 }
 ```
 
@@ -192,6 +192,12 @@ No requiere body. El `seatId` se envía como parámetro de ruta.
 
 * GENERAL
 * PREFERENTIAL
+
+**Valores posibles para `SeatStatus`:**
+
+* AVAILABLE
+* BLOCKED
+* SOLD
 
 ---
 

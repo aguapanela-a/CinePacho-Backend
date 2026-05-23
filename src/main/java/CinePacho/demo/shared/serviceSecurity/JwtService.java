@@ -1,6 +1,7 @@
-package CinePacho.demo.auth.securityJWT.serviceSecurity;
+package CinePacho.demo.shared.serviceSecurity;
 import java.security.Key;
 import java.util.Date;
+import java.util.UUID;
 import java.util.function.Function;
 
 import org.springframework.beans.factory.annotation.Value;
@@ -41,6 +42,10 @@ public class JwtService {
     // Extrae el email del token
     public String extractEmail(String token) {
         return extractClaim(token, Claims::getSubject);
+    }
+
+    public UUID extractUserId(String token) {
+        return UUID.fromString(extractClaim(token, Claims::getSubject));
     }
 
     // Valida que el token sea del usuario y no esté expirado

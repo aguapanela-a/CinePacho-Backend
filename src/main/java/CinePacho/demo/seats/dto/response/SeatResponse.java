@@ -1,5 +1,6 @@
 package CinePacho.demo.seats.dto.response;
 
+import CinePacho.demo.seats.enumeration.SeatStatus;
 import lombok.*;
  
 @Getter
@@ -13,6 +14,6 @@ public class SeatResponse {
     private String roomId;
     private Integer seatNumber;
     private String type;
-    private boolean isAvailable;
+    private SeatStatus status;
 }
  

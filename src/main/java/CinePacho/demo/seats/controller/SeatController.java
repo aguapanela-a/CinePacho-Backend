@@ -1,33 +1,34 @@
 package CinePacho.demo.seats.controller;
 
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PutMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import CinePacho.demo.seats.dto.response.SeatResponse;
 import CinePacho.demo.seats.service.SeatService;
 
 import lombok.RequiredArgsConstructor;
 
+import java.util.List;
 import java.util.UUID;
 
 @RestController
-@RequestMapping("/api/")
+@RequestMapping("/api")
 @RequiredArgsConstructor
 public class SeatController {
-    
+
     private final SeatService seatService;
 
-    @PutMapping("/admin/seats/changeStatus/{seatId}")
-    public ResponseEntity<SeatResponse> changeState(@PathVariable UUID seatId) {
-        return ResponseEntity.ok(seatService.changeState(seatId));
+    @PutMapping("/seats/reserveSeat/{seatId}")
+    public ResponseEntity<SeatResponse> changeState(
+            @PathVariable UUID seatId,
+            @RequestHeader("Authorization") String token
+            ) {
+        return ResponseEntity.ok(seatService.toggleSeat(seatId,token));
     }
 
-//     @PostMapping("")
-//     public ResponseEntity<?> reserveSeat() {
-//         seatService.verifyAvailability();
-//         return ResponseEntity.ok().build();
-//     }
+
+    @GetMapping("/seats")
+    public ResponseEntity<List<SeatResponse>> getAllByRoom(UUID roomId) {
+        return ResponseEntity.ok(seatService.getAllByRoom(roomId));
+    }
 }

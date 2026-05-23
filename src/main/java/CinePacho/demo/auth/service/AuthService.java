@@ -7,7 +7,7 @@ import CinePacho.demo.auth.entities.user.UserEntity;
 import CinePacho.demo.auth.entities.token.VerificationToken;
 import CinePacho.demo.shared.user.UserRepository;
 import CinePacho.demo.auth.repository.VerificationTokenRepository;
-import CinePacho.demo.auth.securityJWT.serviceSecurity.JwtService;
+import CinePacho.demo.shared.serviceSecurity.JwtService;
 import CinePacho.demo.exception.CinePachoException;
 import CinePacho.demo.shared.registerData.RegisterData;
 import CinePacho.demo.shared.user.UserCreationService;
