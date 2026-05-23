@@ -13,7 +13,9 @@
   {
     "idMultiplex": "string",
     "nameMultiplex": "string",
-    "cityMultiplex": "string"
+    "cityMultiplex": "string",
+    "generalSeatPrice": 11000.0,
+    "preferentialSeatPrice": 15000.0
   }
 ]
 ```
@@ -30,6 +32,8 @@
   "nameMultiplex": "string",
   "addressMultiplex": "string",
   "cityMultiplex": "string",
+  "generalSeatPrice": 11000.0,
+  "preferentialSeatPrice": 15000.0,
   "rooms": [
     {
       "idRoom": "string",
@@ -52,7 +56,10 @@
 {
   "nameMultiplex": "string",
   "addressMultiplex": "string",
-  "cityMultiplex": "string"
+  "cityMultiplex": "string",
+  "numberOfRooms": 10,
+  "generalSeatPrice": 11000.0,
+  "preferentialSeatPrice": 15000.0
 }
 ```
 
@@ -64,6 +71,8 @@
   "nameMultiplex": "string",
   "addressMultiplex": "string",
   "cityMultiplex": "string",
+  "generalSeatPrice": 11000.0,
+  "preferentialSeatPrice": 15000.0,
   "rooms": []
 }
 ```
@@ -78,7 +87,9 @@
 {
   "nameMultiplex": "string",
   "addressMultiplex": "string",
-  "cityMultiplex": "string"
+  "cityMultiplex": "string",
+  "generalSeatPrice": 11000.0,
+  "preferentialSeatPrice": 15000.0
 }
 ```
 
@@ -90,6 +101,8 @@
   "nameMultiplex": "string",
   "addressMultiplex": "string",
   "cityMultiplex": "string",
+  "generalSeatPrice": 11000.0,
+  "preferentialSeatPrice": 15000.0,
   "rooms": []
 }
 ```
@@ -201,7 +214,77 @@ No requiere body. El `seatId` se envía como parámetro de ruta.
 
 ---
 
-# 🎬 4. Películas
+# 💳 4. Checkout (Compra)
+
+## 🔹 POST /checkout/preview
+
+**Descripción:** Calcula el total de compra con sillas y snacks (sin modificar inventarios)
+
+**Request**
+
+```json
+{
+  "seats": [
+    { "seatId": "uuid" }
+  ],
+  "snacks": [
+    { "snackId": "uuid", "quantity": 2 }
+  ]
+}
+```
+
+**Response**
+
+```json
+{
+  "multiplexId": "uuid",
+  "totalSeats": 11000.0,
+  "totalSnacks": 8000.0,
+  "totalPurchase": 19000.0,
+  "seats": [
+    {
+      "seatId": "uuid",
+      "seatType": "GENERAL",
+      "seatStatus": "BLOCKED",
+      "seatPrice": 11000.0
+    }
+  ],
+  "snacks": [
+    {
+      "snackId": "uuid",
+      "nameSnack": "Palomitas",
+      "quantity": 2,
+      "unitPrice": 4000.0,
+      "subtotal": 8000.0
+    }
+  ]
+}
+```
+
+---
+
+## 🔹 POST /checkout/confirm
+
+**Descripción:** Revalida sillas y snacks antes de continuar al pago
+
+**Request**
+
+```json
+{
+  "seats": [
+    { "seatId": "uuid" }
+  ],
+  "snacks": [
+    { "snackId": "uuid", "quantity": 2 }
+  ]
+}
+```
+
+**Response:** Igual al de `/checkout/preview`
+
+---
+
+# 🎬 5. Películas
 
 ## 🔹 GET /admin/movie/search?query={text}
 
@@ -293,7 +376,25 @@ No requiere body. El `seatId` se envía como parámetro de ruta.
 
 ---
 
-# 🍿 5. Snacks
+# 🍿 6. Snacks
+
+## 🔹 GET /snacks
+
+**Descripción:** Lista snacks disponibles para compra (cantidad > 0)
+
+```json
+[
+  {
+    "idSnack": "string",
+    "nameSnack": "string",
+    "descriptionSnack": "string",
+    "priceSnack": 0.0,
+    "quantitySnack": 0
+  }
+]
+```
+
+---
 
 ## 🔹 GET /admin/snacks
 

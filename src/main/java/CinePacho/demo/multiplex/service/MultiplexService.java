@@ -15,6 +15,7 @@ import CinePacho.demo.multiplex.repository.MultiplexRepository;
 import CinePacho.demo.rooms.dto.response.RoomResponse;
 import CinePacho.demo.rooms.repository.RoomRepository;
 
+import java.math.BigDecimal;
 import java.util.List;
 import java.util.UUID;
 import java.util.stream.Collectors;
@@ -57,11 +58,21 @@ public class MultiplexService {
                     "Ya existe un multiplex con el nombre '" + request.getNameMultiplex()
                     + "' en la ciudad " + request.getCityMultiplex());
         }
- 
+
+        // Si no llegan precios, se aplican los valores base acordados
+        BigDecimal generalSeatPrice = request.getGeneralSeatPrice() != null
+                ? request.getGeneralSeatPrice()
+                : BigDecimal.valueOf(11000);
+        BigDecimal preferentialSeatPrice = request.getPreferentialSeatPrice() != null
+                ? request.getPreferentialSeatPrice()
+                : BigDecimal.valueOf(15000);
+
         MultiplexEntity multiplex = MultiplexEntity.builder()
                 .name(request.getNameMultiplex())
                 .address(request.getAddressMultiplex())
                 .city(request.getCityMultiplex())
+                .generalSeatPrice(generalSeatPrice)
+                .preferentialSeatPrice(preferentialSeatPrice)
                 .build();
 
         MultiplexEntity multiplexSaved = multiplexRepository.save(multiplex);
@@ -101,7 +112,15 @@ public class MultiplexService {
         multiplex.setName(request.getNameMultiplex());
         multiplex.setAddress(request.getAddressMultiplex());
         multiplex.setCity(request.getCityMultiplex());
- 
+
+        // Se actualizan precios sólo si llegan en el request
+        if (request.getGeneralSeatPrice() != null) {
+            multiplex.setGeneralSeatPrice(request.getGeneralSeatPrice());
+        }
+        if (request.getPreferentialSeatPrice() != null) {
+            multiplex.setPreferentialSeatPrice(request.getPreferentialSeatPrice());
+        }
+  
         return toDetail(multiplexRepository.save(multiplex));
     }
  
@@ -134,6 +153,8 @@ public class MultiplexService {
                 .idMultiplex(m.getId().toString())
                 .nameMultiplex(m.getName())
                 .cityMultiplex(m.getCity())
+                .generalSeatPrice(m.getGeneralSeatPrice())
+                .preferentialSeatPrice(m.getPreferentialSeatPrice())
                 .build();
     }
  
@@ -152,6 +173,8 @@ public class MultiplexService {
                 .addressMultiplex(m.getAddress())
                 .cityMultiplex(m.getCity())
                 .rooms(rooms)
+                .generalSeatPrice(m.getGeneralSeatPrice())
+                .preferentialSeatPrice(m.getPreferentialSeatPrice())
                 .build();
     }
 }

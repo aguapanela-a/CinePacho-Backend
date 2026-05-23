@@ -6,6 +6,8 @@ import CinePacho.demo.shared.enumeration.SeatType;
 import org.springframework.data.domain.Limit;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
@@ -25,4 +27,8 @@ public interface SeatRepository extends JpaRepository<SeatEntity, UUID> {
     Integer countByRoomId(UUID roomId); //Cuanta todas las sillas asociadas al UUID de una sala
 
     List<SeatEntity> findByStatus(SeatStatus status);
+
+    // Carga sillas con sala y multiplex para evitar lazy loading en compras
+    @Query("select s from SeatEntity s join fetch s.room r join fetch r.multiplex where s.id in :ids")
+    List<SeatEntity> findAllByIdWithRoomAndMultiplex(@Param("ids") List<UUID> ids);
 }

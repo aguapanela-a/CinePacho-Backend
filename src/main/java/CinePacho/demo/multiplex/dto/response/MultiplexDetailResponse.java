@@ -2,7 +2,8 @@ package CinePacho.demo.multiplex.dto.response;
 
 import jakarta.validation.constraints.NotNull;
 import lombok.*;
- 
+  
+import java.math.BigDecimal;
 import java.util.List;
 
 import CinePacho.demo.rooms.dto.response.RoomResponse;
@@ -20,5 +21,9 @@ public class MultiplexDetailResponse {
     private String addressMultiplex;
     private String cityMultiplex;
     private List<RoomResponse> rooms;
+
+    // Precios por tipo de silla del multiplex
+    private BigDecimal generalSeatPrice;
+    private BigDecimal preferentialSeatPrice;
 }
  

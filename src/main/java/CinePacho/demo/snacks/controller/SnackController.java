@@ -27,7 +27,13 @@ import lombok.RequiredArgsConstructor;
 public class SnackController {
  
     private final SnackService snackService;
- 
+
+    // Endpoint público para compradores: lista de snacks disponibles
+    @GetMapping("snacks")
+    public ResponseEntity<List<SnackResponse>> getAvailable() {
+        return ResponseEntity.ok(snackService.getAllAvailable());
+    }
+  
     @GetMapping("admin/snacks")
     public ResponseEntity<List<SnackResponse>> getAll() {
         return ResponseEntity.ok(snackService.getAll());

@@ -25,6 +25,14 @@ public class SnackService {
                 .map(this::toResponse)
                 .collect(Collectors.toList());
     }
+
+    // Lista snacks disponibles para compra (cantidad > 0)
+    public List<SnackResponse> getAllAvailable() {
+        return snackRepository.findByQuantityGreaterThan(0)
+                .stream()
+                .map(this::toResponse)
+                .collect(Collectors.toList());
+    }
  
     public SnackResponse getById(UUID id) {
         SnackEntity snack = snackRepository.findById(id)

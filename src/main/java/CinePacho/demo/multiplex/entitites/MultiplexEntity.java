@@ -1,5 +1,6 @@
 package CinePacho.demo.multiplex.entitites;
 
+import java.math.BigDecimal;
 import java.util.UUID;
 
 
@@ -32,4 +33,14 @@ public class MultiplexEntity {
     
     @Column(nullable = false)
     private String address;
+
+    // Precios por tipo de silla configurables por multiplex (ADMIN/MANAGER)
+    @Column(name = "general_seat_price", nullable = false, precision = 10, scale = 2)
+    @Builder.Default
+    private BigDecimal generalSeatPrice = BigDecimal.valueOf(11000);
+
+    // Precio preferencial por multiplex (ADMIN/MANAGER)
+    @Column(name = "preferential_seat_price", nullable = false, precision = 10, scale = 2)
+    @Builder.Default
+    private BigDecimal preferentialSeatPrice = BigDecimal.valueOf(15000);
 }

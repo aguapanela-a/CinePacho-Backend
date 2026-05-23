@@ -68,6 +68,10 @@ public class Config {
                         ).permitAll()//Permitir cualquier request al endpoint de Auth
                         // Endpoints compartidos entre BUYER y EMPLOYEE
                         .requestMatchers("/api/seats/**").hasAnyAuthority("BUYER", "EMPLOYEE")
+                        // Snacks visibles para compradores autenticados
+                        .requestMatchers(HttpMethod.GET, "/api/snacks/**").hasAuthority("BUYER")
+                        // Checkout de compra para compradores
+                        .requestMatchers("/api/checkout/**").hasAuthority("BUYER")
                         // Multiplex: crear y eliminar sólo admin
                         .requestMatchers(HttpMethod.POST, "/api/admin/multiplexes").hasAuthority("ADMIN")
                         .requestMatchers(HttpMethod.DELETE, "/api/admin/multiplexes/**").hasAuthority("ADMIN")

@@ -72,4 +72,10 @@ public class SeatManagerImpl implements SeatManager {
         return seatRepository.countByRoomId(roomId);
     }
 
+    @Override
+    public List<SeatEntity> findAllByIdWithRoomAndMultiplex(List<UUID> ids) {
+        // Evita el LazyLoading en validaciones de compra
+        return seatRepository.findAllByIdWithRoomAndMultiplex(ids);
+    }
+
 }

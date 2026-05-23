@@ -15,4 +15,5 @@ public interface SeatManager {
     SeatEntity save(SeatEntity seat);
     Integer countByRoomIdAndType(UUID roomId, SeatType type); // Conteo de sillas por tipo para salas
     Integer countByRoomId(UUID roomId); // Conteo total de sillas por sala
+    List<SeatEntity> findAllByIdWithRoomAndMultiplex(List<UUID> ids); // Carga sillas con sala y multiplex
 }

@@ -1,6 +1,8 @@
 package CinePacho.demo.multiplex.dto.request;
 
 
+import jakarta.validation.constraints.DecimalMin;
+import jakarta.validation.constraints.Digits;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
 import lombok.AllArgsConstructor;
@@ -9,6 +11,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import org.hibernate.validator.constraints.Range;
+import java.math.BigDecimal;
 
 @NoArgsConstructor
 @AllArgsConstructor
@@ -31,4 +34,14 @@ public class MultiplexRequest {
     //@Positive
     @Range(min = 5, max = 15, message = "La cantidad de salas debe ser entre 5 y 15 por multiplex")
     private Integer numberOfRooms;
+
+    // Precios por tipo de silla (si no llegan, se usan valores por defecto)
+    @DecimalMin(value = "0.0", inclusive = false, message = "El precio general debe ser mayor a 0")
+    @Digits(integer = 8, fraction = 2, message = "El precio general debe tener máximo 8 dígitos enteros y 2 decimales")
+    private BigDecimal generalSeatPrice;
+
+    // Precio preferencial editable por admin/gerente
+    @DecimalMin(value = "0.0", inclusive = false, message = "El precio preferencial debe ser mayor a 0")
+    @Digits(integer = 8, fraction = 2, message = "El precio preferencial debe tener máximo 8 dígitos enteros y 2 decimales")
+    private BigDecimal preferentialSeatPrice;
 }
