@@ -15,13 +15,11 @@ import java.util.UUID;
 public class RoomManagerImpl implements RoomManager {
 
     private final RoomRepository roomRepository;
-    private final MultiplexProvider multiplexProvider;
     private final SeatManager seatManager;
 
 
     public RoomManagerImpl(RoomRepository roomRepository, MultiplexProvider multiplexProvider, SeatManager seatManager) {
         this.roomRepository = roomRepository;
-        this.multiplexProvider = multiplexProvider;
         this.seatManager = seatManager;
     }
 
