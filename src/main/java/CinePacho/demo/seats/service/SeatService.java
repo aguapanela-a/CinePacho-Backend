@@ -34,7 +34,8 @@ public class SeatService {
     private final RoomManager roomManager;
     private final JwtService jwtUtil;
     private final Map<UUID, ScheduledFuture<?>> timers = new ConcurrentHashMap<>();
-    private TaskScheduler taskScheduler;
+    private final TaskScheduler taskScheduler;
+    private final SeatUnblockScheduler seatUnblockScheduler;
 
 
     // GET ALL by room
@@ -50,7 +51,7 @@ public class SeatService {
     public SeatResponse toggleSeat(UUID seatId, String token) {
 
         //se extrae el id del usuario del token
-        UUID userId = jwtUtil.extractUserId(token);
+        String userEmail = jwtUtil.extractEmail(token);
 
         //se busca el asiento por id
         SeatEntity seat = seatRepository.findById(seatId)
@@ -62,7 +63,7 @@ public class SeatService {
             case AVAILABLE -> {
                 // bloquear
                 seat.setStatus(SeatStatus.BLOCKED);
-                seat.setBlockedByUserId(userId);
+                seat.setBlockedByUserEmail(userEmail);
                 seat.setBlockedUntil(LocalDateTime.now().plusMinutes(10));
                 seatRepository.save(seat);
                 scheduleUnblock(seatId);   // timer de 10 min
@@ -70,7 +71,7 @@ public class SeatService {
 
             case BLOCKED -> {
                 // solo el mismo usuario puede desbloquear
-                if (!seat.getBlockedByUserId().equals(userId)) {
+                if (!seat.getBlockedByUserEmail().equals(userEmail)) {
                     throw new CinePachoException(
                             "Esta silla está reservada por otro usuario "+
                                     HttpStatus.CONFLICT.name()
@@ -78,7 +79,7 @@ public class SeatService {
                 }
                 // desbloquear
                 seat.setStatus(SeatStatus.AVAILABLE);
-                seat.setBlockedByUserId(null);
+                seat.setBlockedByUserEmail(null);
                 seat.setBlockedUntil(null);
                 seatRepository.save(seat);
                 cancelUnblock(seatId);    // cancela el timer
@@ -97,7 +98,7 @@ public class SeatService {
     // Contador de 10 minutos antes de ejecutar forceUnblock
     private void scheduleUnblock(UUID seatId) {
         ScheduledFuture<?> timer = taskScheduler.schedule(
-                () -> forceUnblock(seatId),
+                () -> seatUnblockScheduler.forceUnblock(seatId),
                 Instant.now().plusSeconds(600)   // 10 minutos
         );
         timers.put(seatId, timer);
@@ -109,18 +110,6 @@ public class SeatService {
         if (timer != null) timer.cancel(false);
     }
 
-    // desbloquea inmediatamente
-    private void forceUnblock(UUID seatId) {
-        seatRepository.findById(seatId).ifPresent(seat -> {
-            if (seat.getStatus() == SeatStatus.BLOCKED) {
-                seat.setStatus(SeatStatus.AVAILABLE);
-                seat.setBlockedByUserId(null);
-                seat.setBlockedUntil(null);
-                seatRepository.save(seat);
-                timers.remove(seatId);
-            }
-        });
-    }
 
     // GET availability totals by room and seat type
     public SeatAvailabilitySummaryResponse getSeatAvailabilitySummaryResponse(UUID roomId) {

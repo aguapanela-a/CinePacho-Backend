@@ -41,8 +41,7 @@ public class RoomService {
         return toDetail(room);
     }
 
-    //TODO: consumir RoomManager.createRoom(UUID multiplexId) para crear una unica sala
-    // ── CREATE ───────────────────────────────────────────────────────────────────
+
     public RoomDetailResponse create(UUID multiplexId) {
 
         //Crea y guarda una sala con todas sus sillas

@@ -43,11 +43,12 @@ public class SeatEntity {
     @Column(name = "type", nullable = false, length = 20)
     private SeatType type;
 
-    @Column(name = "is_available", nullable = false)
+    @Enumerated(EnumType.STRING)
+    @Column(name = "status", nullable = false)
     private SeatStatus status;
 
     @Column(name = "blocked_by_user_id")
-    private UUID blockedByUserId;
+    private String blockedByUserEmail;
 
     @Column(name = "blocked_until")
     private LocalDateTime blockedUntil;

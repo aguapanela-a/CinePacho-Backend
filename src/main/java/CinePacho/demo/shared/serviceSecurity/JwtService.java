@@ -44,10 +44,6 @@ public class JwtService {
         return extractClaim(token, Claims::getSubject);
     }
 
-    public UUID extractUserId(String token) {
-        return UUID.fromString(extractClaim(token, Claims::getSubject));
-    }
-
     // Valida que el token sea del usuario y no esté expirado
     public boolean isTokenValid(String token, UserDetails userDetails) {
         final String email = extractEmail(token);

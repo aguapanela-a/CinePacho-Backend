@@ -23,12 +23,16 @@ public class SeatController {
             @PathVariable UUID seatId,
             @RequestHeader("Authorization") String token
             ) {
+        token = token.replace("Bearer ", "");
         return ResponseEntity.ok(seatService.toggleSeat(seatId,token));
     }
 
 
-    @GetMapping("/seats")
-    public ResponseEntity<List<SeatResponse>> getAllByRoom(UUID roomId) {
+    @GetMapping("/seats/{roomId}")
+    public ResponseEntity<List<SeatResponse>>
+    getAllByRoom(
+            @PathVariable UUID roomId
+    ) {
         return ResponseEntity.ok(seatService.getAllByRoom(roomId));
     }
 }
