@@ -44,14 +44,22 @@ public class SeatService {
                 .totalAvailable(availableGeneral + availablePreferential)
                 .build();
     }
+
+
+    public SeatResponse changeState(UUID seatId) {
+        SeatEntity seat = seatRepository.findById(seatId).orElseThrow(()-> new CinePachoException("Asiento no encontrado"));
+        seat.setAvailable(!seat.isAvailable());
+
+        return toResponse(seatRepository.save(seat));
+    }
+
  
     // GET BY ID
     public SeatResponse getById(UUID id) {
         return toResponse(findOrThrow(id));
     }
  
-    // CREATE 
-    //TODO: -- Implementar creación de asientos en bloque al crear una sala, con base en la capacidad general y preferencial de la sala
+    // CREATE
     public SeatResponse create(SeatRequest request) {
         if (seatRepository.existsByRoomIdAndSeatNumber(request.getRoomId(), request.getSeatNumber())) {
             throw new CinePachoException(
@@ -110,7 +118,7 @@ public class SeatService {
     // HELPERS
     private SeatEntity findOrThrow(UUID id) {
         return seatRepository.findById(id)
-                .orElseThrow(() -> new EntityNotFoundException("Asiento no encontrado con id: " + id));
+                .orElseThrow(() -> new CinePachoException("Asiento no encontrado con id: " + id));
     }
  
     private SeatResponse toResponse(SeatEntity seat) {
