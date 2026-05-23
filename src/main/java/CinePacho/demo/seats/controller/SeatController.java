@@ -1,24 +1,38 @@
 package CinePacho.demo.seats.controller;
 
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
+import CinePacho.demo.seats.dto.response.SeatResponse;
 import CinePacho.demo.seats.service.SeatService;
 
 import lombok.RequiredArgsConstructor;
 
+import java.util.List;
+import java.util.UUID;
+
 @RestController
-@RequestMapping("/api/")
+@RequestMapping("/api")
 @RequiredArgsConstructor
 public class SeatController {
-    
+
     private final SeatService seatService;
 
-//     @PostMapping("")
-//     public ResponseEntity<?> reserveSeat() {
-//         seatService.verifyAvailability();
-//         return ResponseEntity.ok().build();
-//     }
+    @PutMapping("/seats/reserveSeat/{seatId}")
+    public ResponseEntity<SeatResponse> changeState(
+            @PathVariable UUID seatId,
+            @RequestHeader("Authorization") String token
+            ) {
+        token = token.replace("Bearer ", "");
+        return ResponseEntity.ok(seatService.toggleSeat(seatId,token));
+    }
+
+
+    @GetMapping("/seats/{roomId}")
+    public ResponseEntity<List<SeatResponse>>
+    getAllByRoom(
+            @PathVariable UUID roomId
+    ) {
+        return ResponseEntity.ok(seatService.getAllByRoom(roomId));
+    }
 }

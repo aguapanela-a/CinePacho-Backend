@@ -1,6 +1,7 @@
 package CinePacho.demo.seats.repository;
 
 import CinePacho.demo.seats.entities.SeatEntity;
+import CinePacho.demo.seats.enumeration.SeatStatus;
 import CinePacho.demo.shared.enumeration.SeatType;
 import org.springframework.data.domain.Limit;
 import org.springframework.data.domain.Sort;
@@ -23,4 +24,6 @@ public interface SeatRepository extends JpaRepository<SeatEntity, UUID> {
     boolean existsByRoomIdAndSeatNumber(UUID roomId, Integer seatNumber);
 
     Integer countByRoomId(UUID roomId); //Cuanta todas las sillas asociadas al UUID de una sala
+
+    List<SeatEntity> findByStatus(SeatStatus status);
 }

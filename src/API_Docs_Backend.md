@@ -166,7 +166,42 @@
 
 ---
 
-# 🎬 3. Películas
+# 💺 3. Sillas (Seats)
+
+## 🔹 PUT /seats/reserveSeat/{seatId}
+
+**Descripción:** Cambia el estado de la silla al estado contrario si no está reservada por otro usuario.
+
+**Request**
+
+No requiere body. El `seatId` se envía como parámetro de ruta.
+
+**Response**
+
+```json
+{
+  "idSeat": "string",
+  "roomId": "string",
+  "seatNumber": 0,
+  "type": "GENERAL",
+  "SeatStatus" : "STATUS"
+}
+```
+
+**Valores posibles para `type`:**
+
+* GENERAL
+* PREFERENTIAL
+
+**Valores posibles para `SeatStatus`:**
+
+* AVAILABLE
+* BLOCKED
+* SOLD
+
+---
+
+# 🎬 4. Películas
 
 ## 🔹 GET /admin/movie/search?query={text}
 
@@ -258,7 +293,7 @@
 
 ---
 
-# 🍿 4. Snacks
+# 🍿 5. Snacks
 
 ## 🔹 GET /admin/snacks
 
