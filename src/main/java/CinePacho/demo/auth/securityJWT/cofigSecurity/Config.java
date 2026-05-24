@@ -71,7 +71,7 @@ public class Config {
                         // Snacks visibles para compradores autenticados
                         .requestMatchers(HttpMethod.GET, "/api/snacks/**").hasAuthority("BUYER")
                         // Checkout de compra para compradores
-                        .requestMatchers("/api/checkout/**").hasAuthority("BUYER")
+                        .requestMatchers("/api/checkout/**").hasAnyAuthority("BUYER", "EMPLOYEE", "MANAGER", "ADMIN") //permitir acceso a checkout a empleados para pruebas, pero validación por alcance en servicio
                         // Multiplex: crear y eliminar sólo admin
                         .requestMatchers(HttpMethod.POST, "/api/admin/multiplexes").hasAuthority("ADMIN")
                         .requestMatchers(HttpMethod.DELETE, "/api/admin/multiplexes/**").hasAuthority("ADMIN")

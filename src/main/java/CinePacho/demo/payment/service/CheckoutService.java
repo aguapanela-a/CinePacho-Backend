@@ -15,6 +15,10 @@ import CinePacho.demo.shared.enumeration.SeatType;
 import CinePacho.demo.shared.serviceSecurity.JwtService;
 import CinePacho.demo.snacks.entities.SnackEntity;
 import lombok.RequiredArgsConstructor;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
+
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
@@ -22,12 +26,24 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
-@RequiredArgsConstructor
 public class CheckoutService {
 
     private final SeatManager seatManager;
     private final SnackManager snackManager;
     private final JwtService jwtService;
+
+    @Value("${mercadopago.access.token}")
+    public String accessTokenPayment;
+
+    @Autowired
+    public CheckoutService(SeatManager seatManager, SnackManager snackManager, JwtService jwtService, @Value("${mercadopago.access.token}") String accessTokenPayment) {
+        this.seatManager = seatManager;
+        this.snackManager = snackManager;
+        this.jwtService = jwtService;
+        this.accessTokenPayment = accessTokenPayment;
+    }
+
+
 
     public CheckoutSummaryResponse preview(CheckoutRequest request, String token) {
         // Vista previa: calcula y valida sin modificar inventarios ni sillas
