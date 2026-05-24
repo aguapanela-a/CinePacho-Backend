@@ -37,6 +37,15 @@ public class ReviewService {
         return reviewRepository.findAllByBuyer_BuyerId(userId);
     }
 
+    public ReviewResponseDto createServiceReview(UUID buyerID, CreateReviewDto dto){
+        ReviewEntity review = generateReview(dto, buyerID, ReviewType.SERVICE);
+        return new ReviewResponseDto(
+                review.getType(),
+                review.getComment(),
+                review.getRating()
+        );
+    }
+
 
     public ReviewResponseDto createMovieReview(UUID buyerID, CreateReviewDto dto){
 
@@ -48,16 +57,7 @@ public class ReviewService {
             throw new CinePachoException("Usted ya ha ha calificado esta película");
         }
 
-        ReviewEntity review = new ReviewEntity();
-
-        review.setBuyer(buyerManager.getBuyerById(buyerID));
-        review.setMovieId(dto.movieId());
-        review.setRating(dto.rating());
-        review.setComment(dto.comment());
-        review.setCreatedAt(LocalDateTime.now());
-        review.setType(ReviewType.MOVIE);
-
-        reviewRepository.save(review);
+        ReviewEntity review = generateReview(dto, buyerID, ReviewType.MOVIE);
 
         return new ReviewResponseDto(
                 review.getType(),
@@ -66,6 +66,21 @@ public class ReviewService {
         );
     }
 
-    //TODO: Hacer historial de películas vistas en
+    //TODO: Hacer historial de películas vistas justo después pagar, quizá una nueva entidad que guarde nombre de peli, calificación del usuario y fecha de visualización
+    // pero ahi si no sé como serán las relaciones, quizá un pelócula puede estar en muchos históricos, pero un histórico solo puede tener una peli
+    // uno a uno con Buyer quizá y ya -> esto para validar que no califique peliculas no vistas
+
+    private ReviewEntity generateReview(CreateReviewDto dto, UUID buyerID, ReviewType type){
+        ReviewEntity review = new ReviewEntity();
+
+        review.setBuyer(buyerManager.getBuyerById(buyerID));
+        review.setMovieId(dto.movieId());
+        review.setRating(dto.rating());
+        review.setComment(dto.comment());
+        review.setCreatedAt(LocalDateTime.now());
+        review.setType(type);
+
+        return reviewRepository.save(review);
+    }
 
 }
