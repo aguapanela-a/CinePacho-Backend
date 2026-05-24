@@ -14,10 +14,8 @@ import CinePacho.demo.shared.auxiliaryClass.SnackManager;
 import CinePacho.demo.shared.enumeration.SeatType;
 import CinePacho.demo.shared.serviceSecurity.JwtService;
 import CinePacho.demo.snacks.entities.SnackEntity;
-import lombok.RequiredArgsConstructor;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 
 import org.springframework.stereotype.Service;
 
@@ -32,15 +30,12 @@ public class CheckoutService {
     private final SnackManager snackManager;
     private final JwtService jwtService;
 
-    @Value("${mercadopago.access.token}")
-    public String accessTokenPayment;
 
     @Autowired
-    public CheckoutService(SeatManager seatManager, SnackManager snackManager, JwtService jwtService, @Value("${mercadopago.access.token}") String accessTokenPayment) {
+    public CheckoutService(SeatManager seatManager, SnackManager snackManager, JwtService jwtService) {
         this.seatManager = seatManager;
         this.snackManager = snackManager;
         this.jwtService = jwtService;
-        this.accessTokenPayment = accessTokenPayment;
     }
 
 
@@ -62,13 +57,13 @@ public class CheckoutService {
                 .map(SeatSelectionRequest::getSeatId)
                 .collect(Collectors.toList());
 
-        validarDuplicados("sillas", seatIds);
+        validateDuplicates("sillas", seatIds);
 
         List<SeatEntity> seats = seatManager.findAllByIdWithRoomAndMultiplex(seatIds);
-        validarExistenciaCompleta("sillas", seatIds, seats.stream().map(SeatEntity::getId).collect(Collectors.toList()));
+        validateExistenceComplete("sillas", seatIds, seats.stream().map(SeatEntity::getId).collect(Collectors.toList()));
 
-        validarMismaSalaYMismaSede(seats);
-        validarEstadoDeSillas(seats, userEmail);
+        validateSameRoomAndSameLocation(seats);
+        validateSeatStatus(seats, userEmail);
 
         BigDecimal generalPrice = seats.get(0).getRoom().getMultiplex().getGeneralSeatPrice();
         BigDecimal preferentialPrice = seats.get(0).getRoom().getMultiplex().getPreferentialSeatPrice();
@@ -101,10 +96,10 @@ public class CheckoutService {
                     .map(SnackSelectionRequest::getSnackId)
                     .collect(Collectors.toList());
 
-            validarDuplicados("snacks", snackIds);
+            validateDuplicates("snacks", snackIds);
 
             List<SnackEntity> snacks = snackManager.findAllById(snackIds);
-            validarExistenciaCompleta("snacks", snackIds, snacks.stream().map(SnackEntity::getId).collect(Collectors.toList()));
+            validateExistenceComplete("snacks", snackIds, snacks.stream().map(SnackEntity::getId).collect(Collectors.toList()));
 
             Map<UUID, SnackEntity> snackMap = snacks.stream()
                     .collect(Collectors.toMap(SnackEntity::getId, s -> s));
@@ -140,7 +135,7 @@ public class CheckoutService {
                 .build();
     }
 
-    private void validarDuplicados(String tipo, List<UUID> ids) {
+    private void validateDuplicates(String tipo, List<UUID> ids) {
         // Evita que el cliente duplique elementos en el cálculo
         Set<UUID> uniqueIds = new HashSet<>(ids);
         if (uniqueIds.size() != ids.size()) {
@@ -148,7 +143,7 @@ public class CheckoutService {
         }
     }
 
-    private void validarExistenciaCompleta(String tipo, List<UUID> idsSolicitados, List<UUID> idsEncontrados) {
+    private void validateExistenceComplete(String tipo, List<UUID> idsSolicitados, List<UUID> idsEncontrados) {
         // Asegura que todos los ids enviados existan
         Set<UUID> faltantes = new HashSet<>(idsSolicitados);
         faltantes.removeAll(idsEncontrados);
@@ -157,7 +152,7 @@ public class CheckoutService {
         }
     }
 
-    private void validarMismaSalaYMismaSede(List<SeatEntity> seats) {
+    private void validateSameRoomAndSameLocation(List<SeatEntity> seats) {
         UUID roomId = seats.get(0).getRoom().getId();
         UUID multiplexId = seats.get(0).getRoom().getMultiplex().getId();
         for (SeatEntity seat : seats) {
@@ -170,7 +165,7 @@ public class CheckoutService {
         }
     }
 
-    private void validarEstadoDeSillas(List<SeatEntity> seats, String userEmail) {
+    private void validateSeatStatus(List<SeatEntity> seats, String userEmail) {
         // Valida disponibilidad y bloqueo por usuario antes de continuar
         for (SeatEntity seat : seats) {
             if (seat.getStatus() == SeatStatus.SOLD) {
@@ -182,5 +177,14 @@ public class CheckoutService {
                 }
             }
         }
+    }
+
+
+    //falta implementar este método para obtener el userId a partir del token, actualmente solo extrae el email para guardar en la BD
+    public UUID getUserIdFromToken(String token) {
+        // String email = jwtService.extractEmail(token);
+        
+
+        return null;
     }
 }

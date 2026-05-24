@@ -67,9 +67,9 @@ public class Config {
                             "/api/auth/verify"
                         ).permitAll()//Permitir cualquier request al endpoint de Auth
                         // Endpoints compartidos entre BUYER y EMPLOYEE
-                        .requestMatchers("/api/seats/**").hasAnyAuthority("BUYER", "EMPLOYEE")
+                        .requestMatchers("/api/seats/**").hasAnyAuthority("BUYER", "EMPLOYEE", "MANAGER", "ADMIN") //permitir acceso a empleados para pruebas, pero validación por alcance en servicio
                         // Snacks visibles para compradores autenticados
-                        .requestMatchers(HttpMethod.GET, "/api/snacks/**").hasAuthority("BUYER")
+                        .requestMatchers(HttpMethod.GET, "/api/snacks/**").hasAnyAuthority("BUYER", "EMPLOYEE", "MANAGER", "ADMIN") //permitir acceso a empleados para pruebas, pero validación por alcance en servicio
                         // Checkout de compra para compradores
                         .requestMatchers("/api/checkout/**").hasAnyAuthority("BUYER", "EMPLOYEE", "MANAGER", "ADMIN") //permitir acceso a checkout a empleados para pruebas, pero validación por alcance en servicio
                         // Multiplex: crear y eliminar sólo admin
