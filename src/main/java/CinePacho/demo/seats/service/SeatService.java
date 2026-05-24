@@ -50,7 +50,7 @@ public class SeatService {
     // CAMBIAR ESTADO DE LA SILLA
     public SeatResponse toggleSeat(UUID seatId, String token) {
 
-        //se extrae el id del usuario del token
+        //se extrae el email del usuario del token
         String userEmail = jwtUtil.extractEmail(token);
 
         //se busca el asiento por id

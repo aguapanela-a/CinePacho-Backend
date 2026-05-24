@@ -2,6 +2,7 @@ package CinePacho.demo.reviews.service;
 
 import CinePacho.demo.exception.CinePachoException;
 import CinePacho.demo.reviews.dto.CreateReviewDto;
+import CinePacho.demo.reviews.dto.ReviewDetailResponseDto;
 import CinePacho.demo.reviews.dto.ReviewResponseDto;
 import CinePacho.demo.reviews.entitites.ReviewEntity;
 import CinePacho.demo.reviews.enumeration.ReviewType;
@@ -28,13 +29,19 @@ public class ReviewService {
     }
 
     // Lista de reviews de un movie por id de la movie
-    public List<ReviewEntity> getReviewsByMovieId(Long movieId) {
-        return reviewRepository.findAllByMovieId(movieId);
+    public List<ReviewDetailResponseDto> getReviewsByMovieId(Long movieId) {
+        return reviewRepository.findAllByMovieId(movieId)
+                .stream()
+                .map(this::toReviewDetailResponse)
+                .toList();
     }
 
     // lista de reviews de una movie por usuario
-    public List<ReviewEntity> getReviewsByUserId(UUID userId) {
-        return reviewRepository.findAllByBuyer_BuyerId(userId);
+    public List<ReviewDetailResponseDto> getReviewsByUserId(UUID userId) {
+        return reviewRepository.findAllByBuyer_BuyerId(userId)
+                .stream()
+                .map(this::toReviewDetailResponse)
+                .toList();
     }
 
     public ReviewResponseDto createServiceReview(UUID buyerID, CreateReviewDto dto){
@@ -81,6 +88,17 @@ public class ReviewService {
         review.setType(type);
 
         return reviewRepository.save(review);
+    }
+
+    private ReviewDetailResponseDto toReviewDetailResponse(ReviewEntity review) {
+        return new ReviewDetailResponseDto(
+                review.getId(),
+                review.getMovieId(),
+                review.getType(),
+                review.getComment(),
+                review.getRating(),
+                review.getCreatedAt()
+        );
     }
 
 }
