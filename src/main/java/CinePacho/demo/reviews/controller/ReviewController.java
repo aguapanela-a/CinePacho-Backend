@@ -34,6 +34,8 @@ public class ReviewController {
         return ResponseEntity.ok(reviewService.getReviewsByUserId(buyerId, token));
     }
 
+
+    //crear review de peli
     @PostMapping("/{buyerId}/review/movie")
     public ResponseEntity<ReviewResponseDto> createMovieReview(
             @RequestHeader("Authorization") String token,
@@ -43,6 +45,7 @@ public class ReviewController {
         return ResponseEntity.ok(reviewService.createMovieReview(buyerId, dto, token));
     }
 
+    // crear review de servicios
     @PostMapping("/{buyerId}/review/service")
     public ResponseEntity<ReviewResponseDto> createServiceReview(
             @RequestHeader("Authorization") String token,

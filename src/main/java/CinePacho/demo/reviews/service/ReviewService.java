@@ -3,6 +3,7 @@ package CinePacho.demo.reviews.service;
 import CinePacho.demo.auth.entities.customers.BuyerEntity;
 import CinePacho.demo.auth.entities.user.UserEntity;
 import CinePacho.demo.exception.CinePachoException;
+import CinePacho.demo.movie.entities.MovieEntity;
 import CinePacho.demo.reviews.dto.CreateReviewDto;
 import CinePacho.demo.reviews.dto.ReviewDetailResponseDto;
 import CinePacho.demo.reviews.dto.ReviewResponseDto;
@@ -91,7 +92,17 @@ public class ReviewService {
             throw new CinePachoException("Usted ya ha ha calificado esta película");
         }
 
+        // crea y guarda la review
         ReviewEntity review = generateReview(dto, buyerID, ReviewType.MOVIE);
+
+        //Tomo el rating actual de la peli
+        Double currentRating = movieManager.getRating(dto.movieId());
+
+        //Sumo el nuevo rating y lo divido entre la cantidad de reviews
+        Double newRating = (currentRating + dto.rating())/(reviewRepository.countByMovieId(dto.movieId()));
+
+        //Guardo el nuevo rating en la BD
+        movieManager.updateRating(dto.movieId(), newRating);
 
         return new ReviewResponseDto(
                 review.getType(),

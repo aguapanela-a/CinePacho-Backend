@@ -13,4 +13,6 @@ public interface ReviewRepository extends JpaRepository<ReviewEntity, UUID> {
     List<ReviewEntity> findAllByMovieId(Long movieId);
 
     List<ReviewEntity> findAllByBuyer_BuyerId(UUID buyerBuyerId);
+
+    double countByMovieId(Long movieId);
 }

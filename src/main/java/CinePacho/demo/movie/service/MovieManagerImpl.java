@@ -1,5 +1,7 @@
 package CinePacho.demo.movie.service;
 
+import CinePacho.demo.exception.CinePachoException;
+import CinePacho.demo.movie.entities.MovieEntity;
 import CinePacho.demo.movie.repository.MovieRepository;
 import CinePacho.demo.shared.auxiliaryClass.MovieManager;
 import org.springframework.stereotype.Component;
@@ -16,5 +18,18 @@ public class MovieManagerImpl implements MovieManager {
     @Override
     public boolean existsById(Long id) {
         return id != null && movieRepository.existsById(id);
+    }
+
+    @Override
+    public Double getRating(Long id) {
+        MovieEntity movie = movieRepository.findById(id).orElseThrow(()-> new CinePachoException("Película no encontrada"));
+        return movie.getRating();
+    }
+
+    @Override
+    public void updateRating(Long id, Double rating) {
+        MovieEntity movie = movieRepository.getReferenceById(id);
+        movie.setRating(rating);
+        movieRepository.save(movie);
     }
 }
