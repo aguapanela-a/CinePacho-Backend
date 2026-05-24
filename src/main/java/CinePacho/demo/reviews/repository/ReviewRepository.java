@@ -8,6 +8,8 @@ import java.util.UUID;
 
 public interface ReviewRepository extends JpaRepository<ReviewEntity, UUID> {
 
+    boolean existsByMovieIdAndBuyer_BuyerId(Long movieId, UUID buyerBuyerId);
+
     List<ReviewEntity> findAllByMovieId(Long movieId);
 
     List<ReviewEntity> findAllByBuyer_BuyerId(UUID buyerBuyerId);
