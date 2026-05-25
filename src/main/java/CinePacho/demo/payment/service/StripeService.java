@@ -31,7 +31,13 @@ public class StripeService {
 
     @Value("${stripe.api.key}")
     private String stripeApiKey;
-    
+
+    // ¿Está esto local?
+    // teaer url.base del backend
+    @Value("${app.base-url}")
+    private String BASE_URL;
+
+    //TODO: cambiar esto para que tome el valor de la variable entorno
     private static final String SUCCESS_URL = "http://localhost:8010/api/checkout/stripe/success";
     private static final String CANCEL_URL = "http://localhost:8010/api/checkout/stripe/cancel";
     private static final String CURRENCY = "COP";
@@ -110,6 +116,8 @@ public class StripeService {
         summary.setMessage("Checkout creado correctamente");
         summary.setSessionId(session.getId());
         summary.setSessionUrl(session.getUrl());
+
+        //TODO: Crear entidad para el histórico de peliculas vistas
 
         return summary;
     }
