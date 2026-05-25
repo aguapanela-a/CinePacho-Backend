@@ -1,5 +1,7 @@
 package CinePacho.demo.reviews.service;
 
+import CinePacho.demo.auth.entities.customers.BuyerEntity;
+import CinePacho.demo.auth.entities.user.UserEntity;
 import CinePacho.demo.exception.CinePachoException;
 import CinePacho.demo.reviews.dto.CreateReviewDto;
 import CinePacho.demo.reviews.dto.ReviewDetailResponseDto;
@@ -9,6 +11,9 @@ import CinePacho.demo.reviews.enumeration.ReviewType;
 import CinePacho.demo.reviews.repository.ReviewRepository;
 import CinePacho.demo.shared.auxiliaryClass.BuyerManager;
 import CinePacho.demo.shared.auxiliaryClass.MovieManager;
+import CinePacho.demo.shared.auxiliaryClass.UserManager;
+import CinePacho.demo.shared.serviceSecurity.AccessValidator;
+import CinePacho.demo.shared.serviceSecurity.JwtService;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
@@ -21,11 +26,15 @@ public class ReviewService {
     private final ReviewRepository reviewRepository;
     private final BuyerManager buyerManager;
     private final MovieManager movieManager;
+    private final JwtService jwtService;
+    private final UserManager userManager;
 
-    public ReviewService(ReviewRepository reviewRepository, BuyerManager buyerManager, MovieManager movieManager) {
+    public ReviewService(ReviewRepository reviewRepository, BuyerManager buyerManager, MovieManager movieManager, JwtService jwtService, UserManager userManager) {
         this.reviewRepository = reviewRepository;
         this.buyerManager = buyerManager;
         this.movieManager = movieManager;
+        this.jwtService = jwtService;
+        this.userManager = userManager;
     }
 
     // Lista de reviews de un movie por id de la movie
@@ -36,15 +45,31 @@ public class ReviewService {
                 .toList();
     }
 
+    private void validateUserIdentity(UUID targetUserId, String token, String errorMessage) {
+        String userCurrEmail = jwtService.extractEmail(token);
+        UserEntity user = userManager.getUserByEmail(userCurrEmail);
+
+        if (user.getUserType().name().equals("BUYER")) {
+            if (!user.getUserId().equals(targetUserId)) {
+                throw new CinePachoException(errorMessage);
+            }
+        }
+    }
+
     // lista de reviews de una movie por usuario
-    public List<ReviewDetailResponseDto> getReviewsByUserId(UUID userId) {
+    public List<ReviewDetailResponseDto> getReviewsByUserId(UUID userId, String token) {
+
+        validateUserIdentity(userId, token, "No puedes ver las reviews de otros usuarios");
+
         return reviewRepository.findAllByBuyer_BuyerId(userId)
                 .stream()
                 .map(this::toReviewDetailResponse)
                 .toList();
     }
 
-    public ReviewResponseDto createServiceReview(UUID buyerID, CreateReviewDto dto){
+    public ReviewResponseDto createServiceReview(UUID buyerID, CreateReviewDto dto, String token){
+        validateUserIdentity(buyerID, token, "No puedes crear reviews a nombre de otros usuarios");
+
         ReviewEntity review = generateReview(dto, buyerID, ReviewType.SERVICE);
         return new ReviewResponseDto(
                 review.getType(),
@@ -54,7 +79,9 @@ public class ReviewService {
     }
 
 
-    public ReviewResponseDto createMovieReview(UUID buyerID, CreateReviewDto dto){
+    public ReviewResponseDto createMovieReview(UUID buyerID, CreateReviewDto dto, String token){
+
+        validateUserIdentity(buyerID, token, "No puedes crear reviews a nombre de otros usuarios");
 
         if (!movieManager.existsById(dto.movieId())) {
             throw new CinePachoException("Película no encontrada, por favor asegúrese de seleccionar una película existente");

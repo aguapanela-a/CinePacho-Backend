@@ -85,7 +85,13 @@ public class Config {
                         // Películas: gerente y admin (validación por alcance en servicio)
                         .requestMatchers("/api/admin/movie/**").hasAnyAuthority("ADMIN", "MANAGER")
                         .requestMatchers("/api/admin/**").hasAuthority ("ADMIN") //a ese endpoint solamente puede entrar el admin
-                        .anyRequest().authenticated() //El resto de request requieren de token
+                        //Reviews: cualquiera puede ver la lista de reviews de una peli, hasta los no autenticados
+                        .requestMatchers(HttpMethod.GET, "/api/review/**").permitAll()
+                        // solamente el usuario autenticado, manager y admin puede ver la lista de reviews de un usuario
+                        .requestMatchers(HttpMethod.GET,"/api/*/review").hasAnyAuthority("BUYER", "MANAGER", "ADMIN")
+                        //solamente un BUYER puede crear una reseña de una peli
+                        .requestMatchers(HttpMethod.POST,"/api/*/review/**").hasAuthority("BUYER")
+                        .anyRequest().authenticated()
                 )
                 .sessionManagement(session -> session //Decide como se recordarán los usuarios autenticados
                         .sessionCreationPolicy(SessionCreationPolicy.STATELESS) //No crear sesiones de usuario jsessionid para que sea el JWT el unico que se valide

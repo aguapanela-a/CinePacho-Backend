@@ -19,6 +19,7 @@ import java.util.UUID;
 @NoArgsConstructor
 public class UserEntity implements UserDetails {
 
+    @Getter
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
     private UUID userId;

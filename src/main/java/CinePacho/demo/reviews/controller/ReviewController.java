@@ -18,7 +18,7 @@ public class ReviewController {
 
     private final ReviewService reviewService;
 
-    //lista de reviews de una pelicula
+    //lista de reviews de una película
     @GetMapping("/review/movie/{movieId}")
     public ResponseEntity<List<ReviewDetailResponseDto>> getReviewsByMovieId(
             @PathVariable Long movieId
@@ -26,27 +26,29 @@ public class ReviewController {
         return ResponseEntity.ok(reviewService.getReviewsByMovieId(movieId));
     }
 
-    //lista de reviews hechas por un usuario
+    //lista de reviews hechas por un usuario (solo el mismo usuario puede ver su propia lista de reviews)
     @GetMapping("/{buyerId}/review")
     public ResponseEntity<List<ReviewDetailResponseDto>> getReviewsByUserId(
-            @PathVariable UUID buyerId
-    ) {
-        return ResponseEntity.ok(reviewService.getReviewsByUserId(buyerId));
+            @RequestHeader("Authorization") String token,
+            @PathVariable UUID buyerId) {
+        return ResponseEntity.ok(reviewService.getReviewsByUserId(buyerId, token));
     }
 
     @PostMapping("/{buyerId}/review/movie")
     public ResponseEntity<ReviewResponseDto> createMovieReview(
+            @RequestHeader("Authorization") String token,
             @PathVariable UUID buyerId,
             @RequestBody CreateReviewDto dto
     ) {
-        return ResponseEntity.ok(reviewService.createMovieReview(buyerId, dto));
+        return ResponseEntity.ok(reviewService.createMovieReview(buyerId, dto, token));
     }
 
     @PostMapping("/{buyerId}/review/service")
     public ResponseEntity<ReviewResponseDto> createServiceReview(
+            @RequestHeader("Authorization") String token,
             @PathVariable UUID buyerId,
             @RequestBody CreateReviewDto dto
     ) {
-        return ResponseEntity.ok(reviewService.createServiceReview(buyerId, dto));
+        return ResponseEntity.ok(reviewService.createServiceReview(buyerId, dto, token));
     }
 }
