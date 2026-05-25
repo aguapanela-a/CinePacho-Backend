@@ -5,6 +5,8 @@ import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.UUID;
 
 @Entity
@@ -24,4 +26,12 @@ public class BuyerEntity {
 
     @Column(unique = true, nullable = false)
     private String correo;
+
+    // Tabla para guardar los IDs de las películas que el comprador ha visto (comprado).
+    // Se guarda solo el ID para evitar acoplar el módulo de autenticación con el de películas.
+    @ElementCollection(fetch = FetchType.EAGER)
+    @CollectionTable(name = "buyer_watched_movies",
+            joinColumns = @JoinColumn(name = "buyer_id"))
+    @Column(name = "movie_id")
+    private List<Long> watchedMovieIds = new ArrayList<>();
 }

@@ -40,16 +40,31 @@ public class CheckoutService {
 
 
 
+    /**
+     * Genera una vista previa del resumen de la compra sin modificar los inventarios ni el estado de las sillas.
+     * @param request La solicitud con las sillas, snacks y la función elegidas.
+     * @param token El token del usuario para validar permisos y extraer correo si es necesario.
+     * @return CheckoutSummaryResponse con los totales calculados.
+     */
     public CheckoutSummaryResponse preview(CheckoutRequest request, String token) {
         // Vista previa: calcula y valida sin modificar inventarios ni sillas
         return buildSummary(request, token);
     }
 
+    /**
+     * Genera el resumen final y confirma la disponibilidad de sillas y snacks antes de proceder al pago real.
+     * @param request La solicitud de compra.
+     * @param token El token del usuario.
+     * @return CheckoutSummaryResponse con los totales calculados y estado confirmado para Stripe.
+     */
     public CheckoutSummaryResponse confirm(CheckoutRequest request, String token) {
         // Confirmación: revalida disponibilidad antes de continuar al pago
         return buildSummary(request, token);
     }
 
+    /**
+     * Método interno que construye el resumen calculando los precios de sillas y snacks, validando su existencia y disponibilidad.
+     */
     private CheckoutSummaryResponse buildSummary(CheckoutRequest request, String token) {
         String userEmail = jwtService.extractEmail(token);
 

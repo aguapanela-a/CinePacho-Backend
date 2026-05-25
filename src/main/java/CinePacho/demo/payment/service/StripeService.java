@@ -8,6 +8,8 @@ import CinePacho.demo.payment.dto.response.SnackSummaryResponse;
 import CinePacho.demo.payment.entities.PaymentEntity;
 import CinePacho.demo.payment.enumeration.PaymentStatus;
 import CinePacho.demo.payment.repository.PaymentRepository;
+import CinePacho.demo.shared.auxiliaryClass.BuyerManager;
+import CinePacho.demo.shared.auxiliaryClass.MovieManager;
 
 import com.stripe.Stripe;
 import com.stripe.exception.StripeException;
@@ -28,6 +30,8 @@ public class StripeService {
 
     private final CheckoutService checkoutService;
     private final PaymentRepository paymentRepository;
+    private final BuyerManager buyerManager;
+    private final MovieManager movieManager;
 
     @Value("${stripe.api.key}")
     private String stripeApiKey;
@@ -43,14 +47,23 @@ public class StripeService {
     private static final String CURRENCY = "COP";
 
     @Autowired
-    public StripeService(CheckoutService checkoutService, PaymentRepository paymentRepository) {
+    public StripeService(CheckoutService checkoutService, PaymentRepository paymentRepository, BuyerManager buyerManager, MovieManager movieManager) {
         this.checkoutService = checkoutService;
         this.paymentRepository = paymentRepository;
+        this.buyerManager = buyerManager;
+        this.movieManager = movieManager;
     }
 
+    /**
+     * Procesa la compra de los productos (sillas y snacks) llamando a Stripe para generar una sesión de pago.
+     * @param request Datos de la solicitud de checkout incluyendo sillas, snacks y el ID de la función.
+     * @param token Token JWT del usuario para extraer su información.
+     * @return Resumen del checkout con la URL de la sesión de Stripe para redirigir al usuario.
+     */
     public CheckoutSummaryResponse checkoutProducts(CheckoutRequest request, String token) throws StripeException {
         Stripe.apiKey = stripeApiKey;
 
+        // Confirma disponibilidad y calcula el resumen del pago con CheckoutService
         CheckoutSummaryResponse summary = checkoutService.confirm(request, token);
 
         List<SessionCreateParams.LineItem> lineItems = new ArrayList<>();
@@ -102,6 +115,7 @@ public class StripeService {
 
         Session session = Session.create(params);
 
+        // Se crea el registro del pago en estado PENDING, que luego cambiará a SUCCESS o FAILED
         PaymentEntity payment = new PaymentEntity();
         payment.setUserId(checkoutService.getUserIdFromToken(token)); //Falta completar metodo
         payment.setAmount(summary.getTotalPurchase());
@@ -117,11 +131,21 @@ public class StripeService {
         summary.setSessionId(session.getId());
         summary.setSessionUrl(session.getUrl());
 
-        //TODO: Crear entidad para el histórico de peliculas vistas
+        //TODO: Crear entidad para el histórico de películas vistas
+        // Agregando la película a las vistas del buyer usando interfaces para no acoplar módulos
+        if (summary.getStatus().equals("SUCCESS") && payment.getUserId() != null) {
+            Long movieId = movieManager.getMovieIdByScreeningId(request.getScreeningId());
+            buyerManager.addWatchedMovie(payment.getUserId(), movieId);
+        }
 
         return summary;
     }
 
+    /**
+     * Convierte el monto decimal al formato entero en centavos requerido por Stripe.
+     * @param amount Monto en BigDecimal.
+     * @return Monto convertido a long en centavos.
+     */
     private long toStripeAmount(BigDecimal amount) {
         if (amount == null) {
             throw new CinePachoException("El precio del producto no puede ser nulo");

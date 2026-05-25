@@ -9,4 +9,5 @@ import java.util.UUID;
 public interface
 BuyerManager {
     BuyerEntity getBuyerById(UUID id);
+    void addWatchedMovie(UUID buyerId, Long movieId);
 }

@@ -2,7 +2,9 @@ package CinePacho.demo.movie.service;
 
 import CinePacho.demo.exception.CinePachoException;
 import CinePacho.demo.movie.entities.MovieEntity;
+import CinePacho.demo.movie.entities.MovieScreening;
 import CinePacho.demo.movie.repository.MovieRepository;
+import CinePacho.demo.movie.repository.MovieScreeningRepository;
 import CinePacho.demo.shared.auxiliaryClass.MovieManager;
 import org.springframework.stereotype.Component;
 
@@ -10,9 +12,11 @@ import org.springframework.stereotype.Component;
 public class MovieManagerImpl implements MovieManager {
 
     private final MovieRepository movieRepository;
+    private final MovieScreeningRepository movieScreeningRepository;
 
-    public MovieManagerImpl(MovieRepository movieRepository) {
+    public MovieManagerImpl(MovieRepository movieRepository, MovieScreeningRepository movieScreeningRepository) {
         this.movieRepository = movieRepository;
+        this.movieScreeningRepository = movieScreeningRepository;
     }
 
     @Override
@@ -36,5 +40,12 @@ public class MovieManagerImpl implements MovieManager {
     @Override
     public String getMovieTitle(Long id) {
         return movieRepository.getReferenceById(id).getOriginalTitle();
+    }
+
+    @Override
+    public Long getMovieIdByScreeningId(java.util.UUID screeningId) {
+        MovieScreening screening = movieScreeningRepository.findById(screeningId)
+                .orElseThrow(() -> new CinePachoException("Función no encontrada"));
+        return screening.getMovie().getId();
     }
 }
