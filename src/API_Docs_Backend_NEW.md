@@ -656,7 +656,54 @@ PUT /api/admin/movie/changeStatus/850e8400-e29b-41d4-a716-446655440000?status=CA
 **Response (HTTP 204)**
 
 Sin contenido
+---
 
+# 🧾 Checkout / Compra
+
+**Acceso:** BUYER / EMPLOYEE
+
+## 🔹 POST /api/checkout/preview
+
+**Descripción:** Recibe desde el front la lista de sillas y snacks para calcular totales (vista previa).
+
+**Autorización:** Bearer token (BUYER, EMPLOYEE)
+
+**Request**
+
+```json
+{
+  "seats": [
+    { "seatId": "750e8400-e29b-41d4-a716-446655440000" },
+    { "seatId": "750e8400-e29b-41d4-a716-446655440001" }
+  ],
+  "snacks": [
+    { "snackId": "950e8400-e29b-41d4-a716-446655440000", "quantity": 2 },
+    { "snackId": "950e8400-e29b-41d4-a716-446655440001", "quantity": 1 }
+  ]
+}
+```
+
+**Notas de los campos:**
+- `seats`: Lista obligatoria de objetos `SeatSelectionRequest` con `seatId` (UUID).
+- `snacks`: Lista opcional de objetos `SnackSelectionRequest` con `snackId` (UUID) y `quantity` (int).
+
+**Response (HTTP 200)**
+
+Retorna un `CheckoutSummaryResponse` con totales y desglose para mostrar en la UI.
+
+## 🔹 POST /api/checkout/confirm
+
+**Descripción:** Revalida disponibilidad y confirma la compra (reserva/pago). Recibe el mismo body que `/preview`.
+
+**Autorización:** Bearer token (BUYER)
+
+**Request:** Igual que en `/api/checkout/preview`.
+
+**Response (HTTP 200)**
+
+Retorna `CheckoutSummaryResponse` final y datos de la transacción (ticket/snippets).
+
+---
 ---
 
 # 👥 6. Empleados y Gerentes

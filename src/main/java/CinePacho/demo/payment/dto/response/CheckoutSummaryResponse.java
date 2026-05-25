@@ -13,6 +13,11 @@ import java.util.UUID;
 @Builder
 public class CheckoutSummaryResponse {
 
+    private String status;
+    private String message;
+    private String sessionId;
+    private String sessionUrl;
+
     // Multiplex asociado a las sillas seleccionadas
     private UUID multiplexId;
 
@@ -23,4 +28,6 @@ public class CheckoutSummaryResponse {
 
     private List<SeatSummaryResponse> seats;
     private List<SnackSummaryResponse> snacks;
+
+    
 }
