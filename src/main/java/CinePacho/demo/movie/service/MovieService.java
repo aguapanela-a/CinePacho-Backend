@@ -165,7 +165,7 @@ public class MovieService {
         movieEntity.setPosterPath(movieDTO.posterPath());
         movieEntity.setReleaseDate(movieDTO.releaseDate());
 
-        movieEntity.setRating(null);
+        movieEntity.setRating(2.5);
         return movieEntity;
     }
 

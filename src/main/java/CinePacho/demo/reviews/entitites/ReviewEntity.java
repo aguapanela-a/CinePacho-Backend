@@ -33,4 +33,6 @@ public class ReviewEntity {
 
     private Integer rating;          // 0 a 5
     private LocalDateTime createdAt;
+
+    private String movieTitle;
 }

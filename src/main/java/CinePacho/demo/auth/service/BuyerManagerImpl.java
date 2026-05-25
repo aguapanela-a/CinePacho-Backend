@@ -22,4 +22,5 @@ public class BuyerManagerImpl implements BuyerManager {
         return buyerRepository.findById(id)
                 .orElseThrow(() -> new CinePachoException("Buyer not found"));
     }
+
 }

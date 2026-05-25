@@ -12,3 +12,5 @@ public record CreateReviewDto(
         @Size(min = 0, max = 255, message = "El comentario debe tener entre 0 y 255 caracteres")
         String comment)
 { }
+
+//

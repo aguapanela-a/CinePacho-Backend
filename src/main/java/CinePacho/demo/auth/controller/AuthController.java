@@ -47,3 +47,5 @@ public class AuthController {
         return ResponseEntity.ok(authService.verifyEmail(token));
     }
 }
+
+//eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJhcmNoaXZvc3VuaXZlcnNpZGFkMTBAZ21haWwuY29tIiwibmFtZSI6ImFyY2hpdm9zdW5pdmVyc2lkYWQxMEBnbWFpbC5jb20iLCJ1c2VyVHlwZSI6IkJVWUVSIiwiaWF0IjoxNzc5NzE1NDI2LCJleHAiOjE3Nzk3MTkwMjZ9.aSBvuuueuyWZ76w2a0GRd5J0_jhnwhuP1Db3mdZu--E

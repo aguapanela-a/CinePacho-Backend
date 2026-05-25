@@ -11,6 +11,7 @@ public record ReviewDetailResponseDto(
         ReviewType reviewType,
         String comment,
         Integer rating,
-        LocalDateTime createdAt
+        LocalDateTime createdAt,
+        String movieTitle
 ) {
 }

@@ -32,4 +32,9 @@ public class MovieManagerImpl implements MovieManager {
         movie.setRating(rating);
         movieRepository.save(movie);
     }
+
+    @Override
+    public String getMovieTitle(Long id) {
+        return movieRepository.getReferenceById(id).getOriginalTitle();
+    }
 }
