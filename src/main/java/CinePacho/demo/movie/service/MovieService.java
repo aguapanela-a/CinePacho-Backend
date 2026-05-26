@@ -2,6 +2,7 @@ package CinePacho.demo.movie.service;
 
 import CinePacho.demo.exception.CinePachoException;
 import CinePacho.demo.movie.dto.*;
+import CinePacho.demo.movie.entities.GenreEmbeddable;
 import CinePacho.demo.movie.entities.MovieEntity;
 import CinePacho.demo.movie.entities.MovieScreening;
 import CinePacho.demo.movie.enumeration.ScreeningStatus;
@@ -10,7 +11,6 @@ import CinePacho.demo.movie.repository.MovieScreeningRepository;
 import CinePacho.demo.rooms.entities.RoomEntity;
 import CinePacho.demo.shared.auxiliaryClass.RoomManager;
 import CinePacho.demo.shared.serviceSecurity.AccessValidator;
-import CinePacho.demo.shared.tmdbGenre.TmdbGenreMapper;
 import org.jspecify.annotations.NonNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -46,10 +46,10 @@ public class MovieService {
 
 
     // el front debe desplegar una lista dinámica de películas según el character ingresado
-    public List<TmdbMovieDTO> searchMovie(String title, int page) {
-        List<TmdbMovieDTO> tmdbMovieDTOList;
+    public List<MovieSearchResponseDTO> searchMovie(String title, int page) {
+        List<MovieSearchResponseDTO> movieSearchResponseDTO;
 
-        tmdbMovieDTOList = Objects.requireNonNull(webClient.get()
+        movieSearchResponseDTO = Objects.requireNonNull(webClient.get()
                         .uri("/search/movie?query=" + title + "&language=es&page=" + page)
                         .header("accept", "application/json")
                         .header("Authorization", "Bearer " + accessToken)
@@ -58,7 +58,7 @@ public class MovieService {
                         .block())
                 .results();
 
-        return tmdbMovieDTOList;
+        return movieSearchResponseDTO;
     }
 
     //Cuando da clic a una peli de la lista de arriba, se ejecutará este siguiente metodo,
@@ -86,6 +86,12 @@ public class MovieService {
         if (movieDTO == null) {
             throw new CinePachoException("Petición de película inválida, ¡por favor verifique el id ingresado!");
         }
+
+        System.out.println("Genres:");
+        // esta lista está vacía porque noe s uan lista de enteros sino que es de "objetos"
+        movieDTO.genreIds().stream().forEach(System.out::println);
+
+        System.out.printf("___________-------________");
 
         MovieEntity movieEntity = getMovieEntity(movieDTO);
 
@@ -141,13 +147,10 @@ public class MovieService {
     }
 
     private List<String> getGenreList(MovieEntity movieEntity) {
-        TmdbGenreMapper genreMapper = new TmdbGenreMapper();
-
         List<String> genreList = new ArrayList<>();
 
-        movieEntity.getGenres().forEach(genreId -> {
-            genreList.add(genreMapper.getGenreName(genreId));
-        });
+        // Extraer directamente los nombres de los géneros almacenados en la película
+        movieEntity.getGenres().forEach(genre -> genreList.add(genre.getName()));
 
         return genreList;
     }
@@ -158,7 +161,12 @@ public class MovieService {
 
         movieEntity.setId(movieDTO.id());
         movieEntity.setBackdropPath(movieDTO.backdropPath());
-        movieEntity.setGenres(movieDTO.genreIds());
+        // Mapear GenreDto -> GenreEmbeddable (id + name)
+        List<GenreEmbeddable> genreEmbeddables = new ArrayList<>();
+        if (movieDTO.genreIds() != null) {
+            movieDTO.genreIds().forEach(gdto -> genreEmbeddables.add(new GenreEmbeddable(gdto.id(), gdto.name())));
+        }
+        movieEntity.setGenres(genreEmbeddables);
         movieEntity.setOriginalLanguage(movieDTO.originalLanguage());
         movieEntity.setOriginalTitle(movieDTO.originalTitle());
         movieEntity.setOverview(movieDTO.overview());

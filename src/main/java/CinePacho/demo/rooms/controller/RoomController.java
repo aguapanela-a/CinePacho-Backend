@@ -42,7 +42,7 @@ public class RoomController {
 
     public record ResponseSummary(
             String message,
-            @NotBlank
+            @NotBlank(message = "El id de la sala es requerido")
             UUID roomId
     ) {}
 }

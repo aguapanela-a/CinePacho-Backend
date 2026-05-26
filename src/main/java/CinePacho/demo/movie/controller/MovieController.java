@@ -1,9 +1,6 @@
 package CinePacho.demo.movie.controller;
 
-import CinePacho.demo.movie.dto.CreateScreeningDTO;
-import CinePacho.demo.movie.dto.MovieResponseDTO;
-import CinePacho.demo.movie.dto.ScreeningResponseDTO;
-import CinePacho.demo.movie.dto.TmdbMovieDTO;
+import CinePacho.demo.movie.dto.*;
 import CinePacho.demo.movie.enumeration.ScreeningStatus;
 import CinePacho.demo.movie.service.MovieService;
 import jakarta.validation.Valid;
@@ -25,8 +22,8 @@ public class MovieController {
         this.movieService = movieService;
     }
 
-    @GetMapping("/admin/movie/search")
-    public ResponseEntity<List<TmdbMovieDTO>> searchMovie(
+    @GetMapping("/adminon/movie/search")
+    public ResponseEntity<List<MovieSearchResponseDTO>> searchMovie(
             @Valid
             @RequestParam String query,
             @RequestParam(defaultValue = "1") int page

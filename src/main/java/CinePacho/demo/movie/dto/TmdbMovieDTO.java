@@ -12,8 +12,8 @@ public record TmdbMovieDTO(
         @JsonProperty("backdrop_path")
         String backdropPath,
 
-        @JsonProperty("genre_ids")
-        List<Integer> genreIds, // ← lista de los ids de los géneros
+        @JsonProperty("genres")
+        List<GenreDto> genreIds, // ← lista de los ids de los géneros
 
         @JsonProperty("original_language")
         String originalLanguage,

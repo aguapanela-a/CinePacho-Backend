@@ -3,6 +3,8 @@ package CinePacho.demo.movie.entities;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
+import org.hibernate.boot.model.naming.ImplicitConstraintNameSource;
+import org.hibernate.mapping.UniqueKey;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -40,10 +42,10 @@ public class MovieEntity {
     @Column(name = "director")
     private String director;
 
-    //crea una tabla para los ids de los géneros de las peliculas
-    @ElementCollection
+    //crea una tabla para los géneros (id y nombre) de las películas
+    @ElementCollection(fetch = FetchType.EAGER)
     @CollectionTable(name = "movie_genres",
-            joinColumns = @JoinColumn(name = "movie_id"))
-    @Column(name = "genre_id")
-    private List<Integer> genres = new ArrayList<>();
+            joinColumns = @JoinColumn(name = "movie_id"),
+            uniqueConstraints = @UniqueConstraint(columnNames = {"movie_id", "genre_id"}))
+    private List<GenreEmbeddable> genres = new ArrayList<>();
 }

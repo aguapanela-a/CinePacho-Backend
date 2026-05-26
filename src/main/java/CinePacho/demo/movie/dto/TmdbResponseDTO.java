@@ -9,7 +9,7 @@ public record TmdbResponseDTO(
         Integer page,
 
         @JsonProperty("results")
-        List<TmdbMovieDTO> results,
+        List<MovieSearchResponseDTO> results,
 
         @JsonProperty("total_pages")
         Integer totalPages,

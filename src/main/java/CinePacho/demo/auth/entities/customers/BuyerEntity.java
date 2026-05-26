@@ -31,7 +31,8 @@ public class BuyerEntity {
     // Se guarda solo el ID para evitar acoplar el módulo de autenticación con el de películas.
     @ElementCollection(fetch = FetchType.EAGER)
     @CollectionTable(name = "buyer_watched_movies",
-            joinColumns = @JoinColumn(name = "buyer_id"))
+            joinColumns = @JoinColumn(name = "buyer_id"),
+            uniqueConstraints = @UniqueConstraint(columnNames = {"buyer_id", "movie_id"}))
     @Column(name = "movie_id")
     private List<Long> watchedMovieIds = new ArrayList<>();
 }
