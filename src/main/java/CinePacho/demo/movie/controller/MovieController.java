@@ -22,7 +22,7 @@ public class MovieController {
         this.movieService = movieService;
     }
 
-    @GetMapping("/adminon/movie/search")
+    @GetMapping("/admin/movie/search")
     public ResponseEntity<List<MovieSearchResponseDTO>> searchMovie(
             @Valid
             @RequestParam String query,

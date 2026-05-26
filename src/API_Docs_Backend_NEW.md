@@ -817,3 +817,103 @@ Retorna `CheckoutSummaryResponse` final y datos de la transacción (ticket/snipp
 - Se bloquean automáticamente por 10 minutos
 - Si pasa el tiempo, se desbloquean automáticamente
 - Solo el usuario que bloqueó puede desbloquearla antes del tiempo
+
+---
+
+# 🛠 Endpoints detectados en el código (agregados / corregidos)
+
+Se agregan las rutas que estaban faltando o se actualizan las que en el markdown no coincidían con el código.
+
+- Películas (MovieController)
+  - GET  /api/admin/movie/search?query={text}&page={numero}
+    - Descripción: Buscar en TMDB y devolver lista de MovieSearchResponseDTO.
+    - Autorización: ADMIN o MANAGER (según securityFilterChain). Nota: el path en el código tenía un typo "adminon" y fue corregido a /api/admin/movie/search.
+  - POST /api/admin/movie/select/{movieId}
+    - Descripción: Seleccionar/guardar película por id TMDB.
+    - Autorización: ADMIN y MANAGER
+  - POST /api/admin/movie/createScreening
+    - Descripción: Crear función (CreateScreeningDTO).
+    - Autorización: ADMIN y MANAGER (del multiplex)
+  - PUT  /api/admin/movie/changeStatus/{idScreening}?status={ACTIVE|CANCELLED|COMPLETED}
+    - Descripción: Cambiar estado de función.
+    - Autorización: ADMIN y MANAGER
+
+- Reseñas (ReviewController)
+  - GET  /api/review/movie/{movieId}
+    - Descripción: Lista de reseñas de una película.
+    - Autorización: pública (permitAll) — visible incluso sin token.
+  - GET  /api/{buyerId}/review
+    - Descripción: Lista de reseñas de un usuario.
+    - Autorización: BUYER, MANAGER, ADMIN
+  - POST /api/{buyerId}/review/movie
+    - Descripción: Crear reseña de película para buyerId (solo BUYER puede crear).
+    - Autorización: BUYER
+  - POST /api/{buyerId}/review/service
+    - Descripción: Crear reseña de servicio.
+    - Autorización: BUYER
+
+- Snacks (SnackController)
+  - GET  /api/snacks
+    - Descripción: Lista pública de snacks disponibles (visible a BUYER/EMPLOYEE/MANAGER/ADMIN según security config).
+    - Autorización: requiere token según securityFilterChain (BUYER/EMPLOYEE/MANAGER/ADMIN).
+  - GET  /api/admin/snacks and /api/admin/snacks/{id}
+  - POST /api/admin/snacks
+  - PUT  /api/admin/snacks/{id}
+  - DELETE /api/admin/snacks/{id}
+    - Descripción: CRUD de snacks (ADMIN)
+
+- Checkout (CheckoutController)
+  - POST /api/checkout/stripe
+    - Descripción: Procesa pago con Stripe; recibe CheckoutRequest en body y Authorization header.
+    - Headers: Authorization: Bearer {token}
+    - Autorización: BUYER/EMPLOYEE/MANAGER/ADMIN (según security config)
+  - Nota: endpoints /preview y /confirm están en el markdown original pero en el código están comentados; actualmente sólo existe /stripe.
+
+- Salas (RoomController)
+  - POST /api/admin/{multiplexId}/rooms
+    - Descripción: Crear sala en multiplex (devuelve id de sala).
+    - Autorización: ADMIN y MANAGER (según security config y validación por servicio)
+  - DELETE /api/admin/rooms/{id}
+    - Descripción: Eliminar (desactivar) sala.
+    - Autorización: ADMIN y MANAGER
+
+- Sillas (SeatController)
+  - GET  /api/seats/{roomId}
+    - Descripción: Obtener sillas y estados de una sala.
+    - Autorización: BUYER, EMPLOYEE, MANAGER, ADMIN
+  - PUT  /api/seats/{seatId}/changeStatus
+    - Descripción: Cambiar estado (toggle) de una silla. Header Authorization requerido.
+    - Autorización: BUYER, EMPLOYEE, MANAGER, ADMIN
+
+- Multiplex (MultiplexController)
+  - GET  /api/admin/multiplexes
+  - GET  /api/admin/multiplexes/{id}
+  - POST /api/admin/multiplexes
+  - PUT  /api/admin/multiplexes/{id}
+  - DELETE /api/admin/multiplexes/{id}
+    - Autorización: ver sección "Niveles de Acceso"; POST/DELETE requieren ADMIN; GET/PUT permiten MANAGER/ADMIN con validación por servicio.
+
+- Empleados (EmployeeController)
+  - POST /api/admin/register_employee
+    - Descripción: Registrar empleado/manager.
+    - Autorización: ADMIN y MANAGER (solo en su multiplex)
+
+- Autenticación (AuthController) — ya documentado
+  - POST /api/auth/register
+  - POST /api/auth/login
+  - GET  /api/auth/verify?token={token}
+
+
+## Resumen de permisos relevantes (según securityFilterChain en Config.java)
+- /api/auth/** → permitAll
+- /api/seats/** → BUYER, EMPLOYEE, MANAGER, ADMIN
+- GET /api/snacks/** → BUYER, EMPLOYEE, MANAGER, ADMIN
+- /api/checkout/** → BUYER, EMPLOYEE, MANAGER, ADMIN (nota: en negocio final debería ser BUYER)
+- /api/admin/multiplexes POST, DELETE → ADMIN
+- /api/admin/multiplexes/** → ADMIN, MANAGER (consulta/actualización validada en servicio)
+- /api/admin/*/rooms and /api/admin/rooms/** → ADMIN, MANAGER
+- /api/admin/register_employee → ADMIN, MANAGER
+- /api/admin/movie/** → ADMIN, MANAGER
+- GET /api/review/** → permitAll (reseñas por película visibles para todos)
+- GET /api/*/review → BUYER, MANAGER, ADMIN
+- POST /api/*/review/** → BUYER

@@ -109,6 +109,7 @@ public class ReviewService {
 
         if (currentUser.getUserType().name().equals("BUYER")) {
             if (!currentUser.getUserId().equals(targetUser.getUserId())) {
+                //TODO: Borrar ids de prueba xd
                 throw new CinePachoException(errorMessage + " user autenticado:" + currentUser.getUserId() + "// target:" + targetUserId);
             }
         }

@@ -26,7 +26,7 @@ public class ReviewController {
         return ResponseEntity.ok(reviewService.getReviewsByMovieId(movieId));
     }
 
-    //lista de reviews hechas por un usuario (solo el mismo usuario puede ver su propia lista de reviews)
+    //lista de reviews hechas por un usuario (solo el mismo usuario puede ver su propia lista de reviews y admin y manager si pueden ver)
     @GetMapping("/{buyerId}/review")
     public ResponseEntity<List<ReviewDetailResponseDto>> getReviewsByUserId(
             @RequestHeader("Authorization") String token,
@@ -36,7 +36,7 @@ public class ReviewController {
     }
 
 
-    //crear review de peli
+    //crear review de peli (solo el buyer puede crear su propia review)
     @PostMapping("/{buyerId}/review/movie")
     public ResponseEntity<ReviewResponseDto> createMovieReview(
             @RequestHeader("Authorization") String token,
