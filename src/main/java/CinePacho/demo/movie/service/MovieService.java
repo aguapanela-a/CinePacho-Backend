@@ -95,9 +95,14 @@ public class MovieService {
 
         MovieEntity movieEntity = getMovieEntity(movieDTO);
 
+
         movieRepository.save(movieEntity);
 
-        return new MovieResponseDTO(movieEntity.getOriginalTitle(), movieEntity.getDirector(), "Película añadida con éxito");
+        return new MovieResponseDTO(
+            movieEntity.getOriginalTitle(), 
+            movieEntity.getDirector(), 
+            "Película añadida con éxito"
+        );
     }
 
 
@@ -166,14 +171,19 @@ public class MovieService {
         if (movieDTO.genreIds() != null) {
             movieDTO.genreIds().forEach(gdto -> genreEmbeddables.add(new GenreEmbeddable(gdto.id(), gdto.name())));
         }
+
+        System.out.println("Director: " + movieDTO.director());
+        System.out.println("--------------------------------------------------------");
+
         movieEntity.setGenres(genreEmbeddables);
         movieEntity.setOriginalLanguage(movieDTO.originalLanguage());
         movieEntity.setOriginalTitle(movieDTO.originalTitle());
         movieEntity.setOverview(movieDTO.overview());
         movieEntity.setPosterPath(movieDTO.posterPath());
         movieEntity.setReleaseDate(movieDTO.releaseDate());
+        movieEntity.setDirector(movieDTO.director());
 
-        movieEntity.setRating(2.5);
+        movieEntity.setRating(0.0); // Inicializa el rating en 0.0, se actualizará cuando los usuarios califiquen la película
         return movieEntity;
     }
 

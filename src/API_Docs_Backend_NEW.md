@@ -658,7 +658,7 @@ PUT /api/admin/movie/changeStatus/850e8400-e29b-41d4-a716-446655440000?status=CA
 Sin contenido
 ---
 
-# 🧾 Checkout / Compra
+# 🧾6. Checkout / Compra
 
 **Acceso:** BUYER / EMPLOYEE
 

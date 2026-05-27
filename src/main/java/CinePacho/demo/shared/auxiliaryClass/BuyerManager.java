@@ -6,8 +6,8 @@ import org.springframework.stereotype.Component;
 import java.util.UUID;
 
 @Component
-public interface
-BuyerManager {
+public interface BuyerManager {
     BuyerEntity getBuyerById(UUID id);
     void addWatchedMovie(UUID buyerId, Long movieId);
+    BuyerEntity getBuyerByEmail(String email);
 }
