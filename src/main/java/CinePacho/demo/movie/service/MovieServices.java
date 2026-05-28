@@ -37,14 +37,20 @@ public class MovieServices {
                .collect(Collectors.toList());
     }
 
-    //funcion que ajunta Screening de una sola película
+    //funcion que junta los Screening de una sola película por multiplex
     private MovieSelectorDTO getScreeningByMultiplex (UUID multiplexId, Long movieId){
 
-        //Filtrar lista de MovieScreening por película
+        MovieEntity movie = movieRepository.findById(movieId).orElseThrow(()-> new CinePachoException("La película no existe en la base de datos"));
+
+        //Filtrar lista de MovieScreening por película de ese multiplex
         List<MovieScreening> movieScreeningsByMovie = movieScreeningsByMultiplexId(multiplexId)
                 .stream()
                 .filter(movieScreening -> movieScreening.getMovie().getId().equals(movieId))
                 .toList();
+
+        if(movieScreeningsByMovie.isEmpty()){
+            throw new CinePachoException("No tenemos funciones disponibles en este multiplex para la pelicula seleccionada");
+        }
 
         //Creo el objeto ScreeningInfoDTO qje recibirá MovieSelectorDTO
         List<ScreeningInfoDTO> screeningInfoDTOList = movieScreeningsByMovie.stream().map(
@@ -57,7 +63,6 @@ public class MovieServices {
                         .build()
                 ).toList();
 
-        MovieEntity movie = movieRepository.findById(movieId).orElseThrow(()-> new CinePachoException("La película no existe en la base de datos"));
 
         //Casteo de genreEmbeddable a GenreDto
         List<GenreDto> genres = movie.getGenres().stream().map(
@@ -84,4 +89,8 @@ public class MovieServices {
                 .screenings(screeningInfoDTOList)
             .build();
     }
+
+    //TODO: preguntarle a Claudia ahora que tengo todos los Screeningn de uan sola película ajuntados en un MovieSelectorDTO
+    //TODO: como hago para que se carguen automáticamente todos los MovieSelectorDTO de cada peli de ese Múltiplex (opara la pantallade inicio)
+
 }

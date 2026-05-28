@@ -32,11 +32,13 @@ public class RoomManagerImpl implements RoomManager {
     @Override
     public void createRoom(MultiplexEntity multiplex) {
 
+        int existingRooms = roomRepository.countByMultiplex_Id(multiplex.getId());
         int generalCapacity = 40;
         int preferentialCapacity = 20;
 
         RoomEntity room = RoomEntity.builder()
                 .multiplex(multiplex)
+                .roomNumber("room: " + (existingRooms + 1) )
                 .generalCapacity(generalCapacity)
                 .preferentialCapacity(preferentialCapacity)
                 .build();
