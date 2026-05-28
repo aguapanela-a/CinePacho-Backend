@@ -1,4 +1,4 @@
-package CinePacho.demo.movie.dto;
+package CinePacho.demo.movie.dto.response;
 
 import CinePacho.demo.movie.enumeration.ScreeningStatus;
 import com.fasterxml.jackson.annotation.JsonFormat;

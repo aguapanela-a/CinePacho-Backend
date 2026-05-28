@@ -1,8 +1,11 @@
 package CinePacho.demo.movie.controller;
 
-import CinePacho.demo.movie.dto.*;
+import CinePacho.demo.movie.dto.request.CreateScreeningDTO;
+import CinePacho.demo.movie.dto.response.MovieResponseDTO;
+import CinePacho.demo.movie.dto.response.MovieSearchResponseDTO;
+import CinePacho.demo.movie.dto.response.ScreeningResponseDTO;
 import CinePacho.demo.movie.enumeration.ScreeningStatus;
-import CinePacho.demo.movie.service.MovieService;
+import CinePacho.demo.movie.service.MovieAdminService;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -15,11 +18,11 @@ import java.util.UUID;
 @RestController
 @RequestMapping("/api")
 public class MovieController {
-    private final MovieService movieService;
+    private final MovieAdminService movieAdminService;
 
     @Autowired
-    public MovieController(MovieService movieService) {
-        this.movieService = movieService;
+    public MovieController(MovieAdminService movieAdminService) {
+        this.movieAdminService = movieAdminService;
     }
 
     @GetMapping("/admin/movie/search")
@@ -28,7 +31,7 @@ public class MovieController {
             @RequestParam String query,
             @RequestParam(defaultValue = "1") int page
     ) {
-        return ResponseEntity.ok(movieService.searchMovie(query, page));
+        return ResponseEntity.ok(movieAdminService.searchMovie(query, page));
     }
 
 
@@ -37,7 +40,7 @@ public class MovieController {
             @Valid
             @PathVariable Long movieId
     ) {
-        return ResponseEntity.ok(movieService.selectMovie(movieId));
+        return ResponseEntity.ok(movieAdminService.selectMovie(movieId));
     }
 
 
@@ -46,7 +49,7 @@ public class MovieController {
             @Valid
             @RequestBody CreateScreeningDTO dto
     ) {
-        return ResponseEntity.ok(movieService.createScreening(dto));
+        return ResponseEntity.ok(movieAdminService.createScreening(dto));
     }
 
 
@@ -56,7 +59,7 @@ public class MovieController {
             @PathVariable UUID idScreening,
             @RequestParam ScreeningStatus status
     ){
-        movieService.changeScreeningStatus(idScreening, status);
+        movieAdminService.changeScreeningStatus(idScreening, status);
 
         return ResponseEntity.ok(
                 new StatusResponse(

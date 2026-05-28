@@ -20,6 +20,9 @@ public class RoomEntity {
     @GeneratedValue(strategy = GenerationType.UUID)
     @Column(name = "id", updatable = false, nullable = false)
     private UUID id;
+
+    //TODO:  calcular en el servicio al momento de crear la sala:
+    private String roomNumber;
  
     @JoinColumn(name = "multiplex_id", nullable = false)
     @ManyToOne(fetch = FetchType.LAZY)

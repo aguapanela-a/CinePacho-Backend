@@ -1,11 +1,13 @@
-package CinePacho.demo.movie.dto;
+package CinePacho.demo.movie.dto.request;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import lombok.Builder;
 
 import java.util.List;
 
 @JsonIgnoreProperties(ignoreUnknown = true)
+@Builder
 public record TmdbMovieDTO(
         Long id,
 

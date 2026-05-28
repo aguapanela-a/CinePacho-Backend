@@ -1,4 +1,4 @@
-package CinePacho.demo.movie.dto;
+package CinePacho.demo.movie.dto.request;
 
 public record GenreDto(
         Integer id,
