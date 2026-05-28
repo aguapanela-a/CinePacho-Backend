@@ -25,6 +25,12 @@ public class BuyerManagerImpl implements BuyerManager {
     }
 
     @Override
+    public BuyerEntity getBuyerByEmail(String email) {
+        return buyerRepository.getBuyerByEmail(email)
+                .orElseThrow(() -> new CinePachoException("Buyer not found with email: " + email));
+    }
+
+    @Override
     public void addWatchedMovie(UUID buyerId, Long movieId) {
         BuyerEntity buyer = getBuyerById(buyerId);
         if (buyer.getWatchedMovieIds() != null && !buyer.getWatchedMovieIds().contains(movieId)) {

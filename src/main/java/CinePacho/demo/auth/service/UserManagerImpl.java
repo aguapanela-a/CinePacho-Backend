@@ -7,7 +7,6 @@ import CinePacho.demo.shared.user.UserRepository;
 
 import org.springframework.stereotype.Service;
 
-import java.util.UUID;
 
 @Service
 public class UserManagerImpl implements UserManager {
@@ -20,7 +19,10 @@ public class UserManagerImpl implements UserManager {
 
     @Override
     public UserEntity getUserByEmail(String email) {
-        return  userRepository.findByEmail(email).orElseThrow(()-> new CinePachoException("Usuario no encontrado"));
+        
+        return userRepository.findByEmail(email)
+                .orElseThrow(() -> new CinePachoException("Usuario no encontrado con email: " + email));
+        
     }
 }
 

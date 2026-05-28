@@ -1,5 +1,7 @@
 package CinePacho.demo.payment.service;
 
+import CinePacho.demo.auth.entities.customers.BuyerEntity;
+import CinePacho.demo.auth.entities.user.UserEntity;
 import CinePacho.demo.exception.CinePachoException;
 import CinePacho.demo.payment.dto.request.CheckoutRequest;
 import CinePacho.demo.payment.dto.request.SeatSelectionRequest;
@@ -9,8 +11,10 @@ import CinePacho.demo.payment.dto.response.SeatSummaryResponse;
 import CinePacho.demo.payment.dto.response.SnackSummaryResponse;
 import CinePacho.demo.seats.entities.SeatEntity;
 import CinePacho.demo.seats.enumeration.SeatStatus;
+import CinePacho.demo.shared.auxiliaryClass.BuyerManager;
 import CinePacho.demo.shared.auxiliaryClass.SeatManager;
 import CinePacho.demo.shared.auxiliaryClass.SnackManager;
+import CinePacho.demo.shared.auxiliaryClass.UserManager;
 import CinePacho.demo.shared.enumeration.SeatType;
 import CinePacho.demo.shared.serviceSecurity.JwtService;
 import CinePacho.demo.snacks.entities.SnackEntity;
@@ -29,13 +33,14 @@ public class CheckoutService {
     private final SeatManager seatManager;
     private final SnackManager snackManager;
     private final JwtService jwtService;
-
+    private final UserManager userManager;
 
     @Autowired
-    public CheckoutService(SeatManager seatManager, SnackManager snackManager, JwtService jwtService) {
+    public CheckoutService(SeatManager seatManager, SnackManager snackManager, JwtService jwtService, UserManager userManager ) {
         this.seatManager = seatManager;
         this.snackManager = snackManager;
         this.jwtService = jwtService;
+        this.userManager = userManager;
     }
 
 
@@ -195,11 +200,17 @@ public class CheckoutService {
     }
 
 
-    //falta implementar este método para obtener el userId a partir del token, actualmente solo extrae el email para guardar en la BD
-    public UUID getUserIdFromToken(String token) {
-        // String email = jwtService.extractEmail(token);
-        
 
-        return null;
+    public UUID getUserIdFromToken(String token) {
+        String email = jwtService.extractEmail(token);
+        
+        System.out.println("Email extraído del token: " + email); // Debug: Verificar email extraído
+
+        UserEntity userEntity = userManager.getUserByEmail(email);
+
+        System.out.println("Usuario encontrado: " + userEntity.getUsername() + " con ID: " + userEntity.getUserId()); // Debug: Verificar usuario encontrado
+        UUID userId = userEntity.getUserId();
+
+        return userId;
     }
 }

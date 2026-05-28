@@ -24,8 +24,8 @@ public class BuyerEntity {
     @Column
     private long points;
 
-    @Column(unique = true, nullable = false)
-    private String correo;
+    @Column(name = "correo", unique = true, nullable = false)
+    private String email;
 
     // Tabla para guardar los IDs de las películas que el comprador ha visto (comprado).
     // Se guarda solo el ID para evitar acoplar el módulo de autenticación con el de películas.

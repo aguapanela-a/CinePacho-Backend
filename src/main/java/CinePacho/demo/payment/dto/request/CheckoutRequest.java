@@ -6,7 +6,7 @@ import jakarta.validation.constraints.NotNull;
 import lombok.*;
 
 import java.util.List;
-
+import java.util.UUID;
 @Getter
 @Setter
 @NoArgsConstructor
@@ -16,7 +16,7 @@ public class CheckoutRequest {
 
     // ID de la función (MovieScreening) que se está comprando
     @NotNull(message = "El id de la función es obligatorio")
-    private java.util.UUID screeningId;
+    private UUID screeningId;
 
     // Lista de sillas seleccionadas (obligatoria)
     @NotEmpty(message = "Debe seleccionar al menos una silla")

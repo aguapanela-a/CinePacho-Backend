@@ -1,5 +1,6 @@
 package CinePacho.demo.payment.service;
 
+import CinePacho.demo.auth.entities.customers.BuyerEntity;
 import CinePacho.demo.exception.CinePachoException;
 import CinePacho.demo.payment.dto.request.CheckoutRequest;
 import CinePacho.demo.payment.dto.response.CheckoutSummaryResponse;
@@ -10,6 +11,7 @@ import CinePacho.demo.payment.enumeration.PaymentStatus;
 import CinePacho.demo.payment.repository.PaymentRepository;
 import CinePacho.demo.shared.auxiliaryClass.BuyerManager;
 import CinePacho.demo.shared.auxiliaryClass.MovieManager;
+import CinePacho.demo.shared.serviceSecurity.JwtService;
 
 import com.stripe.Stripe;
 import com.stripe.exception.StripeException;
@@ -32,6 +34,7 @@ public class StripeService {
     private final PaymentRepository paymentRepository;
     private final BuyerManager buyerManager;
     private final MovieManager movieManager;
+    private final JwtService jwtService;
 
     @Value("${stripe.api.key}")
     private String stripeApiKey;
@@ -47,11 +50,12 @@ public class StripeService {
     private static final String CURRENCY = "COP";
 
     @Autowired
-    public StripeService(CheckoutService checkoutService, PaymentRepository paymentRepository, BuyerManager buyerManager, MovieManager movieManager) {
+    public StripeService(CheckoutService checkoutService, PaymentRepository paymentRepository, BuyerManager buyerManager, MovieManager movieManager, JwtService jwtService) {
         this.checkoutService = checkoutService;
         this.paymentRepository = paymentRepository;
         this.buyerManager = buyerManager;
         this.movieManager = movieManager;
+        this.jwtService = jwtService;
     }
 
     /**
@@ -125,17 +129,22 @@ public class StripeService {
         // Aquí se guarda el payment en la base de datos 
         paymentRepository.save(payment);
 
+        System.out.println("ID Usuario: " + payment.getUserId());
 
         summary.setStatus("SUCCESS");
         summary.setMessage("Checkout creado correctamente");
         summary.setSessionId(session.getId());
         summary.setSessionUrl(session.getUrl());
 
+        BuyerEntity buyer = buyerManager.getBuyerByEmail(jwtService.extractEmail(token));
+
+        System.out.println("ID Buyer: " + buyer.getBuyerId());
+
         //TODO: Crear entidad para el histórico de películas vistas
         // Agregando la película a las vistas del buyer usando interfaces para no acoplar módulos
         if (summary.getStatus().equals("SUCCESS") && payment.getUserId() != null) {
             Long movieId = movieManager.getMovieIdByScreeningId(request.getScreeningId());
-            buyerManager.addWatchedMovie(payment.getUserId(), movieId);
+            buyerManager.addWatchedMovie(buyer.getBuyerId(), movieId);
         }
 
         return summary;

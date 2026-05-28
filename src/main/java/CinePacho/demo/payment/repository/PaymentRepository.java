@@ -10,4 +10,6 @@ import CinePacho.demo.payment.entities.PaymentEntity;
 @Repository
 public interface PaymentRepository extends JpaRepository<PaymentEntity, UUID> {
     
+    
+
 }
