@@ -12,11 +12,14 @@ import CinePacho.demo.movie.repository.MovieScreeningRepository;
 import CinePacho.demo.shared.auxiliaryClass.RoomManager;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
+import java.util.Comparator;
 import java.util.List;
+import java.util.Locale;
+import java.util.Map;
 import java.util.UUID;
 import java.util.stream.Collectors;
-
 
 @AllArgsConstructor
 @Service
@@ -25,72 +28,117 @@ public class MovieServices {
     private final MovieScreeningRepository movieScreeningRepository;
     private final MovieRepository movieRepository;
 
-    // provee la lista de movieScreenings por multiplexId
-    private List<MovieScreening> movieScreeningsByMultiplexId(UUID multiplexId){
-        //Lista de los ids de las salas del multiplex ingrsado
+    // Provee la lista de movieScreenings por multiplexId sin acoplar movie al repositorio de rooms.
+    private List<MovieScreening> movieScreeningsByMultiplexId(UUID multiplexId) {
         List<UUID> roomIdsByMultiplex = roomManager.getRoomIdsByMultiplexId(multiplexId);
 
-        //usar flatMap para "aplanar" la lista de listas de movieScreenings"
-       return roomIdsByMultiplex.stream().flatMap(
-                roomId->movieScreeningRepository.findMovieScreeningByRoom_Id(roomId).stream())
-               .distinct()
-               .collect(Collectors.toList());
+        if (roomIdsByMultiplex.isEmpty()) {
+            return List.of();
+        }
+
+        return movieScreeningRepository.findDistinctByRoom_IdInOrderByDateTimeAsc(roomIdsByMultiplex);
     }
 
-    //funcion que junta los Screening de una sola película por multiplex
-    private MovieSelectorDTO getScreeningByMultiplex (UUID multiplexId, Long movieId){
+    //metodo para obtener todas las MovieSelectorDTO en la cartelera de un multiplex
+    @Transactional(readOnly = true)
+    public List<MovieSelectorDTO> getMovieSelectorsByMultiplex(UUID multiplexId) {
+        Map<Long, List<MovieScreening>> screeningsByMovie = movieScreeningsByMultiplexId(multiplexId)
+                .stream()
+                .collect(Collectors.groupingBy(movieScreening -> movieScreening.getMovie().getId()));
 
-        MovieEntity movie = movieRepository.findById(movieId).orElseThrow(()-> new CinePachoException("La película no existe en la base de datos"));
+        return screeningsByMovie.values()
+                .stream()
+                .map(this::toMovieSelectorDTO)
+                .sorted(Comparator.comparing(
+                        movieSelectorDTO -> movieSelectorDTO.movieInfo().originalTitle(),
+                        Comparator.nullsLast(String.CASE_INSENSITIVE_ORDER)
+                ))
+                .toList();
+    }
 
-        //Filtrar lista de MovieScreening por película de ese multiplex
+    //metodo para buscar MovieSelectorDTO por multiplex y por titulo
+    @Transactional(readOnly = true)
+    public List<MovieSelectorDTO> searchMovieSelectorsByMultiplex(UUID multiplexId, String query) {
+        if (query == null || query.isBlank()) {
+            return getMovieSelectorsByMultiplex(multiplexId);
+        }
+
+        String normalizedQuery = query.trim().toLowerCase(Locale.ROOT);
+
+        return getMovieSelectorsByMultiplex(multiplexId)
+                .stream()
+                .filter(movieSelectorDTO -> titleContains(movieSelectorDTO, normalizedQuery))
+                .toList();
+    }
+
+    //metodo para obtener una unica "MovieSelectorDTO" de peli en la cartelera
+    @Transactional(readOnly = true)
+    public MovieSelectorDTO getMovieSelectorByMultiplexAndMovie(UUID multiplexId, Long movieId) {
+        MovieEntity movie = movieRepository.findById(movieId)
+                .orElseThrow(() -> new CinePachoException("La pelicula no existe en la base de datos"));
+
         List<MovieScreening> movieScreeningsByMovie = movieScreeningsByMultiplexId(multiplexId)
                 .stream()
                 .filter(movieScreening -> movieScreening.getMovie().getId().equals(movieId))
                 .toList();
 
-        if(movieScreeningsByMovie.isEmpty()){
-            throw new CinePachoException("No tenemos funciones disponibles en este multiplex para la pelicula seleccionada");
+        if (movieScreeningsByMovie.isEmpty()) {
+            throw new CinePachoException("No tenemos funciones disponibles en este multiplex para la película seleccionada");
         }
 
-        //Creo el objeto ScreeningInfoDTO qje recibirá MovieSelectorDTO
-        List<ScreeningInfoDTO> screeningInfoDTOList = movieScreeningsByMovie.stream().map(
-                screeningMovie -> ScreeningInfoDTO.builder()
-                        .screeningId(screeningMovie.getId())
-                        .roomId(screeningMovie.getRoom().getId())
-                        .roomNumber(screeningMovie.getRoom().getRoomNumber())
-                        .screeningDate(screeningMovie.getDateTime())
-                        .status(screeningMovie.getStatus())
-                        .build()
-                ).toList();
+        return toMovieSelectorDTO(movie, movieScreeningsByMovie);
+    }
 
+    // metodos auxiliares aplicando separacion de responsabilidades
+    private MovieSelectorDTO toMovieSelectorDTO(List<MovieScreening> movieScreenings) {
+        MovieEntity movie = movieScreenings.getFirst().getMovie();
+        return toMovieSelectorDTO(movie, movieScreenings);
+    }
 
-        //Casteo de genreEmbeddable a GenreDto
-        List<GenreDto> genres = movie.getGenres().stream().map(
-                genreEmbeddable -> new GenreDto(genreEmbeddable.getId(), genreEmbeddable.getName())
-        ).toList();
+    private MovieSelectorDTO toMovieSelectorDTO(MovieEntity movie, List<MovieScreening> movieScreenings) {
+        List<ScreeningInfoDTO> screeningInfoDTOList = movieScreenings.stream()
+                .map(this::toScreeningInfoDTO)
+                .toList();
 
-        //Creo el TmdbMovieDTO con la info de la peli
-        TmdbMovieDTO tmdbMovieDTO =
-        TmdbMovieDTO.builder()
-                .id(movieId)
+        return MovieSelectorDTO.builder()
+                .movieInfo(toTmdbMovieDTO(movie))
+                .rating(movie.getRating())
+                .screenings(screeningInfoDTOList)
+                .build();
+    }
+
+    private ScreeningInfoDTO toScreeningInfoDTO(MovieScreening screeningMovie) {
+        return ScreeningInfoDTO.builder()
+                .screeningId(screeningMovie.getId())
+                .roomId(screeningMovie.getRoom().getId())
+                .roomNumber(screeningMovie.getRoom().getRoomNumber())
+                .screeningDate(screeningMovie.getDateTime())
+                .status(screeningMovie.getStatus())
+                .build();
+    }
+
+    private TmdbMovieDTO toTmdbMovieDTO(MovieEntity movie) {
+        return TmdbMovieDTO.builder()
+                .id(movie.getId())
                 .backdropPath(movie.getBackdropPath())
-                .genreIds(genres)
+                .genreIds(toGenreDtoList(movie))
                 .originalLanguage(movie.getOriginalLanguage())
                 .originalTitle(movie.getOriginalTitle())
                 .overview(movie.getOverview())
                 .posterPath(movie.getPosterPath())
                 .releaseDate(movie.getReleaseDate())
                 .director(movie.getDirector())
-            .build();
-
-        return MovieSelectorDTO.builder()
-                .movieInfo(tmdbMovieDTO)
-                .rating(movie.getRating())
-                .screenings(screeningInfoDTOList)
-            .build();
+                .build();
     }
 
-    //TODO: preguntarle a Claudia ahora que tengo todos los Screeningn de uan sola película ajuntados en un MovieSelectorDTO
-    //TODO: como hago para que se carguen automáticamente todos los MovieSelectorDTO de cada peli de ese Múltiplex (opara la pantallade inicio)
+    private List<GenreDto> toGenreDtoList(MovieEntity movie) {
+        return movie.getGenres().stream()
+                .map(genreEmbeddable -> new GenreDto(genreEmbeddable.getId(), genreEmbeddable.getName()))
+                .toList();
+    }
 
+    private boolean titleContains(MovieSelectorDTO movieSelectorDTO, String normalizedQuery) {
+        String title = movieSelectorDTO.movieInfo().originalTitle();
+        return title != null && title.toLowerCase(Locale.ROOT).contains(normalizedQuery);
+    }
 }
