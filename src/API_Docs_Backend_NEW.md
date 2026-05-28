@@ -1,46 +1,70 @@
-# 🎬 API Documentation - Cine Backend
+# API Documentation - CinePacho Backend
+
+Documento actualizado contra los controladores reales del proyecto.
+
+## Modelo de acceso
+
+Roles existentes:
+
+- `BUYER`: comprador del portal web.
+- `EMPLOYEE`: empleado de taquilla.
+- `MANAGER`: gerente de multiplex. Solo puede usar endpoints administrativos y el servicio valida que el multiplex sea el asignado.
+- `ADMIN`: administrador global. Puede usar endpoints administrativos de cualquier multiplex.
+
+Reglas generales:
+
+- Autenticacion publica: `/api/auth/register`, `/api/auth/login`, `/api/auth/verify`.
+- Portal web y taquilla: `BUYER` y `EMPLOYEE` pueden consultar cartelera, consultar/bloquear sillas, consultar snacks disponibles y ejecutar checkout.
+- Administracion de multiplex: `MANAGER` y `ADMIN`; el alcance del `MANAGER` se valida con `AccessValidator`.
+- Administracion global: endpoints sin alcance por multiplex, como CRUD de snacks, quedan para `ADMIN`.
+- Reviews por pelicula son publicas en lectura.
+- Rutas nuevas no clasificadas quedan bloqueadas por `SecurityFilterChain`.
 
 ---
 
-# 🔐 Autenticación
+# 1. Autenticacion
 
-## 🔹 POST /api/auth/register
+## POST /api/auth/register
 
-**Descripción:** Registrar un nuevo comprador (BUYER)
+Descripcion: registra un comprador `BUYER`.
 
-**Request**
+Acceso: publico.
+
+Request:
 
 ```json
 {
   "email": "comprador@example.com",
-  "name": "Juan Pérez",
+  "name": "Juan Perez",
   "password": "SecurePass123!",
   "userType": "BUYER"
 }
 ```
 
-**Response (HTTP 201)**
+Response 201:
 
 ```json
 {
   "userType": "BUYER",
-  "username": "Juan Pérez",
+  "username": "comprador@example.com",
   "message": "User registered successfully. Please check your email to verify your account."
 }
 ```
 
-**Errores:**
-- Email ya en uso
-- Email inválido
-- Contraseña menor a 8 caracteres
+Errores esperados:
 
----
+- Email ya registrado.
+- Email invalido.
+- Password menor a 8 caracteres.
+- Tipo de usuario no permitido para auto-registro.
 
-## 🔹 POST /api/auth/login
+## POST /api/auth/login
 
-**Descripción:** Iniciar sesión y obtener token JWT
+Descripcion: autentica un usuario y retorna JWT.
 
-**Request**
+Acceso: publico.
+
+Request:
 
 ```json
 {
@@ -49,260 +73,118 @@
 }
 ```
 
-**Response (HTTP 200)**
+Response 200:
 
 ```json
 {
-  "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
+  "token": "eyJhbGciOiJIUzI1NiJ9...",
   "userType": "BUYER",
-  "name": "Juan Pérez"
+  "name": "usuario@example.com"
 }
 ```
 
-**Errores:**
-- Usuario no encontrado
-- Contraseña incorrecta
-- Email no verificado
+## GET /api/auth/verify?token={token}
+
+Descripcion: verifica email con el token enviado por correo.
+
+Acceso: publico.
+
+Response 200:
+
+```text
+Cuenta confirmada exitosamente. Ya puedes iniciar sesion.
+```
 
 ---
 
-## 🔹 GET /api/auth/verify?token={token}
+# 2. Cartelera y funciones para portal web/taquilla
 
-**Descripción:** Verificar email con token de verificación
+## GET /api/movie/multiplex/{multiplexId}/selectors
 
-**Response (HTTP 200)**
+Descripcion: devuelve la cartelera de un multiplex. Cada elemento es un `MovieSelectorDTO`, es decir, una pelicula con todos sus screenings agrupados para ese multiplex.
 
-```
-"Cuenta confirmada exitosamente. Ya puedes iniciar sesión."
-```
+Acceso: `BUYER`, `EMPLOYEE`.
 
-**Errores:**
-- Token inválido
-- Token expirado
-- Token ya usado
+Uso esperado en frontend:
 
----
+- Cargar la lista desplegable de peliculas disponibles para un multiplex.
+- Alimentar la barra de busqueda del portal web o la taquilla.
+- Mostrar informacion basica de la pelicula y sus funciones disponibles.
 
-# 🏢 1. Multiplex
+Parametros:
 
-**Acceso:** 
-- GET: ADMIN, MANAGER
-- POST/PUT/DELETE: ADMIN solamente
-- El MANAGER solo puede ver/editar su multiplex asignado
+- `multiplexId` (UUID): multiplex que se quiere consultar.
+- `query` (string, opcional): filtra por titulo de pelicula. Ejemplo: `/api/movie/multiplex/{multiplexId}/selectors?query=matrix`.
 
-## 🔹 GET /api/admin/multiplexes
-
-**Descripción:** Obtener todos los multiplex (ADMIN ve todos, MANAGER ve solo el suyo)
-
-**Autorización:** Bearer token requerido
-
-**Response (HTTP 200)**
+Response 200:
 
 ```json
 [
   {
-    "idMultiplex": "550e8400-e29b-41d4-a716-446655440000",
-    "nameMultiplex": "Cine Pacho - Centro",
-    "cityMultiplex": "Medellín"
-  },
-  {
-    "idMultiplex": "550e8400-e29b-41d4-a716-446655440001",
-    "nameMultiplex": "Cine Pacho - Sur",
-    "cityMultiplex": "Bogotá"
+    "movieInfo": {
+      "id": 603,
+      "backdropPath": "/backdrop.jpg",
+      "genreIds": [
+        { "id": 28, "name": "Action" },
+        { "id": 878, "name": "Science Fiction" }
+      ],
+      "originalLanguage": "en",
+      "originalTitle": "The Matrix",
+      "overview": "A computer programmer discovers...",
+      "posterPath": "/poster.jpg",
+      "releaseDate": "1999-03-31",
+      "director": "The Wachowskis"
+    },
+    "rating": 4.5,
+    "screenings": [
+      {
+        "screeningId": "850e8400-e29b-41d4-a716-446655440000",
+        "roomId": "650e8400-e29b-41d4-a716-446655440000",
+        "roomNumber": "room: 1",
+        "screeningDate": "2026-06-15T14:30:00",
+        "status": "ACTIVE"
+      }
+    ]
   }
 ]
 ```
 
----
+Notas:
 
-## 🔹 GET /api/admin/multiplexes/{id}
+- Si el multiplex no tiene salas o funciones, retorna lista vacia.
+- El backend no consulta directamente repositorios de `rooms` desde movie; usa `RoomManager` de `shared.auxiliaryClass`.
 
-**Descripción:** Obtener detalle de un multiplex con todas sus salas
+## GET /api/movie/multiplex/{multiplexId}/selectors/{movieId}
 
-**Parámetros:**
-- `id` (UUID): ID del multiplex
+Descripcion: devuelve un solo `MovieSelectorDTO` para una pelicula especifica dentro de un multiplex.
 
-**Autorización:** Bearer token requerido (ADMIN o MANAGER del multiplex)
+Acceso: `BUYER`, `EMPLOYEE`.
 
-**Response (HTTP 200)**
+Parametros:
 
-```json
-{
-  "idMultiplex": "550e8400-e29b-41d4-a716-446655440000",
-  "nameMultiplex": "Cine Pacho - Centro",
-  "addressMultiplex": "Carrera 10 #15-30",
-  "cityMultiplex": "Medellín",
-  "rooms": [
-    {
-      "idRoom": "650e8400-e29b-41d4-a716-446655440000",
-      "isRoomActive": true
-    },
-    {
-      "idRoom": "650e8400-e29b-41d4-a716-446655440001",
-      "isRoomActive": true
-    }
-  ]
-}
-```
+- `multiplexId` (UUID): multiplex consultado.
+- `movieId` (Long): id de la pelicula.
+
+Errores esperados:
+
+- Pelicula no existe en base de datos.
+- No hay funciones de esa pelicula en ese multiplex.
 
 ---
 
-## 🔹 POST /api/admin/multiplexes
+# 3. Sillas
 
-**Descripción:** Crear un nuevo multiplex
+## GET /api/seats/{roomId}
 
-**Autorización:** ADMIN solamente
+Descripcion: lista las sillas de una sala con su estado actual.
 
-**Request**
+Acceso: `BUYER`, `EMPLOYEE`.
 
-```json
-{
-  "nameMultiplex": "Cine Pacho - Centro",
-  "addressMultiplex": "Carrera 10 #15-30",
-  "cityMultiplex": "Medellín",
-  "numberOfRooms": 8
-}
-```
+Parametros:
 
-**Response (HTTP 201)**
+- `roomId` (UUID): sala consultada.
 
-```json
-{
-  "idMultiplex": "550e8400-e29b-41d4-a716-446655440000",
-  "nameMultiplex": "Cine Pacho - Centro",
-  "addressMultiplex": "Carrera 10 #15-30",
-  "cityMultiplex": "Medellín",
-  "rooms": [
-    {
-      "idRoom": "650e8400-e29b-41d4-a716-446655440000",
-      "isRoomActive": true
-    }
-  ]
-}
-```
-
-**Validaciones:**
-- `numberOfRooms`: Entre 5 y 15
-- No puede haber otro multiplex con el mismo nombre en la misma ciudad
-
----
-
-## 🔹 PUT /api/admin/multiplexes/{id}
-
-**Descripción:** Actualizar datos de un multiplex
-
-**Autorización:** ADMIN solamente
-
-**Parámetros:**
-- `id` (UUID): ID del multiplex
-
-**Request**
-
-```json
-{
-  "nameMultiplex": "Cine Pacho - Centro Actualizado",
-  "addressMultiplex": "Carrera 10 #15-30",
-  "cityMultiplex": "Medellín",
-  "numberOfRooms": 8
-}
-```
-
-**Response (HTTP 200)**
-
-```json
-{
-  "idMultiplex": "550e8400-e29b-41d4-a716-446655440000",
-  "nameMultiplex": "Cine Pacho - Centro Actualizado",
-  "addressMultiplex": "Carrera 10 #15-30",
-  "cityMultiplex": "Medellín",
-  "rooms": []
-}
-```
-
----
-
-## 🔹 DELETE /api/admin/multiplexes/{id}
-
-**Descripción:** Eliminar un multiplex
-
-**Autorización:** ADMIN solamente
-
-**Parámetros:**
-- `id` (UUID): ID del multiplex
-
-**Response (HTTP 204)**
-
-Sin contenido
-
----
-
-# 🎥 2. Salas (Rooms)
-
-**Acceso:** 
-- POST/DELETE: ADMIN y MANAGER (solo su multiplex)
-
-## 🔹 POST /api/admin/{multiplexId}/rooms
-
-**Descripción:** Crear una nueva sala en un multiplex
-
-**Autorización:** ADMIN y MANAGER (del multiplex)
-
-**Parámetros:**
-- `multiplexId` (UUID): ID del multiplex donde crear la sala
-
-**Request:** No requiere body
-
-**Response (HTTP 200)**
-
-```json
-{
-  "message": "Sala de cine creada con éxito",
-  "roomId": "650e8400-e29b-41d4-a716-446655440000"
-}
-```
-
-**Notas:**
-- Cada sala se crea con capacidad de 40 sillas generales y 20 preferenciales (total 60)
-- Las sillas se crean automáticamente al crear la sala
-
----
-
-## 🔹 DELETE /api/admin/rooms/{id}
-
-**Descripción:** Eliminar (desactivar lógicamente) una sala
-
-**Autorización:** ADMIN y MANAGER (del multiplex)
-
-**Parámetros:**
-- `id` (UUID): ID de la sala
-
-**Response (HTTP 200)**
-
-```json
-{
-  "message": "Sala de cine eliminada con éxito",
-  "roomId": "650e8400-e29b-41d4-a716-446655440000"
-}
-```
-
----
-
-# 💺 3. Sillas (Seats)
-
-**Acceso:** 
-- PUT: BUYER y EMPLOYEE (cambiar estado de silla)
-- GET: BUYER y EMPLOYEE (ver disponibilidad)
-
-## 🔹 GET /api/seats/{roomId}
-
-**Descripción:** Obtener todas las sillas de una sala con su estado
-
-**Autorización:** BUYER y EMPLOYEE
-
-**Parámetros:**
-- `roomId` (UUID): ID de la sala
-
-**Response (HTTP 200)**
+Response 200:
 
 ```json
 [
@@ -312,41 +194,28 @@ Sin contenido
     "seatNumber": 1,
     "type": "GENERAL",
     "status": "AVAILABLE"
-  },
-  {
-    "idSeat": "750e8400-e29b-41d4-a716-446655440001",
-    "roomId": "650e8400-e29b-41d4-a716-446655440000",
-    "seatNumber": 2,
-    "type": "GENERAL",
-    "status": "BLOCKED"
-  },
-  {
-    "idSeat": "750e8400-e29b-41d4-a716-446655440050",
-    "roomId": "650e8400-e29b-41d4-a716-446655440000",
-    "seatNumber": 41,
-    "type": "PREFERENTIAL",
-    "status": "AVAILABLE"
   }
 ]
 ```
 
----
+## PUT /api/seats/{seatId}/changeStatus
 
-## 🔹 PUT /api/seats/{seatId}/changeStatus
+Descripcion: alterna el estado de una silla.
 
-**Descripción:** Cambiar el estado de una silla (bloquear si disponible, desbloquear si bloqueada por el usuario)
+Acceso: `BUYER`, `EMPLOYEE`.
 
-**Autorización:** BUYER y EMPLOYEE (Bearer token requerido)
+Headers:
 
-**Parámetros:**
-- `seatId` (UUID): ID de la silla
+- `Authorization: Bearer {token}`
 
-**Headers:**
-- `Authorization: Bearer {token}` (requerido)
+Logica:
 
-**Request:** No requiere body
+- Si esta `AVAILABLE`, pasa a `BLOCKED` por el usuario actual durante 10 minutos.
+- Si esta `BLOCKED` por el mismo usuario, vuelve a `AVAILABLE`.
+- Si esta `BLOCKED` por otro usuario, retorna error de negocio.
+- Si esta `SOLD`, retorna error de negocio.
 
-**Response (HTTP 200)**
+Response 200:
 
 ```json
 {
@@ -358,98 +227,273 @@ Sin contenido
 }
 ```
 
-**Lógica:**
-1. Si está `AVAILABLE` → cambia a `BLOCKED` y se bloquea por 10 minutos automáticamente
-2. Si está `BLOCKED` por el usuario actual → cambia a `AVAILABLE`
-3. Si está `BLOCKED` por otro usuario → retorna error CONFLICT
-4. Si está `SOLD` → retorna error (no se puede modificar)
-
-**Errores:**
-- Silla no encontrada (404)
-- Silla reservada por otro usuario (409)
-- Silla ya vendida (409)
-
 ---
 
-# 🎬 4. Películas
+# 4. Snacks
 
-**Acceso:** 
-- GET búsqueda: ADMIN y MANAGER
-- POST crear/select/cambiar estado: ADMIN y MANAGER (del multiplex)
+## GET /api/snacks
 
-## 🔹 GET /api/admin/movie/search?query={text}&page={numero}
+Descripcion: lista snacks disponibles para compra o venta. Solo retorna snacks con cantidad mayor a cero.
 
-**Descripción:** Buscar películas en TMDB (The Movie Database)
+Acceso: `BUYER`, `EMPLOYEE`.
 
-**Autorización:** ADMIN y MANAGER
-
-**Parámetros Query:**
-- `query` (string): Término de búsqueda (ej: "The Matrix")
-- `page` (integer, opcional): Número de página. Default: 1
-
-**Response (HTTP 200)**
+Response 200:
 
 ```json
 [
   {
-    "id": 603,
-    "backdropPath": "/path/to/backdrop.jpg",
-    "genreIds": [28, 12, 878],
-    "originalLanguage": "en",
-    "originalTitle": "The Matrix",
-    "overview": "A computer programmer discovers...",
-    "posterPath": "/path/to/poster.jpg",
-    "releaseDate": "1999-03-31"
-  },
-  {
-    "id": 234215,
-    "backdropPath": "/path/to/backdrop2.jpg",
-    "genreIds": [28, 12],
-    "originalLanguage": "en",
-    "originalTitle": "The Matrix Reloaded",
-    "overview": "Neo and his allies race against...",
-    "posterPath": "/path/to/poster2.jpg",
-    "releaseDate": "2003-05-15"
+    "idSnack": "950e8400-e29b-41d4-a716-446655440000",
+    "nameSnack": "Palomitas Medianas",
+    "descriptionSnack": "Palomitas de maiz",
+    "priceSnack": 8500,
+    "quantitySnack": 150
   }
 ]
 ```
 
----
+## GET /api/admin/snacks
 
-## 🔹 POST /api/admin/movie/select/{movieId}
+Descripcion: lista todos los snacks, incluyendo agotados.
 
-**Descripción:** Seleccionar una película (guardarla en BD si no existe)
+Acceso: `ADMIN`.
 
-**Autorización:** ADMIN y MANAGER
+## GET /api/admin/snacks/{id}
 
-**Parámetros:**
-- `movieId` (Long): ID de la película en TMDB
+Descripcion: obtiene un snack por id.
 
-**Request:** No requiere body
+Acceso: `ADMIN`.
 
-**Response (HTTP 200)**
+## POST /api/admin/snacks
+
+Descripcion: crea un snack.
+
+Acceso: `ADMIN`.
+
+Request:
 
 ```json
 {
-  "originarTitle": "The Matrix",
-  "director": "The Wachowskis",
-  "message": "Película añadida con éxito"
+  "nameSnack": "Palomitas Grandes",
+  "descriptionSnack": "Palomitas con mantequilla",
+  "priceSnack": 12000,
+  "quantitySnack": 100
 }
 ```
 
-**Notas:**
-- Si la película ya existe en BD, solo la retorna
-- Si no existe, la obtiene de TMDB y la guarda
+Response 201: sin body.
+
+## PUT /api/admin/snacks/{id}
+
+Descripcion: actualiza un snack.
+
+Acceso: `ADMIN`.
+
+## DELETE /api/admin/snacks/{id}
+
+Descripcion: elimina un snack.
+
+Acceso: `ADMIN`.
+
+Response 204: sin body.
+
+Nota: snacks no tienen relacion con multiplex en el modelo actual. Por eso su CRUD no se asigna a `MANAGER`.
 
 ---
 
-## 🔹 POST /api/admin/movie/createScreening
+# 5. Checkout / compra / venta
 
-**Descripción:** Crear una función (proyección) de una película
+## POST /api/checkout/stripe
 
-**Autorización:** ADMIN y MANAGER (del multiplex de la sala)
+Descripcion: confirma disponibilidad, calcula totales, crea sesion de pago Stripe y registra un pago `PENDING`.
 
-**Request**
+Acceso: `BUYER`, `EMPLOYEE`.
+
+Headers:
+
+- `Authorization: Bearer {token}`
+
+Request:
+
+```json
+{
+  "screeningId": "850e8400-e29b-41d4-a716-446655440000",
+  "seats": [
+    { "seatId": "750e8400-e29b-41d4-a716-446655440000" }
+  ],
+  "snacks": [
+    { "snackId": "950e8400-e29b-41d4-a716-446655440000", "quantity": 2 }
+  ]
+}
+```
+
+Response 200:
+
+```json
+{
+  "multiplexId": "550e8400-e29b-41d4-a716-446655440000",
+  "totalSeats": 11000,
+  "totalSnacks": 17000,
+  "totalPurchase": 28000,
+  "status": "SUCCESS",
+  "message": "Checkout creado correctamente",
+  "sessionId": "cs_test_...",
+  "sessionUrl": "https://checkout.stripe.com/...",
+  "seats": [
+    {
+      "seatId": "750e8400-e29b-41d4-a716-446655440000",
+      "seatType": "GENERAL",
+      "seatStatus": "BLOCKED",
+      "seatPrice": 11000
+    }
+  ],
+  "snacks": [
+    {
+      "snackId": "950e8400-e29b-41d4-a716-446655440000",
+      "nameSnack": "Palomitas Medianas",
+      "quantity": 2,
+      "unitPrice": 8500,
+      "subtotal": 17000
+    }
+  ]
+}
+```
+
+Notas:
+
+- `/api/checkout/preview` y `/api/checkout/confirm` no existen como endpoints activos; estan comentados en el controlador.
+- Si el checkout lo hace un `BUYER`, se registra la pelicula como vista en su historial.
+- Si el checkout lo hace un `EMPLOYEE`, se procesa como venta de taquilla y no se intenta registrar historial de comprador.
+
+---
+
+# 6. Administracion de multiplex
+
+## GET /api/admin/multiplexes
+
+Descripcion: lista multiplex.
+
+Acceso: `ADMIN`, `MANAGER`.
+
+Comportamiento:
+
+- `ADMIN` ve todos los multiplex.
+- `MANAGER` recibe solo su multiplex asignado.
+
+## GET /api/admin/multiplexes/{id}
+
+Descripcion: obtiene detalle de un multiplex y sus salas.
+
+Acceso: `ADMIN`, `MANAGER`.
+
+Validacion:
+
+- `MANAGER` solo puede consultar su multiplex asignado.
+
+## POST /api/admin/multiplexes
+
+Descripcion: crea multiplex y sus salas iniciales.
+
+Acceso: `ADMIN`.
+
+Request:
+
+```json
+{
+  "nameMultiplex": "Cine Pacho Centro",
+  "addressMultiplex": "Carrera 10 #15-30",
+  "cityMultiplex": "Bogota",
+  "numberOfRooms": 8,
+  "generalSeatPrice": 11000,
+  "preferentialSeatPrice": 15000
+}
+```
+
+Validaciones:
+
+- `numberOfRooms` minimo 5 y maximo 15.
+- No puede existir otro multiplex con el mismo nombre y ciudad.
+
+## PUT /api/admin/multiplexes/{id}
+
+Descripcion: actualiza datos y precios de un multiplex.
+
+Acceso: `ADMIN`, `MANAGER`.
+
+Validacion:
+
+- `MANAGER` solo puede actualizar su multiplex asignado.
+
+## DELETE /api/admin/multiplexes/{id}
+
+Descripcion: elimina fisicamente un multiplex.
+
+Acceso: `ADMIN`.
+
+---
+
+# 7. Administracion de salas
+
+## POST /api/admin/{multiplexId}/rooms
+
+Descripcion: crea una sala en el multiplex indicado y genera sus sillas.
+
+Acceso: `ADMIN`, `MANAGER`.
+
+Validacion:
+
+- `MANAGER` solo puede crear salas en su multiplex asignado.
+
+Response 200:
+
+```json
+{
+  "message": "Sala de cine creada con exito",
+  "roomId": "650e8400-e29b-41d4-a716-446655440000"
+}
+```
+
+## DELETE /api/admin/rooms/{id}
+
+Descripcion: desactiva logicamente una sala.
+
+Acceso: `ADMIN`, `MANAGER`.
+
+Validacion:
+
+- `MANAGER` solo puede eliminar salas de su multiplex asignado.
+
+---
+
+# 8. Administracion de peliculas y funciones
+
+## GET /api/admin/movie/search?query={text}&page={numero}
+
+Descripcion: busca peliculas en TMDB para seleccionarlas desde administracion.
+
+Acceso: `ADMIN`, `MANAGER`.
+
+Query params:
+
+- `query` (string): texto de busqueda.
+- `page` (int, opcional): pagina. Default: 1.
+
+## POST /api/admin/movie/select/{movieId}
+
+Descripcion: guarda una pelicula desde TMDB si no existe en base de datos.
+
+Acceso: `ADMIN`, `MANAGER`.
+
+## POST /api/admin/movie/createScreening
+
+Descripcion: crea una funcion de una pelicula en una sala.
+
+Acceso: `ADMIN`, `MANAGER`.
+
+Validacion:
+
+- `MANAGER` solo puede crear funciones en salas de su multiplex asignado.
+
+Request:
 
 ```json
 {
@@ -459,270 +503,60 @@ Sin contenido
 }
 ```
 
-**Response (HTTP 200)**
+Response 200:
 
 ```json
 {
   "screeningId": "850e8400-e29b-41d4-a716-446655440000",
-  "dateTime": "2026-06-15 14:30:00",
+  "dateTime": "2026-06-15T14:30:00",
   "originalLanguage": "en",
   "originalTitle": "The Matrix",
   "overview": "A computer programmer discovers...",
-  "rating": 8.7,
+  "rating": 0.0,
   "director": "The Wachowskis",
   "status": "ACTIVE",
-  "genres": ["Action", "Sci-Fi", "Adventure"]
+  "genres": ["Action", "Science Fiction"]
 }
 ```
 
-**Validaciones:**
-- La película debe existir
-- La sala debe existir
-- La fecha y hora no pueden estar en el pasado
+## PUT /api/admin/movie/changeStatus/{idScreening}?status={status}
+
+Descripcion: cambia estado de una funcion.
+
+Acceso: `ADMIN`, `MANAGER`.
+
+Validacion:
+
+- `MANAGER` solo puede cambiar funciones de su multiplex asignado.
+
+Valores validos:
+
+- `ACTIVE`
+- `CANCELLED`
+- `COMPLETED`
 
 ---
 
-## 🔹 PUT /api/admin/movie/changeStatus/{idScreening}
+# 9. Empleados y gerentes
 
-**Descripción:** Cambiar el estado de una función
+## POST /api/admin/register_employee
 
-**Autorización:** ADMIN y MANAGER (del multiplex)
+Descripcion: registra personal del cine (`EMPLOYEE` o `MANAGER`).
 
-**Parámetros:**
-- `idScreening` (UUID): ID de la función
+Acceso: `ADMIN`, `MANAGER`.
 
-**Query Parameters:**
-- `status` (string): Nuevo estado (ACTIVE, CANCELLED, COMPLETED)
+Validacion:
 
-**Request:** No requiere body
+- `MANAGER` solo puede registrar personal en su multiplex asignado.
+- El request solo acepta `EMPLOYEE` o `MANAGER`.
+- El campo de cedula se llama `indentityCard` en el DTO actual.
 
-**Example:**
-```
-PUT /api/admin/movie/changeStatus/850e8400-e29b-41d4-a716-446655440000?status=CANCELLED
-```
-
-**Response (HTTP 200)**
-
-```json
-{
-  "screeningStatus": "CANCELLED",
-  "screeningId": "850e8400-e29b-41d4-a716-446655440000"
-}
-```
-
-**Estados válidos:**
-- `ACTIVE`: Función activa y disponible
-- `CANCELLED`: Función cancelada
-- `COMPLETED`: Función completada
-
----
-
-# 🍿 5. Snacks
-
-**Acceso:** 
-- GET: ADMIN solamente
-- POST/PUT/DELETE: ADMIN solamente
-
-## 🔹 GET /api/admin/snacks
-
-**Descripción:** Obtener todos los snacks disponibles
-
-**Autorización:** ADMIN
-
-**Response (HTTP 200)**
-
-```json
-[
-  {
-    "idSnack": "950e8400-e29b-41d4-a716-446655440000",
-    "nameSnack": "Palomitas Medianas",
-    "descriptionSnack": "Palomitas de maíz recién hechas",
-    "priceSnack": 8500,
-    "quantitySnack": 150
-  },
-  {
-    "idSnack": "950e8400-e29b-41d4-a716-446655440001",
-    "nameSnack": "Bebida Cola 500ml",
-    "descriptionSnack": "Bebida gaseosa fría",
-    "priceSnack": 5000,
-    "quantitySnack": 200
-  }
-]
-```
-
----
-
-## 🔹 GET /api/admin/snacks/{id}
-
-**Descripción:** Obtener un snack específico
-
-**Autorización:** ADMIN
-
-**Parámetros:**
-- `id` (UUID): ID del snack
-
-**Response (HTTP 200)**
-
-```json
-{
-  "idSnack": "950e8400-e29b-41d4-a716-446655440000",
-  "nameSnack": "Palomitas Medianas",
-  "descriptionSnack": "Palomitas de maíz recién hechas",
-  "priceSnack": 8500,
-  "quantitySnack": 150
-}
-```
-
----
-
-## 🔹 POST /api/admin/snacks
-
-**Descripción:** Crear un nuevo snack
-
-**Autorización:** ADMIN
-
-**Request**
-
-```json
-{
-  "nameSnack": "Palomitas Grandes",
-  "descriptionSnack": "Palomitas de maíz con mantequilla",
-  "priceSnack": 12000,
-  "quantitySnack": 100
-}
-```
-
-**Response (HTTP 201)**
-
-```json
-{
-  "idSnack": "950e8400-e29b-41d4-a716-446655440002",
-  "nameSnack": "Palomitas Grandes",
-  "descriptionSnack": "Palomitas de maíz con mantequilla",
-  "priceSnack": 12000,
-  "quantitySnack": 100
-}
-```
-
-**Validaciones:**
-- Precio debe ser mayor a 0
-- Cantidad no puede ser negativa
-
----
-
-## 🔹 PUT /api/admin/snacks/{id}
-
-**Descripción:** Actualizar un snack
-
-**Autorización:** ADMIN
-
-**Parámetros:**
-- `id` (UUID): ID del snack
-
-**Request**
-
-```json
-{
-  "nameSnack": "Palomitas Grandes",
-  "descriptionSnack": "Palomitas de maíz con mantequilla",
-  "priceSnack": 13000,
-  "quantitySnack": 80
-}
-```
-
-**Response (HTTP 200)**
-
-```json
-{
-  "idSnack": "950e8400-e29b-41d4-a716-446655440002",
-  "nameSnack": "Palomitas Grandes",
-  "descriptionSnack": "Palomitas de maíz con mantequilla",
-  "priceSnack": 13000,
-  "quantitySnack": 80
-}
-```
-
----
-
-## 🔹 DELETE /api/admin/snacks/{id}
-
-**Descripción:** Eliminar un snack
-
-**Autorización:** ADMIN
-
-**Parámetros:**
-- `id` (UUID): ID del snack
-
-**Response (HTTP 204)**
-
-Sin contenido
----
-
-# 🧾6. Checkout / Compra
-
-**Acceso:** BUYER / EMPLOYEE
-
-## 🔹 POST /api/checkout/preview
-
-**Descripción:** Recibe desde el front la lista de sillas y snacks para calcular totales (vista previa).
-
-**Autorización:** Bearer token (BUYER, EMPLOYEE)
-
-**Request**
-
-```json
-{
-  "seats": [
-    { "seatId": "750e8400-e29b-41d4-a716-446655440000" },
-    { "seatId": "750e8400-e29b-41d4-a716-446655440001" }
-  ],
-  "snacks": [
-    { "snackId": "950e8400-e29b-41d4-a716-446655440000", "quantity": 2 },
-    { "snackId": "950e8400-e29b-41d4-a716-446655440001", "quantity": 1 }
-  ]
-}
-```
-
-**Notas de los campos:**
-- `seats`: Lista obligatoria de objetos `SeatSelectionRequest` con `seatId` (UUID).
-- `snacks`: Lista opcional de objetos `SnackSelectionRequest` con `snackId` (UUID) y `quantity` (int).
-
-**Response (HTTP 200)**
-
-Retorna un `CheckoutSummaryResponse` con totales y desglose para mostrar en la UI.
-
-## 🔹 POST /api/checkout/confirm
-
-**Descripción:** Revalida disponibilidad y confirma la compra (reserva/pago). Recibe el mismo body que `/preview`.
-
-**Autorización:** Bearer token (BUYER)
-
-**Request:** Igual que en `/api/checkout/preview`.
-
-**Response (HTTP 200)**
-
-Retorna `CheckoutSummaryResponse` final y datos de la transacción (ticket/snippets).
-
----
----
-
-# 👥 6. Empleados y Gerentes
-
-**Acceso:** 
-- POST registrar: ADMIN y MANAGER (solo en su multiplex)
-
-## 🔹 POST /api/admin/register_employee
-
-**Descripción:** Registrar un empleado o gerente (personal del cine)
-
-**Autorización:** ADMIN y MANAGER (solo puede registrar en su multiplex)
-
-**Request**
+Request:
 
 ```json
 {
   "email": "empleado@cinepacho.com",
-  "name": "Carlos López",
+  "name": "Carlos Lopez",
   "password": "EmpPass123!",
   "userType": "EMPLOYEE",
   "indentityCard": "1023456789",
@@ -733,187 +567,94 @@ Retorna `CheckoutSummaryResponse` final y datos de la transacción (ticket/snipp
 }
 ```
 
-**Response (HTTP 200)**
+Response 200:
 
 ```json
 {
   "userType": "EMPLOYEE",
-  "username": "Carlos López",
+  "username": "empleado@cinepacho.com",
   "message": "Se ha creado correctamente el empleado"
 }
 ```
 
-**Valores válidos para `userType`:**
-- `EMPLOYEE`: Empleado de taquilla (acceso a cambio de sillas y visualización)
-- `MANAGER`: Gerente de multiplex (gestiona su multiplex asignado)
+---
 
-**Validaciones:**
-- Email debe ser único
-- Contraseña mínimo 8 caracteres
-- Cédula entre 8 y 10 dígitos
-- Teléfono exactamente 10 dígitos
-- Salario debe ser positivo
-- El MANAGER solo puede registrar personal en su multiplex
+# 10. Reviews
+
+## GET /api/review/movie/{movieId}
+
+Descripcion: lista reviews publicas de una pelicula.
+
+Acceso: publico.
+
+## GET /api/{buyerId}/review
+
+Descripcion: lista reviews hechas por un comprador.
+
+Acceso: `BUYER`, `ADMIN`.
+
+Validacion:
+
+- Si el usuario es `BUYER`, solo puede consultar sus propias reviews.
+- `ADMIN` puede consultar cualquier comprador.
+
+## POST /api/{buyerId}/review/movie
+
+Descripcion: crea review de pelicula.
+
+Acceso: `BUYER`.
+
+Validacion:
+
+- El comprador autenticado debe coincidir con `buyerId`.
+- La pelicula debe existir.
+- No puede existir review previa del mismo comprador para la misma pelicula.
+
+## POST /api/{buyerId}/review/service
+
+Descripcion: crea review de servicio.
+
+Acceso: `BUYER`.
+
+Validacion:
+
+- El comprador autenticado debe coincidir con `buyerId`.
 
 ---
 
-# 🔑 Niveles de Acceso
+# 11. Resumen exacto de permisos del SecurityFilterChain
 
-## ADMIN
-- Crear/actualizar/eliminar multiplex
-- Crear/eliminar salas en cualquier multiplex
-- Crear/cambiar estado de películas en cualquier multiplex
-- Crear/actualizar/eliminar snacks
-- Registrar empleados y gerentes en cualquier multiplex
-
-## MANAGER
-- Consultar solo su multiplex asignado
-- Crear/eliminar salas en su multiplex
-- Crear/cambiar estado de películas en su multiplex
-- Registrar empleados en su multiplex
-- No puede registrar otros gerentes
-
-## EMPLOYEE
-- Cambiar estado de sillas (bloquear/desbloquear)
-- Consultar disponibilidad de sillas
-
-## BUYER
-- Cambiar estado de sillas (bloquear/desbloquear)
-- Consultar disponibilidad de sillas
-
----
-
-# ⚠️ Notas Generales
-
-## Formatos
-- Todas las fechas usan formato: `yyyy-MM-dd HH:mm:ss`
-- UUID se maneja como string
-- Las listas siempre vienen en formato `[ ]`
-- Los objetos en `{ }`
-- Precios en BigDecimal (hasta 8 dígitos enteros y 2 decimales)
-
-## Autenticación
-- Todos los endpoints excepto `/api/auth/**` requieren Bearer token
-- El token se envía en el header: `Authorization: Bearer {token}`
-- El token expira después de configurarse (ver propiedades jwt.expiration)
-
-## Códigos de Estado HTTP
-- `200`: Éxito en GET, PUT
-- `201`: Éxito en POST (creación)
-- `204`: Éxito en DELETE
-- `400`: Error de validación
-- `401`: No autenticado
-- `403`: No autorizado
-- `404`: Recurso no encontrado
-- `409`: Conflicto (ej: email duplicado, silla bloqueada por otro)
-- `500`: Error del servidor
-
-## Restricción de Multiplex
-- El MANAGER solo puede gestionar su multiplex asignado
-- El backend valida esto automáticamente con `AccessValidator`
-- Los intentos de acceder a otro multiplex retornan error 403
-
-## Bloqueo de Sillas
-- Se bloquean automáticamente por 10 minutos
-- Si pasa el tiempo, se desbloquean automáticamente
-- Solo el usuario que bloqueó puede desbloquearla antes del tiempo
+- `OPTIONS /**`: publico para CORS preflight.
+- `/api/auth/register`: publico.
+- `/api/auth/login`: publico.
+- `/api/auth/verify`: publico.
+- `GET /api/review/movie/**`: publico.
+- `GET /api/movie/multiplex/**`: `BUYER`, `EMPLOYEE`.
+- `/api/seats/**`: `BUYER`, `EMPLOYEE`.
+- `GET /api/snacks`: `BUYER`, `EMPLOYEE`.
+- `/api/checkout/**`: `BUYER`, `EMPLOYEE`.
+- `GET /api/*/review`: `BUYER`, `ADMIN`.
+- `POST /api/*/review/**`: `BUYER`.
+- `POST /api/admin/multiplexes`: `ADMIN`.
+- `DELETE /api/admin/multiplexes/**`: `ADMIN`.
+- `GET /api/admin/multiplexes` y `GET /api/admin/multiplexes/**`: `ADMIN`, `MANAGER`.
+- `PUT /api/admin/multiplexes/**`: `ADMIN`, `MANAGER`.
+- `POST /api/admin/*/rooms`: `ADMIN`, `MANAGER`.
+- `DELETE /api/admin/rooms/**`: `ADMIN`, `MANAGER`.
+- `/api/admin/register_employee`: `ADMIN`, `MANAGER`.
+- `/api/admin/movie/**`: `ADMIN`, `MANAGER`.
+- `/api/admin/snacks` y `/api/admin/snacks/**`: `ADMIN`.
+- `/api/admin/**`: `ADMIN`.
+- Cualquier otra ruta: bloqueada.
 
 ---
 
-# 🛠 Endpoints detectados en el código (agregados / corregidos)
+# 12. Notas generales
 
-Se agregan las rutas que estaban faltando o se actualizan las que en el markdown no coincidían con el código.
-
-- Películas (MovieController)
-  - GET  /api/admin/movie/search?query={text}&page={numero}
-    - Descripción: Buscar en TMDB y devolver lista de MovieSearchResponseDTO.
-    - Autorización: ADMIN o MANAGER (según securityFilterChain). Nota: el path en el código tenía un typo "adminon" y fue corregido a /api/admin/movie/search.
-  - POST /api/admin/movie/select/{movieId}
-    - Descripción: Seleccionar/guardar película por id TMDB.
-    - Autorización: ADMIN y MANAGER
-  - POST /api/admin/movie/createScreening
-    - Descripción: Crear función (CreateScreeningDTO).
-    - Autorización: ADMIN y MANAGER (del multiplex)
-  - PUT  /api/admin/movie/changeStatus/{idScreening}?status={ACTIVE|CANCELLED|COMPLETED}
-    - Descripción: Cambiar estado de función.
-    - Autorización: ADMIN y MANAGER
-
-- Reseñas (ReviewController)
-  - GET  /api/review/movie/{movieId}
-    - Descripción: Lista de reseñas de una película.
-    - Autorización: pública (permitAll) — visible incluso sin token.
-  - GET  /api/{buyerId}/review
-    - Descripción: Lista de reseñas de un usuario.
-    - Autorización: BUYER, MANAGER, ADMIN
-  - POST /api/{buyerId}/review/movie
-    - Descripción: Crear reseña de película para buyerId (solo BUYER puede crear).
-    - Autorización: BUYER
-  - POST /api/{buyerId}/review/service
-    - Descripción: Crear reseña de servicio.
-    - Autorización: BUYER
-
-- Snacks (SnackController)
-  - GET  /api/snacks
-    - Descripción: Lista pública de snacks disponibles (visible a BUYER/EMPLOYEE/MANAGER/ADMIN según security config).
-    - Autorización: requiere token según securityFilterChain (BUYER/EMPLOYEE/MANAGER/ADMIN).
-  - GET  /api/admin/snacks and /api/admin/snacks/{id}
-  - POST /api/admin/snacks
-  - PUT  /api/admin/snacks/{id}
-  - DELETE /api/admin/snacks/{id}
-    - Descripción: CRUD de snacks (ADMIN)
-
-- Checkout (CheckoutController)
-  - POST /api/checkout/stripe
-    - Descripción: Procesa pago con Stripe; recibe CheckoutRequest en body y Authorization header.
-    - Headers: Authorization: Bearer {token}
-    - Autorización: BUYER/EMPLOYEE/MANAGER/ADMIN (según security config)
-  - Nota: endpoints /preview y /confirm están en el markdown original pero en el código están comentados; actualmente sólo existe /stripe.
-
-- Salas (RoomController)
-  - POST /api/admin/{multiplexId}/rooms
-    - Descripción: Crear sala en multiplex (devuelve id de sala).
-    - Autorización: ADMIN y MANAGER (según security config y validación por servicio)
-  - DELETE /api/admin/rooms/{id}
-    - Descripción: Eliminar (desactivar) sala.
-    - Autorización: ADMIN y MANAGER
-
-- Sillas (SeatController)
-  - GET  /api/seats/{roomId}
-    - Descripción: Obtener sillas y estados de una sala.
-    - Autorización: BUYER, EMPLOYEE, MANAGER, ADMIN
-  - PUT  /api/seats/{seatId}/changeStatus
-    - Descripción: Cambiar estado (toggle) de una silla. Header Authorization requerido.
-    - Autorización: BUYER, EMPLOYEE, MANAGER, ADMIN
-
-- Multiplex (MultiplexController)
-  - GET  /api/admin/multiplexes
-  - GET  /api/admin/multiplexes/{id}
-  - POST /api/admin/multiplexes
-  - PUT  /api/admin/multiplexes/{id}
-  - DELETE /api/admin/multiplexes/{id}
-    - Autorización: ver sección "Niveles de Acceso"; POST/DELETE requieren ADMIN; GET/PUT permiten MANAGER/ADMIN con validación por servicio.
-
-- Empleados (EmployeeController)
-  - POST /api/admin/register_employee
-    - Descripción: Registrar empleado/manager.
-    - Autorización: ADMIN y MANAGER (solo en su multiplex)
-
-- Autenticación (AuthController) — ya documentado
-  - POST /api/auth/register
-  - POST /api/auth/login
-  - GET  /api/auth/verify?token={token}
-
-
-## Resumen de permisos relevantes (según securityFilterChain en Config.java)
-- /api/auth/** → permitAll
-- /api/seats/** → BUYER, EMPLOYEE, MANAGER, ADMIN
-- GET /api/snacks/** → BUYER, EMPLOYEE, MANAGER, ADMIN
-- /api/checkout/** → BUYER, EMPLOYEE, MANAGER, ADMIN (nota: en negocio final debería ser BUYER)
-- /api/admin/multiplexes POST, DELETE → ADMIN
-- /api/admin/multiplexes/** → ADMIN, MANAGER (consulta/actualización validada en servicio)
-- /api/admin/*/rooms and /api/admin/rooms/** → ADMIN, MANAGER
-- /api/admin/register_employee → ADMIN, MANAGER
-- /api/admin/movie/** → ADMIN, MANAGER
-- GET /api/review/** → permitAll (reseñas por película visibles para todos)
-- GET /api/*/review → BUYER, MANAGER, ADMIN
-- POST /api/*/review/** → BUYER
+- Todas las rutas protegidas requieren header `Authorization: Bearer {token}`.
+- UUID se envia como string.
+- Fechas de request de screenings usan `yyyy-MM-dd HH:mm:ss` segun los DTO actuales.
+- Algunas respuestas serializan `LocalDateTime` en formato ISO (`2026-06-15T14:30:00`) si no hay formato custom en el DTO.
+- Los precios se manejan como `BigDecimal`.
+- `AccessValidator` centraliza la restriccion de multiplex para `MANAGER`.
+- `RoomManager`, `MovieManager`, `BuyerManager`, `SnackManager`, `SeatManager` y otros contratos en `shared.auxiliaryClass` se usan para evitar acoplamiento directo entre modulos.
