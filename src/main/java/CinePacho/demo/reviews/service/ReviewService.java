@@ -111,12 +111,10 @@ public class ReviewService {
         //Extrae el UserEntity del targetUserId (que es buyer)
         UserEntity targetUser = buyerManager.getBuyerById(targetUserId).getUser();
 
-        if (currentUser.getUserType().name().equals("BUYER")) {
-            if (!currentUser.getUserId().equals(targetUser.getUserId())) {
-                //TODO: Borrar ids de prueba xd
-                throw new CinePachoException(errorMessage + " user autenticado:" + currentUser.getUserId() + "// target:" + targetUserId);
+        if (currentUser.getUserType().name().equals("BUYER") && !currentUser.getUserId().equals(targetUser.getUserId())) {
+                throw new CinePachoException(errorMessage);
             }
-        }
+
     }
 
     private ReviewEntity generateReview(CreateReviewDto dto, UUID buyerID, ReviewType type){

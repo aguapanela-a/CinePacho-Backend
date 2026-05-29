@@ -43,10 +43,10 @@ public class StripeService {
     private String stripeApiKey;
 
     @Value("${app.base-url}")
-    private String baseUrl;
+    private static String baseUrl;
 
-    private static final String SUCCESS_URL = "http://localhost:8010/api/checkout/stripe/success";
-    private static final String CANCEL_URL = "http://localhost:8010/api/checkout/stripe/cancel";
+    private static final String SUCCESS_URL = baseUrl+"/api/checkout/stripe/success";
+    private static final String CANCEL_URL = baseUrl+"/api/checkout/stripe/cancel";
     private static final String CURRENCY = "COP";
 
     @Autowired
