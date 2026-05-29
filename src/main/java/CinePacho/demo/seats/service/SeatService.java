@@ -16,6 +16,7 @@ import CinePacho.demo.seats.dto.response.SeatResponse;
 import CinePacho.demo.seats.entities.SeatEntity;
 import CinePacho.demo.seats.repository.SeatRepository;
 import CinePacho.demo.shared.enumeration.SeatType;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Instant;
 import java.time.LocalDateTime;
@@ -47,6 +48,7 @@ public class SeatService {
                 .collect(Collectors.toList());
     }
 
+    @Transactional
     // CAMBIAR ESTADO DE LA SILLA
     public SeatResponse toggleSeat(UUID seatId, String token) {
 

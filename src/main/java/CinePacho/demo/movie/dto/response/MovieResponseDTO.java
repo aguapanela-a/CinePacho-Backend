@@ -1,4 +1,4 @@
-package CinePacho.demo.movie.dto;
+package CinePacho.demo.movie.dto.response;
 
 import jakarta.validation.constraints.NotBlank;
 

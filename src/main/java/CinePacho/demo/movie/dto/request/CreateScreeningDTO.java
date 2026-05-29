@@ -1,4 +1,4 @@
-package CinePacho.demo.movie.dto;
+package CinePacho.demo.movie.dto.request;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
 import jakarta.validation.constraints.NotNull;

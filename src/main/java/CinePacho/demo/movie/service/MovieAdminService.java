@@ -1,7 +1,12 @@
 package CinePacho.demo.movie.service;
 
 import CinePacho.demo.exception.CinePachoException;
-import CinePacho.demo.movie.dto.*;
+import CinePacho.demo.movie.dto.request.CreateScreeningDTO;
+import CinePacho.demo.movie.dto.request.TmdbMovieDTO;
+import CinePacho.demo.movie.dto.response.MovieResponseDTO;
+import CinePacho.demo.movie.dto.response.MovieSearchResponseDTO;
+import CinePacho.demo.movie.dto.response.ScreeningResponseDTO;
+import CinePacho.demo.movie.dto.response.TmdbResponseDTO;
 import CinePacho.demo.movie.entities.GenreEmbeddable;
 import CinePacho.demo.movie.entities.MovieEntity;
 import CinePacho.demo.movie.entities.MovieScreening;
@@ -23,7 +28,7 @@ import java.util.Objects;
 import java.util.UUID;
 
 @Service
-public class MovieService {
+public class MovieAdminService {
 
     private final MovieRepository movieRepository;
     private final MovieScreeningRepository movieScreeningRepository;
@@ -35,7 +40,7 @@ public class MovieService {
     private String accessToken;
 
     @Autowired
-    public MovieService(MovieRepository movieRepository, MovieScreeningRepository movieScreeningRepository, WebClient webClient, RoomManager roomManager, AccessValidator accessValidator) {
+    public MovieAdminService(MovieRepository movieRepository, MovieScreeningRepository movieScreeningRepository, WebClient webClient, RoomManager roomManager, AccessValidator accessValidator) {
         this.movieRepository = movieRepository;
         this.movieScreeningRepository = movieScreeningRepository;
         this.webClient = webClient;

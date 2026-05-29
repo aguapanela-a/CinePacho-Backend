@@ -9,6 +9,7 @@ import CinePacho.demo.shared.auxiliaryClass.RoomManager;
 import CinePacho.demo.shared.auxiliaryClass.SeatManager;
 import org.springframework.stereotype.Component;
 
+import java.util.List;
 import java.util.UUID;
 
 @Component
@@ -31,11 +32,13 @@ public class RoomManagerImpl implements RoomManager {
     @Override
     public void createRoom(MultiplexEntity multiplex) {
 
+        int existingRooms = roomRepository.countByMultiplex_Id(multiplex.getId());
         int generalCapacity = 40;
         int preferentialCapacity = 20;
 
         RoomEntity room = RoomEntity.builder()
                 .multiplex(multiplex)
+                .roomNumber("room: " + (existingRooms + 1) )
                 .generalCapacity(generalCapacity)
                 .preferentialCapacity(preferentialCapacity)
                 .build();
@@ -48,5 +51,11 @@ public class RoomManagerImpl implements RoomManager {
 
         //Crear e insertar sillas físicas asociadas a esa sala
         seatManager.createSeat(generalCapacity, preferentialCapacity, roomSaved);
+    }
+
+    @Override
+    public List<UUID> getRoomIdsByMultiplexId(UUID multiplexId) {
+        return roomRepository.findByMultiplexId(multiplexId).stream()
+                .map(RoomEntity::getId).toList();
     }
 }

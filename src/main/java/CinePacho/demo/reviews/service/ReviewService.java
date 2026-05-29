@@ -80,6 +80,10 @@ public class ReviewService {
             throw new CinePachoException("Usted ya ha ha calificado esta película");
         }
 
+        if(!buyerManager.getBuyerById(buyerID).getWatchedMovieIds().contains(dto.movieId())){
+            throw new CinePachoException("Para calificar una película ya debió haber visto la película");
+        }
+
         // crea y guarda la review
         ReviewEntity review = generateReview(dto, buyerID, ReviewType.MOVIE);
 
@@ -107,16 +111,11 @@ public class ReviewService {
         //Extrae el UserEntity del targetUserId (que es buyer)
         UserEntity targetUser = buyerManager.getBuyerById(targetUserId).getUser();
 
-        if (currentUser.getUserType().name().equals("BUYER")) {
-            if (!currentUser.getUserId().equals(targetUser.getUserId())) {
-                //TODO: Borrar ids de prueba xd
-                throw new CinePachoException(errorMessage + " user autenticado:" + currentUser.getUserId() + "// target:" + targetUserId);
+        if (currentUser.getUserType().name().equals("BUYER") && !currentUser.getUserId().equals(targetUser.getUserId())) {
+                throw new CinePachoException(errorMessage);
             }
-        }
+
     }
-    //TODO: Hacer historial de películas vistas justo después pagar, quizá una nueva entidad que guarde nombre de peli, calificación del usuario y fecha de visualización
-    // pero ahi si no sé como serán las relaciones, quizá un pelócula puede estar en muchos históricos, pero un histórico solo puede tener una peli
-    // uno a uno con Buyer quizá y ya -> esto para validar que no califique peliculas no vistas
 
     private ReviewEntity generateReview(CreateReviewDto dto, UUID buyerID, ReviewType type){
         ReviewEntity review = new ReviewEntity();
