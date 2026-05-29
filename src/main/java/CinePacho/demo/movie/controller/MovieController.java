@@ -98,13 +98,7 @@ public class MovieController {
     }
 
 
-    //Cartelera de peliculas 
-    @GetMapping("/movieListing")
-    public ResponseEntity<List<MovieListingResponseDTO>> getMovieListing() {
-        return ResponseEntity.ok(movieScreeningService.getMovieListing());
-    }
-
-    //Top 10 peliculas con más rating
+    //Top 10 peliculas con más rating global
     @GetMapping("/topRatedMovies")
     public ResponseEntity<List<MovieListingResponseDTO>> getTopRatedMovies() {
         return ResponseEntity.ok(movieScreeningService.getTop10Movies());
