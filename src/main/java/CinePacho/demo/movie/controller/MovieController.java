@@ -2,6 +2,7 @@ package CinePacho.demo.movie.controller;
 
 import CinePacho.demo.movie.dto.*;
 import CinePacho.demo.movie.enumeration.ScreeningStatus;
+import CinePacho.demo.movie.service.MovieScreeningService;
 import CinePacho.demo.movie.service.MovieService;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
@@ -15,11 +16,14 @@ import java.util.UUID;
 @RestController
 @RequestMapping("/api")
 public class MovieController {
+
     private final MovieService movieService;
+    private final MovieScreeningService movieScreeningService;
 
     @Autowired
-    public MovieController(MovieService movieService) {
+    public MovieController(MovieService movieService, MovieScreeningService movieScreeningService) {
         this.movieService = movieService;
+        this.movieScreeningService = movieScreeningService;
     }
 
     @GetMapping("/admin/movie/search")
@@ -64,6 +68,20 @@ public class MovieController {
                     idScreening
         ));
     }
+
+
+    //Cartelera de peliculas 
+    @GetMapping("/movieListing")
+    public ResponseEntity<List<MovieListingResponseDTO>> getMovieListing() {
+        return ResponseEntity.ok(movieScreeningService.getMovieListing());
+    }
+
+    //Top 10 peliculas con más rating
+    @GetMapping("/topRatedMovies")
+    public ResponseEntity<List<MovieListingResponseDTO>> getTopRatedMovies() {
+        return ResponseEntity.ok(movieScreeningService.getTop10Movies());
+    }
+
 
 
     //Record sencillo para respuestas sencillas y propias del controlador

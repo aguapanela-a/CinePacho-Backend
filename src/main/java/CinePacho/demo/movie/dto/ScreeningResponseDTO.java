@@ -9,6 +9,12 @@ import java.util.List;
 import java.util.UUID;
 
 public record ScreeningResponseDTO(
+
+        //adaptarlo para enviar lo necesario junto a listas de dateTime }
+        // de todos los screenings de la película seleccionada
+
+        //Cambiar esto en el controller para que el controller tenga de response
+        //un DTO con status y message
         @NotBlank
         UUID screeningId,
 
