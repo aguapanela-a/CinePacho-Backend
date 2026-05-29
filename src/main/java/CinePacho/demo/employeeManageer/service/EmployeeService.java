@@ -14,9 +14,9 @@ import org.springframework.transaction.annotation.Transactional;
 
 @Service
 public class EmployeeService {
-    private UserCreationService userCreationService;
-    private UserRepository userRepository;
-    private AccessValidator accessValidator;
+    private final UserCreationService userCreationService;
+    private final UserRepository userRepository;
+    private final AccessValidator accessValidator;
 
     @Autowired
     public EmployeeService(UserCreationService userCreationService, UserRepository userRepository, AccessValidator accessValidator) {
@@ -26,17 +26,20 @@ public class EmployeeService {
     }
 
     @Transactional
-    public RegisterResponseDTO registerEmployee(RegisterEmployeeRequestDTO registerEmployeeRequestDTO){
+    public RegisterResponseDTO registerEmployee(RegisterEmployeeRequestDTO registerEmployeeRequestDTO) {
         if (registerEmployeeRequestDTO.userType() != UserType.EMPLOYEE
                 && registerEmployeeRequestDTO.userType() != UserType.MANAGER) {
-            // Se limita el registro de personal a empleado o gerente
-            throw new CinePachoException("El tipo de usuario no es válido para este registro");
+            // Se limita el registro de personal a empleado o gerente.
+            throw new CinePachoException("El tipo de usuario no es valido para este registro");
         }
 
-        // El gerente sólo puede registrar personal en su propio multiplex
-        accessValidator.validateMultiplexAccess(registerEmployeeRequestDTO.multiplexId());
+        // Valida rol y alcance: MANAGER solo puede crear EMPLOYEE en su multiplex.
+        accessValidator.validateEmployeeRegistrationAccess(
+                registerEmployeeRequestDTO.userType(),
+                registerEmployeeRequestDTO.multiplexId()
+        );
 
-        //Creación de UserEntity y entidad concreta de empleado
+        // Creacion de UserEntity y entidad concreta de empleado o gerente.
         UserEntity user = userCreationService.createUser(
                 registerEmployeeRequestDTO.name(),
                 registerEmployeeRequestDTO.password(),
@@ -48,6 +51,6 @@ public class EmployeeService {
         user.setEnabled(true);
         userRepository.save(user);
 
-        return new RegisterResponseDTO(user.getUserType(),user.getUsername(), "Se ha creado correctamente el empleado");
+        return new RegisterResponseDTO(user.getUserType(), user.getUsername(), "Se ha creado correctamente el empleado");
     }
 }

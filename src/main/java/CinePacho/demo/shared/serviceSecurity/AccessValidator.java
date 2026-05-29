@@ -45,6 +45,25 @@ public class AccessValidator {
         return getManagerMultiplexId(user);
     }
 
+    public void validateEmployeeRegistrationAccess(UserType requestedUserType, UUID multiplexId) {
+        // Centraliza las reglas para registrar personal sin acoplar employeeManageer con auth/security.
+        UserEntity user = getCurrentUser();
+        if (user.getUserType() == UserType.ADMIN) {
+            return; // El admin puede registrar empleados y gerentes en cualquier multiplex.
+        }
+        if (user.getUserType() != UserType.MANAGER) {
+            throw new CinePachoException("No tienes permisos para registrar personal");
+        }
+        if (requestedUserType == UserType.MANAGER) {
+            throw new CinePachoException("No tienes permisos para crear gerentes");
+        }
+
+        UUID managerMultiplexId = getManagerMultiplexId(user);
+        if (!managerMultiplexId.equals(multiplexId)) {
+            throw new CinePachoException("No puedes registrar personal en otro multiplex");
+        }
+    }
+
     private UUID getManagerMultiplexId(UserEntity user) {
         return employeeMultiplexProvider.getMultiplexIdByUserEmail(user.getEmail());
     }
