@@ -31,13 +31,15 @@ import java.util.stream.Collectors;
 public class CheckoutService {
 
     private final SeatManager seatManager;
+    private final CinePacho.demo.shared.auxiliaryClass.SeatScreeningManager seatScreeningManager;
     private final SnackManager snackManager;
     private final JwtService jwtService;
     private final UserManager userManager;
 
     @Autowired
-    public CheckoutService(SeatManager seatManager, SnackManager snackManager, JwtService jwtService, UserManager userManager ) {
+    public CheckoutService(SeatManager seatManager, CinePacho.demo.shared.auxiliaryClass.SeatScreeningManager seatScreeningManager, SnackManager snackManager, JwtService jwtService, UserManager userManager ) {
         this.seatManager = seatManager;
+        this.seatScreeningManager = seatScreeningManager;
         this.snackManager = snackManager;
         this.jwtService = jwtService;
         this.userManager = userManager;
@@ -83,7 +85,7 @@ public class CheckoutService {
         validateExistenceComplete("sillas", seatIds, seats.stream().map(SeatEntity::getId).collect(Collectors.toList()));
 
         validateSameRoomAndSameLocation(seats);
-        validateSeatStatus(seats, userEmail);
+        validateSeatStatus(seats, userEmail, request.getScreeningId());
 
         BigDecimal generalPrice = seats.get(0).getRoom().getMultiplex().getGeneralSeatPrice();
         BigDecimal preferentialPrice = seats.get(0).getRoom().getMultiplex().getPreferentialSeatPrice();
@@ -185,15 +187,18 @@ public class CheckoutService {
         }
     }
 
-    private void validateSeatStatus(List<SeatEntity> seats, String userEmail) {
-        // Valida disponibilidad y bloqueo por usuario antes de continuar
+    private void validateSeatStatus(List<SeatEntity> seats, String userEmail, java.util.UUID screeningId) {
+        // Valida disponibilidad y bloqueo por usuario antes de continuar — ahora por función
         for (SeatEntity seat : seats) {
-            if (seat.getStatus() == SeatStatus.SOLD) {
-                throw new CinePachoException("La silla " + seat.getId() + " ya fue vendida");
-            }
-            if (seat.getStatus() == SeatStatus.BLOCKED) {
-                if (seat.getBlockedByUserEmail() == null || !seat.getBlockedByUserEmail().equals(userEmail)) {
-                    throw new CinePachoException("La silla " + seat.getId() + " está bloqueada por otro usuario");
+            var ss = seatScreeningManager.getSeatScreening(seat.getId(), screeningId);
+            if (ss != null) {
+                if (ss.getStatus() == SeatStatus.SOLD) {
+                    throw new CinePachoException("La silla " + seat.getId() + " ya fue vendida para esta función");
+                }
+                if (ss.getStatus() == SeatStatus.BLOCKED) {
+                    if (ss.getBlockedByUserEmail() == null || !ss.getBlockedByUserEmail().equals(userEmail)) {
+                        throw new CinePachoException("La silla " + seat.getId() + " está bloqueada por otro usuario para esta función");
+                    }
                 }
             }
         }

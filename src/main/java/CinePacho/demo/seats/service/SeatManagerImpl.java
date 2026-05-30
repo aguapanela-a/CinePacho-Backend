@@ -23,10 +23,12 @@ public class SeatManagerImpl implements SeatManager {
     private final SeatRepository seatRepository;
     private final Map<UUID, ScheduledFuture<?>> scheduledReleases = new ConcurrentHashMap<>();
     private final TaskScheduler taskScheduler;
+    private final CinePacho.demo.shared.auxiliaryClass.SeatScreeningManager seatScreeningManager;
 
-    public SeatManagerImpl(SeatRepository seatRepository, TaskScheduler taskScheduler) {
+    public SeatManagerImpl(SeatRepository seatRepository, TaskScheduler taskScheduler, CinePacho.demo.shared.auxiliaryClass.SeatScreeningManager seatScreeningManager) {
         this.seatRepository = seatRepository;
         this.taskScheduler = taskScheduler;
+        this.seatScreeningManager = seatScreeningManager;
     }
 
 
@@ -114,7 +116,8 @@ public class SeatManagerImpl implements SeatManager {
 
         // Si ese momento ya pasó, libera inmediatamente sin programar
         if (releaseTime.isBefore(Instant.now(Clock.system(ZoneId.of("America/Bogota"))))) {
-            this.releaseAllSeatsInRoom(roomId);
+            // liberar las reservas específicas de la función
+            this.seatScreeningManager.releaseAllSeatsForScreening(screeningId);
             System.out.printf("-------- Liberando sillas inmediatamente: " + Instant.now());
             return;
         }
@@ -123,7 +126,8 @@ public class SeatManagerImpl implements SeatManager {
         // Programa la tarea para ejecutarse exactamente en releaseTime (ScheduledFuture es un timer activo)
         ScheduledFuture<?> future = taskScheduler.schedule(
                 () -> {
-                    this.releaseAllSeatsInRoom(roomId); // libera las sillas
+                    // libera las reservas de la función
+                    this.seatScreeningManager.releaseAllSeatsForScreening(screeningId);
                     scheduledReleases.remove(screeningId);           // limpia el timer del mapa
                 },
                 releaseTime // en este instante
@@ -144,9 +148,9 @@ public class SeatManagerImpl implements SeatManager {
                     seat.setStatus(SeatStatus.AVAILABLE);
                     seat.setBlockedByUserEmail(null);
                     seat.setBlockedUntil(null);
-                    seatRepository.save(seat);
                 }
         );
+        seatRepository.saveAll(seats);
     }
 
     @Override

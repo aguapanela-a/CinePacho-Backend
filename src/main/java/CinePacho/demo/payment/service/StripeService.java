@@ -42,6 +42,7 @@ public class StripeService {
     private final JwtService jwtService;
     private final UserManager userManager;
     private final SeatManager seatManager;
+    private final CinePacho.demo.shared.auxiliaryClass.SeatScreeningManager seatScreeningManager;
 
     @Value("${stripe.api.key}")
     private String stripeApiKey;
@@ -58,7 +59,7 @@ public class StripeService {
             BuyerManager buyerManager,
             MovieManager movieManager,
             JwtService jwtService,
-            UserManager userManager, SeatManager seatManager
+            UserManager userManager, SeatManager seatManager, CinePacho.demo.shared.auxiliaryClass.SeatScreeningManager seatScreeningManager
     ) {
         this.checkoutService = checkoutService;
         this.paymentRepository = paymentRepository;
@@ -67,6 +68,7 @@ public class StripeService {
         this.jwtService = jwtService;
         this.userManager = userManager;
         this.seatManager = seatManager;
+        this.seatScreeningManager = seatScreeningManager;
     }
 
     public CheckoutSummaryResponse checkoutProducts(CheckoutRequest request, String token) throws StripeException {
@@ -145,15 +147,16 @@ public class StripeService {
         //añadir película al historuiial de pelis vistas por el usuario
         registerWatchedMovieForBuyer(token, request, summary, payment);
 
-        //cambiar el estado de las sillas a vendidas solo cuando estén BLOCKED pues es el estado de la silla al seleccionarla antes de la compra
+        //cambiar el estado de las sillas a vendidas solo cuando estén BLOCKED para ESTA FUNCIÓN
         request.getSeats().forEach(
                         seatsIDs -> {
-                            if(seatManager.getSeatById(seatsIDs.getSeatId()).getStatus() != SeatStatus.BLOCKED){
-                                throw new CinePachoException("La silla no ha sido seleccionada previamente");
+                            var ss = seatScreeningManager.getSeatScreening(seatsIDs.getSeatId(), request.getScreeningId());
+                            if (ss == null || ss.getStatus() != SeatStatus.BLOCKED) {
+                                throw new CinePachoException("La silla no ha sido seleccionada previamente para esta función");
                             }
-                            // si sie stán BLOCKED, cambiar el estado a SOLD
-                            seatManager.updateSeatStatus(seatsIDs.getSeatId(), SeatStatus.SOLD);
-                            System.out.printf("Silla %s cambiada a %s", seatsIDs.getSeatId(), seatManager.getSeatById(seatsIDs.getSeatId()).getStatus());
+                            // si están BLOCKED, cambiar el estado a SOLD para esta función
+                            seatScreeningManager.markSold(seatsIDs.getSeatId(), request.getScreeningId());
+                            System.out.printf("Silla %s cambiada a SOLD para la función %s", seatsIDs.getSeatId(), request.getScreeningId());
                         });
 
         //inicializo el timer para liberar las sillas en 3 horas para la funcion de la request
