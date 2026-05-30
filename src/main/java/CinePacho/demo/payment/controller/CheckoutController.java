@@ -28,12 +28,6 @@ public class CheckoutController {
     }
 
 
-
-
-
-
-
-
     // @PostMapping("/preview")
     // public ResponseEntity<CheckoutSummaryResponse> preview(
     //         @Valid @RequestBody CheckoutRequest request,
