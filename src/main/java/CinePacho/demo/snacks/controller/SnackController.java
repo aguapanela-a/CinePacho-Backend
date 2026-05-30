@@ -42,6 +42,11 @@ public class SnackController {
     public ResponseEntity<List<SnackByMultiplex>> getAll() {
         return ResponseEntity.ok(snackService.getAll());
     }
+
+    //obtener snacks de un multiplex para empleados
+    public ResponseEntity<List<SnackResponse>> getAllByMultiplex(){
+        return ResponseEntity.ok(snackService.getAllByMultiplex());
+    }
  
     @GetMapping("admin/snacks/{id}")
     public ResponseEntity<SnackResponse> getById(@PathVariable UUID id) {
