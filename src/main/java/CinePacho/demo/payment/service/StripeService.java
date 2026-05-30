@@ -52,6 +52,7 @@ public class StripeService {
     private final JwtService jwtService;
     private final UserManager userManager;
     private final SeatManager seatManager;
+    private final CinePacho.demo.shared.auxiliaryClass.SeatScreeningManager seatScreeningManager;
 
     @Value("${stripe.api.key}")
     private String stripeApiKey;
@@ -70,7 +71,7 @@ public class StripeService {
             BuyerManager buyerManager,
             MovieManager movieManager,
             JwtService jwtService,
-            UserManager userManager, SeatManager seatManager
+            UserManager userManager, SeatManager seatManager, CinePacho.demo.shared.auxiliaryClass.SeatScreeningManager seatScreeningManager
     ) {
         this.checkoutService = checkoutService;
         this.paymentRepository = paymentRepository;
@@ -81,6 +82,7 @@ public class StripeService {
         this.jwtService = jwtService;
         this.userManager = userManager;
         this.seatManager = seatManager;
+        this.seatScreeningManager = seatScreeningManager;
     }
 
     public CheckoutSummaryResponse checkoutProducts(CheckoutRequest request, String token) throws StripeException {
@@ -161,9 +163,20 @@ public class StripeService {
         summary.setSessionId(session.getId());
         summary.setSessionUrl(session.getUrl());
 
-        return summary;
-    }
+        //añadir película al historuiial de pelis vistas por el usuario
+        registerWatchedMovieForBuyer(token, request, summary, payment);
 
+        //cambiar el estado de las sillas a vendidas solo cuando estén BLOCKED para ESTA FUNCIÓN
+        request.getSeats().forEach(
+                        seatsIDs -> {
+                            var ss = seatScreeningManager.getSeatScreening(seatsIDs.getSeatId(), request.getScreeningId());
+                            if (ss == null || ss.getStatus() != SeatStatus.BLOCKED) {
+                                throw new CinePachoException("La silla no ha sido seleccionada previamente para esta función");
+                            }
+                            // si están BLOCKED, cambiar el estado a SOLD para esta función
+                            seatScreeningManager.markSold(seatsIDs.getSeatId(), request.getScreeningId());
+                            System.out.printf("Silla %s cambiada a SOLD para la función %s", seatsIDs.getSeatId(), request.getScreeningId());
+                        });
     /**
      * Método invocado cuando Stripe confirma el pago exitoso (via webhook).
      * Realiza todas las acciones que dependen de un pago confirmado:
@@ -173,10 +186,10 @@ public class StripeService {
      * 4. Registra la venta de tickets para el módulo de reportes
      * 5. Agrega la película al historial del comprador
      * 6. Programa la liberación automática de sillas en 3 horas
-     * 
+     *
      * IMPORTANTE: Este método debe ser llamado SOLAMENTE después de que Stripe confirme el pago.
      * Idealmente desde un webhook: POST /api/checkout/stripe/webhook
-     * 
+     *
      * @param checkoutRequest Información de la compra original
      * @param paymentId ID del pago que fue confirmado
      * @param userEmail Email del usuario que realizó la compra (del JWT)
@@ -242,8 +255,9 @@ public class StripeService {
                 screening.getRoom().getId(),
                 screening.getDateTime()
         );
+
+        return summary;
     }
-    
 
 
 
