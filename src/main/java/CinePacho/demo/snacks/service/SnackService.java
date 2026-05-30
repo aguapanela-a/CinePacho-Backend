@@ -32,9 +32,9 @@ public class SnackService {
         return toSnackByMultiplexList(snackRepository.findAll());
     }
 
-    //Obtener los snaks de un multiplex (SOLO manager)
-    public List<SnackResponse> getAllByMultiplex(){
-        UUID multiplexId = accessValidator.getScopedMultiplexIdForAdminOrManager();
+    //Obtener los snaks de un multiplex (admin y manager)
+    public List<SnackResponse> getAllByMultiplex(UUID multiplexId){
+
         accessValidator.validateMultiplexAccess(multiplexId);
         List<SnackEntity> snacksByMultiplex = snackRepository.findAllByMultiplex_Id(multiplexId);
 
@@ -76,6 +76,8 @@ public class SnackService {
     public SnackResponse update(UUID id, SnackRequest request) {
         SnackEntity snack = snackRepository.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException("Snack no encontrado con id: " + id));
+
+        accessValidator.validateMultiplexAccess(request.getMultiplexId());
  
         snack.setName(request.getNameSnack());
         snack.setDescription(request.getDescriptionSnack());
@@ -88,6 +90,8 @@ public class SnackService {
         if (!snackRepository.existsById(id)) {
             throw new EntityNotFoundException("Snack no encontrado con id: " + id);
         }
+
+        accessValidator.validateMultiplexAccess(snackRepository.getReferenceById(id).getMultiplex().getId());
         snackRepository.deleteById(id);
     }
  

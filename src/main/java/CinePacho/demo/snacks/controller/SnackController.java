@@ -37,16 +37,18 @@ public class SnackController {
         return ResponseEntity.ok(snackService.getAllAvailable(multiplexId));
     }
 
-    //obtener todos los snacks de la BD central
+    //obtener todos los snacks de la BD central (ADMIN)
     @GetMapping("/admin/snacks")
     public ResponseEntity<List<SnackByMultiplex>> getAll() {
         return ResponseEntity.ok(snackService.getAll());
     }
 
-    //obtener snacks de un multiplex para managers
-    @GetMapping("/admin/multiplexes/snacks")
-    public ResponseEntity<List<SnackResponse>> getAllByMultiplex(){
-        return ResponseEntity.ok(snackService.getAllByMultiplex());
+    //obtener snacks de un multiplex para managers (ADMIN y MANAGER)
+    @GetMapping("/admin/multiplexes/{multiplexId}/snacks")
+    public ResponseEntity<List<SnackResponse>> getAllByMultiplex(
+            @PathVariable UUID multiplexId
+    ){
+        return ResponseEntity.ok(snackService.getAllByMultiplex(multiplexId));
     }
  
     @GetMapping("/admin/snacks/{id}")
