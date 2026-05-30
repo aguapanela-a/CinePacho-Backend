@@ -6,23 +6,29 @@ import CinePacho.demo.exception.CinePachoException;
 import CinePacho.demo.movie.entities.MovieScreening;
 import CinePacho.demo.payment.dto.request.CheckoutRequest;
 import CinePacho.demo.payment.dto.request.SeatSelectionRequest;
+import CinePacho.demo.payment.dto.request.SnackSelectionRequest;
 import CinePacho.demo.payment.dto.response.CheckoutSummaryResponse;
 import CinePacho.demo.payment.dto.response.SeatSummaryResponse;
 import CinePacho.demo.payment.dto.response.SnackSummaryResponse;
 import CinePacho.demo.payment.entities.PaymentEntity;
 import CinePacho.demo.payment.enumeration.PaymentStatus;
 import CinePacho.demo.payment.repository.PaymentRepository;
+import CinePacho.demo.reports.entities.SnackSaleEntity;
 import CinePacho.demo.reports.entities.TicketSaleEntity;
+import CinePacho.demo.reports.repository.SnackSaleRepository;
 import CinePacho.demo.reports.repository.TicketSaleRepository;
 import CinePacho.demo.seats.entities.SeatEntity;
 import CinePacho.demo.seats.enumeration.SeatStatus;
 import CinePacho.demo.shared.auxiliaryClass.BuyerManager;
 import CinePacho.demo.shared.auxiliaryClass.MovieManager;
 import CinePacho.demo.shared.auxiliaryClass.SeatManager;
+import CinePacho.demo.shared.auxiliaryClass.SnackManager;
 import CinePacho.demo.shared.auxiliaryClass.UserManager;
 import CinePacho.demo.multiplex.repository.MultiplexRepository;
+import CinePacho.demo.shared.enumeration.SeatType;
 import CinePacho.demo.shared.enumeration.UserType;
 import CinePacho.demo.shared.serviceSecurity.JwtService;
+import CinePacho.demo.snacks.entities.SnackEntity;
 import com.stripe.Stripe;
 import com.stripe.exception.StripeException;
 import com.stripe.model.checkout.Session;
@@ -37,6 +43,7 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
@@ -46,12 +53,14 @@ public class StripeService {
     private final CheckoutService checkoutService;
     private final PaymentRepository paymentRepository;
     private final TicketSaleRepository ticketSaleRepository;
+    private final SnackSaleRepository snackSaleRepository;
     private final MultiplexRepository multiplexRepository;
     private final BuyerManager buyerManager;
     private final MovieManager movieManager;
     private final JwtService jwtService;
     private final UserManager userManager;
     private final SeatManager seatManager;
+    private final SnackManager snackManager;
 
     @Value("${stripe.api.key}")
     private String stripeApiKey;
@@ -66,21 +75,26 @@ public class StripeService {
             CheckoutService checkoutService,
             PaymentRepository paymentRepository,
             TicketSaleRepository ticketSaleRepository,
+            SnackSaleRepository snackSaleRepository,
             MultiplexRepository multiplexRepository,
             BuyerManager buyerManager,
             MovieManager movieManager,
             JwtService jwtService,
-            UserManager userManager, SeatManager seatManager
+            UserManager userManager,
+            SeatManager seatManager,
+            SnackManager snackManager
     ) {
         this.checkoutService = checkoutService;
         this.paymentRepository = paymentRepository;
         this.ticketSaleRepository = ticketSaleRepository;
+        this.snackSaleRepository = snackSaleRepository;
         this.multiplexRepository = multiplexRepository;
         this.buyerManager = buyerManager;
         this.movieManager = movieManager;
         this.jwtService = jwtService;
         this.userManager = userManager;
         this.seatManager = seatManager;
+        this.snackManager = snackManager;
     }
 
     public CheckoutSummaryResponse checkoutProducts(CheckoutRequest request, String token) throws StripeException {
@@ -160,6 +174,9 @@ public class StripeService {
         summary.setMessage("Checkout creado correctamente. Por favor completar el pago en Stripe.");
         summary.setSessionId(session.getId());
         summary.setSessionUrl(session.getUrl());
+        // Se incluye el paymentId en la respuesta para que el frontend pueda usarlo en el webhook de confirmación.
+        // Esto es necesario para testing manual en Postman o para llamadas directas al webhook.
+        summary.setPaymentId(payment.getPaymentId());
 
         return summary;
     }
@@ -171,8 +188,9 @@ public class StripeService {
      * 2. Actualiza el estado del pago a COMPLETED
      * 3. Cambia el estado de las sillas de BLOCKED a SOLD
      * 4. Registra la venta de tickets para el módulo de reportes
-     * 5. Agrega la película al historial del comprador
-     * 6. Programa la liberación automática de sillas en 3 horas
+     * 5. Registra la venta de snacks para el módulo de reportes
+     * 6. Agrega la película al historial del comprador
+     * 7. Programa la liberación automática de sillas en 3 horas
      * 
      * IMPORTANTE: Este método debe ser llamado SOLAMENTE después de que Stripe confirme el pago.
      * Idealmente desde un webhook: POST /api/checkout/stripe/webhook
@@ -215,19 +233,23 @@ public class StripeService {
         });
 
         // PASO 4: Registrar la venta de tickets para el módulo de reportes mensales.
-        // Solo se registran tickets (sillas), no snacks, para que los reportes muestren ingresos por películas.
         // Se obtiene la screening para acceder al multiplex y película.
         MovieScreening screening = movieManager.getMovieScreeningById(checkoutRequest.getScreeningId());
+        BigDecimal totalSeatsAmount = calculateSeatsTotal(seats);
         TicketSaleEntity ticketSale = TicketSaleEntity.builder()
                 .multiplex(screening.getRoom().getMultiplex())
                 .screening(screening)
                 .soldAt(LocalDateTime.now())
                 .ticketsQuantity(seatIds.size())
-                .totalAmount(payment.getAmount())
+                // Se registra solo el total de sillas para no mezclar con snacks.
+                .totalAmount(totalSeatsAmount)
                 .build();
         ticketSaleRepository.save(ticketSale);
 
-        // PASO 5: Agregar la película al historial de películas vistas por el comprador.
+        // PASO 5: Registrar la venta de snacks para el módulo de reportes mensuales.
+        registerSnackSales(checkoutRequest);
+
+        // PASO 6: Agregar la película al historial de películas vistas por el comprador.
         UserEntity currentUser = userManager.getUserByEmail(userEmail);
         if (currentUser.getUserType() == UserType.BUYER) {
             BuyerEntity buyer = buyerManager.getBuyerByEmail(userEmail);
@@ -235,13 +257,70 @@ public class StripeService {
             buyerManager.addWatchedMovie(buyer.getBuyerId(), movieId);
         }
 
-        // PASO 6: Programar la liberación automática de sillas 3 horas después del inicio de la función.
+        // PASO 7: Programar la liberación automática de sillas 3 horas después del inicio de la función.
         // Esto garantiza que si el comprador no asiste, las sillas se liberen automáticamente.
         seatManager.scheduleRelease(
                 screening.getId(),
                 screening.getRoom().getId(),
                 screening.getDateTime()
         );
+    }
+
+    private BigDecimal calculateSeatsTotal(List<SeatEntity> seats) {
+        // Calcula el total de sillas usando los precios configurados en el multiplex.
+        if (seats.isEmpty()) {
+            return BigDecimal.ZERO;
+        }
+
+        BigDecimal generalPrice = seats.get(0).getRoom().getMultiplex().getGeneralSeatPrice();
+        BigDecimal preferentialPrice = seats.get(0).getRoom().getMultiplex().getPreferentialSeatPrice();
+        if (generalPrice == null || preferentialPrice == null) {
+            throw new CinePachoException("El multiplex no tiene precios de silla configurados");
+        }
+
+        BigDecimal total = BigDecimal.ZERO;
+        for (SeatEntity seat : seats) {
+            BigDecimal seatPrice = seat.getType() == SeatType.GENERAL ? generalPrice : preferentialPrice;
+            total = total.add(seatPrice);
+        }
+        return total;
+    }
+
+    private void registerSnackSales(CheckoutRequest checkoutRequest) {
+        // Registra ventas de snacks (si existen) agrupadas por snack y multiplex.
+        if (checkoutRequest.getSnacks() == null || checkoutRequest.getSnacks().isEmpty()) {
+            return;
+        }
+
+        List<UUID> snackIds = checkoutRequest.getSnacks().stream()
+                .map(snackSelection -> snackSelection.getSnackId())
+                .collect(Collectors.toList());
+
+        List<SnackEntity> snacks = snackManager.findAllById(snackIds);
+        if (snacks.size() != snackIds.size()) {
+            throw new CinePachoException("No se encontraron snacks para registrar la venta");
+        }
+
+        Map<UUID, SnackEntity> snackMap = snacks.stream()
+                .collect(Collectors.toMap(SnackEntity::getId, snack -> snack));
+
+        for (SnackSelectionRequest snackSelection : checkoutRequest.getSnacks()) {
+            SnackEntity snack = snackMap.get(snackSelection.getSnackId());
+            BigDecimal unitPrice = snack.getPrice();
+            if (unitPrice == null) {
+                throw new CinePachoException("El snack " + snack.getId() + " no tiene precio configurado");
+            }
+            BigDecimal total = unitPrice.multiply(BigDecimal.valueOf(snackSelection.getQuantity()));
+
+            SnackSaleEntity snackSale = SnackSaleEntity.builder()
+                    .multiplex(snack.getMultiplex())
+                    .snack(snack)
+                    .soldAt(LocalDateTime.now())
+                    .snacksQuantity(snackSelection.getQuantity())
+                    .totalAmount(total)
+                    .build();
+            snackSaleRepository.save(snackSale);
+        }
     }
     
 
