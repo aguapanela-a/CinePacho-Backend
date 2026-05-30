@@ -30,7 +30,7 @@ public class SnackController {
     private final SnackService snackService;
 
     // Endpoint público para compradores: lista de snacks disponibles en un multiplex (solo admin)
-    @GetMapping("snacks/{multiplexId}")
+    @GetMapping("/snacks/{multiplexId}")
     public ResponseEntity<List<SnackResponse>> getAvailable(
             @PathVariable UUID multiplexId
     ) {
@@ -38,36 +38,37 @@ public class SnackController {
     }
 
     //obtener todos los snacks de la BD central
-    @GetMapping("admin/snacks")
+    @GetMapping("/admin/snacks")
     public ResponseEntity<List<SnackByMultiplex>> getAll() {
         return ResponseEntity.ok(snackService.getAll());
     }
 
-    //obtener snacks de un multiplex para empleados
+    //obtener snacks de un multiplex para managers
+    @GetMapping("/admin/multiplexes/snacks")
     public ResponseEntity<List<SnackResponse>> getAllByMultiplex(){
         return ResponseEntity.ok(snackService.getAllByMultiplex());
     }
  
-    @GetMapping("admin/snacks/{id}")
+    @GetMapping("/admin/snacks/{id}")
     public ResponseEntity<SnackResponse> getById(@PathVariable UUID id) {
         return ResponseEntity.ok(snackService.getById(id));
     }
     
     //Status y mensaje de error o exito
-    @PostMapping("admin/snacks")
+    @PostMapping("/admin/snacks")
     public ResponseEntity<Void> create(@Valid @RequestBody SnackRequest request) {
         snackService.create(request);
         return ResponseEntity.status(HttpStatus.CREATED).build();
     }
  
-    @PutMapping("admin/snacks/{id}")
+    @PutMapping("/admin/snacks/{id}")
     public ResponseEntity<SnackResponse> update(
             @PathVariable UUID id,
             @Valid @RequestBody SnackRequest request) {
         return ResponseEntity.ok(snackService.update(id, request));
     }
  
-    @DeleteMapping("admin/snacks/{id}")
+    @DeleteMapping("/admin/snacks/{id}")
     public ResponseEntity<Void> delete(@PathVariable UUID id) {
         snackService.delete(id);
         return ResponseEntity.noContent().build();

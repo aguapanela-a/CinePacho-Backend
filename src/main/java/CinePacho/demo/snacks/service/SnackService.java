@@ -32,7 +32,7 @@ public class SnackService {
         return toSnackByMultiplexList(snackRepository.findAll());
     }
 
-    //Obtener los snaks de un multiplex (SOLO EMPLEADO)
+    //Obtener los snaks de un multiplex (SOLO manager)
     public List<SnackResponse> getAllByMultiplex(){
         UUID multiplexId = accessValidator.getScopedMultiplexIdForAdminOrManager();
         accessValidator.validateMultiplexAccess(multiplexId);

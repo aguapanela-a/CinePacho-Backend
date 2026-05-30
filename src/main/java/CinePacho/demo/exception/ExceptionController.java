@@ -37,7 +37,7 @@ public class ExceptionController {
     @ExceptionHandler(MethodArgumentTypeMismatchException.class)
     public ResponseEntity<ErrorDTO> handleEnumMismatch(MethodArgumentTypeMismatchException ex) {
         ErrorDTO error = new ErrorDTO(HttpStatus.BAD_REQUEST.value(),"Valor inválido para el parámetro: " + ex.getName() +
-                ". Por favor, envíe un parámetro válido.") ;
+                ". Por favor, envíe un parámetro válido." + ex.getMessage() ) ;
 
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(error);
     }
