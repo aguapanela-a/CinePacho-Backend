@@ -53,6 +53,10 @@ public class SnackService {
     }
  
     public SnackResponse create(SnackRequest request) {
+
+        //validar que si es manager solo pueda crear snacks en su multiplex
+        accessValidator.validateMultiplexAccess(request.getMultiplexId());
+
         SnackEntity snack = SnackEntity.builder()
                 .name(request.getNameSnack())
                 .description(request.getDescriptionSnack())
