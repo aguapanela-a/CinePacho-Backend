@@ -10,4 +10,6 @@ import java.util.UUID;
 public interface MovieScreeningRepository extends JpaRepository<MovieScreening, UUID> {
     List<MovieScreening> findMovieScreeningByRoom_Id(UUID roomId);
     List<MovieScreening> findDistinctByRoom_IdInOrderByDateTimeAsc(Collection<UUID> roomIds);
+
+    List<MovieScreening> findAllByRoom_Multiplex_Id(UUID roomMultiplexId);
 }

@@ -235,7 +235,7 @@ Response 200:
 
 Descripcion: lista snacks disponibles para compra o venta. Solo retorna snacks con cantidad mayor a cero.
 
-Acceso: `BUYER`, `EMPLOYEE`.
+Acceso: `BUYER`, `EMPLOYEE`, `MANAGER`.
 
 Response 200:
 
@@ -255,19 +255,19 @@ Response 200:
 
 Descripcion: lista todos los snacks, incluyendo agotados.
 
-Acceso: `ADMIN`.
+Acceso: `ADMIN`, `MANAGER`.
 
 ## GET /api/admin/snacks/{id}
 
 Descripcion: obtiene un snack por id.
 
-Acceso: `ADMIN`.
+Acceso: `ADMIN`, `MANAGER`.
 
 ## POST /api/admin/snacks
 
 Descripcion: crea un snack.
 
-Acceso: `ADMIN`.
+Acceso: `ADMIN`, `MANAGER`.
 
 Request:
 
@@ -286,17 +286,17 @@ Response 201: sin body.
 
 Descripcion: actualiza un snack.
 
-Acceso: `ADMIN`.
+Acceso: `ADMIN`, `MANAGER`.
 
 ## DELETE /api/admin/snacks/{id}
 
 Descripcion: elimina un snack.
 
-Acceso: `ADMIN`.
+Acceso: `ADMIN`, `MANAGER`.
 
 Response 204: sin body.
 
-Nota: snacks no tienen relacion con multiplex en el modelo actual. Por eso su CRUD no se asigna a `MANAGER`.
+Nota: actualmente los snacks no estan modelados por multiplex en el modelo de datos. Se habilito acceso a `MANAGER` para permitir que un gerente gestione snacks relacionados a su multiplex (la validacion de alcance y permisos puede centralizarse con `AccessValidator` si es necesario).
 
 ---
 
@@ -629,9 +629,10 @@ Validacion:
 - `/api/auth/login`: publico.
 - `/api/auth/verify`: publico.
 - `GET /api/review/movie/**`: publico.
+- `GET /api/topRatedMovies`: publico.
 - `GET /api/movie/multiplex/**`: `BUYER`, `EMPLOYEE`.
 - `/api/seats/**`: `BUYER`, `EMPLOYEE`.
-- `GET /api/snacks`: `BUYER`, `EMPLOYEE`.
+- `GET /api/snacks`: `BUYER`, `EMPLOYEE`, `MANAGER`.
 - `/api/checkout/**`: `BUYER`, `EMPLOYEE`.
 - `GET /api/*/review`: `BUYER`, `ADMIN`.
 - `POST /api/*/review/**`: `BUYER`.
@@ -643,13 +644,45 @@ Validacion:
 - `DELETE /api/admin/rooms/**`: `ADMIN`, `MANAGER`.
 - `/api/admin/register_employee`: `ADMIN`, `MANAGER`.
 - `/api/admin/movie/**`: `ADMIN`, `MANAGER`.
-- `/api/admin/snacks` y `/api/admin/snacks/**`: `ADMIN`.
+- `/api/admin/snacks` y `/api/admin/snacks/**`: `ADMIN`, `MANAGER`.
 - `/api/admin/**`: `ADMIN`.
 - Cualquier otra ruta: bloqueada.
 
 ---
 
-# 12. Notas generales
+# 12. Top 10 (público), Trailers y flujo de multiplex
+
+## GET /topRatedMovies
+
+Descripcion: devuelve las 10 peliculas con mejor rating en el sistema. Cada elemento es un `MovieListingResponseDTO` (info basica: id, titulo, generos, año de estreno, poster y backdrop).
+
+Acceso: publico (sin autenticacion). Front: en la pantalla de inicio el front debe llamar `/api/topRatedMovies` y renderizar los 10 elementos. Cada tarjeta debe abrir la pagina de detalle de la pelicula al hacer click y debe mostrar un boton "Play" encima del poster.
+
+Uso del trailer (front en React/JSX): al hacer click en el boton "Play" enviar GET a `/api/movie/trailer/{movieId}`. El backend devuelve la "key" del video de TMDB (string). En el front se puede reproducir con la URL:
+
+https://www.youtube.com/watch?v={key}
+
+(Otros usos: para embed usar `https://www.youtube.com/embed/{key}` si se quiere iframe).
+
+Notas: el endpoint es publico para permitir mostrar el Top 10 en la home sin login.
+
+---
+
+## Flujo ideal para multiplex (acceso BUYYER)
+
+1. Acceder a un multiplex (front autenticado como `BUYER`) -> llamar GET `/api/movie/multiplex/{multiplexId}`. Este endpoint devuelve las 8 peliculas con mejor rating disponibles en ese multiplex como `MovieListingResponseDTO` (info basica). El backend usa `getTop8ByMultiplexId`.
+
+2. En la vista del multiplex mostrar esas 8 peliculas (cada tarjeta con poster y titulo). Si el usuario hace click en una de esas 8, el front debe llamar GET `/api/movie/multiplex/{multiplexId}/selectors/{movieId}` — este endpoint devuelve un `MovieSelectorDTO` con todas las funciones disponibles y, muy importante, contiene la `key` del trailer para poder reproducirlo.
+
+3. Barra de búsqueda dentro del multiplex: usar GET `/api/movie/multiplex/{multiplexId}/selectors?query={texto}` (si `query` vacio retorna la cartelera). Importante: por diseño la respuesta de la barra de búsqueda devuelve como maximo 4 `MovieSelectorDTO` (limite en backend para evitar sobrecarga de peticiones). Cada `MovieSelectorDTO` ya incluye la `key` del trailer.
+
+4. Si se desea obtener solo la pelicula seleccionada (sin el listado), usar GET `/api/movie/multiplex/{multiplexId}/selectors/{movieId}`.
+
+Resumen: home -> `/api/topRatedMovies` (publico, top10). Multiplex -> `/api/movie/multiplex/{multiplexId}` (buyer) que llama internamente a `getTop8ByMultiplexId`. La busqueda en multiplex usa `/api/movie/multiplex/{multiplexId}/selectors?query=` y devuelve max 4 resultados.
+
+---
+
+# 13. Notas generales (tecnicas)
 
 - Todas las rutas protegidas requieren header `Authorization: Bearer {token}`.
 - UUID se envia como string.

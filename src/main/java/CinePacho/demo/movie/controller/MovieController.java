@@ -1,6 +1,6 @@
 package CinePacho.demo.movie.controller;
 
-import CinePacho.demo.movie.dto.MovieListingResponseDTO;
+import CinePacho.demo.movie.dto.response.MovieListingResponseDTO;
 import CinePacho.demo.movie.dto.request.CreateScreeningDTO;
 import CinePacho.demo.movie.dto.response.MovieResponseDTO;
 import CinePacho.demo.movie.dto.response.MovieSearchResponseDTO;
@@ -43,7 +43,7 @@ public class MovieController {
         return ResponseEntity.ok(movieServices.searchMovieSelectorsByMultiplex(multiplexId, query));
     }
 
-    //Endpoint para obtener  una unica "info" de peli en la cartelera
+    //Endpoint para obtener una unica "info" de peli en la cartelera
     @GetMapping("/movie/multiplex/{multiplexId}/selectors/{movieId}")
     public ResponseEntity<MovieSelectorDTO> getMovieSelectorByMultiplexAndMovie(
             @PathVariable UUID multiplexId,
@@ -52,6 +52,26 @@ public class MovieController {
         return ResponseEntity.ok(movieServices.getMovieSelectorByMultiplexAndMovie(multiplexId, movieId));
     }
 
+    //solo puede acceder buyer
+    @GetMapping("/movie/multiplex/{multiplexId}")
+    public ResponseEntity<List<MovieListingResponseDTO>> getMovieListingByMultiplex(
+            @PathVariable UUID multiplexId
+    ) {
+        return ResponseEntity.ok(movieScreeningService.getTop8ByMultiplexId(multiplexId));
+    }
+
+    //Metodo para obtener el string de la key
+    //Modo de uso en front: https://www.youtube.com/watch?v={key}
+    @GetMapping("/movie/trailer/{movieId}")
+    public ResponseEntity<String> getMovieTrailer(@PathVariable Long movieId) {
+        return ResponseEntity.ok(movieServices.getMovieTrailer(movieId));
+    }
+
+    //Top 10 peliculas con más rating global
+    @GetMapping("/topRatedMovies")
+    public ResponseEntity<List<MovieListingResponseDTO>> getTopRatedMovies() {
+        return ResponseEntity.ok(movieScreeningService.getTop10Movies());
+    }
 
     //Buscar la película en la API externa
     @GetMapping("/admin/movie/search")
@@ -98,11 +118,6 @@ public class MovieController {
     }
 
 
-    //Top 10 peliculas con más rating global
-    @GetMapping("/topRatedMovies")
-    public ResponseEntity<List<MovieListingResponseDTO>> getTopRatedMovies() {
-        return ResponseEntity.ok(movieScreeningService.getTop10Movies());
-    }
 
 
 

@@ -66,6 +66,8 @@ public class Config {
                                 "/api/auth/login",
                                 "/api/auth/verify"
                         ).permitAll()
+                        // Top 10 peliculas (home) publico
+                        .requestMatchers(HttpMethod.GET, "/api/topRatedMovies").permitAll()
 
                         // Visualizacion publica de reviews por pelicula.
                         .requestMatchers(HttpMethod.GET, "/api/review/movie/**").permitAll()
@@ -73,7 +75,7 @@ public class Config {
                         // Portal buyer y portal empleado: cartelera, sillas, snacks y checkout.
                         .requestMatchers(HttpMethod.GET, "/api/movie/multiplex/**").hasAnyAuthority(BUYER, EMPLOYEE)
                         .requestMatchers("/api/seats/**").hasAnyAuthority(BUYER, EMPLOYEE)
-                        .requestMatchers(HttpMethod.GET, "/api/snacks").hasAnyAuthority(BUYER, EMPLOYEE)
+                        .requestMatchers(HttpMethod.GET, "/api/snacks").hasAnyAuthority(BUYER, EMPLOYEE, MANAGER)
                         .requestMatchers("/api/checkout/**").hasAnyAuthority(BUYER, EMPLOYEE)
 
                         // Reviews propias de compradores. El servicio valida identidad del BUYER.
@@ -93,8 +95,8 @@ public class Config {
                         .requestMatchers("/api/admin/register_employee").hasAnyAuthority(ADMIN, MANAGER)
                         .requestMatchers("/api/admin/movie/**").hasAnyAuthority(ADMIN, MANAGER)
 
-                        // Snacks aun no estan modelados por multiplex, por eso el CRUD queda global para ADMIN.
-                        .requestMatchers("/api/admin/snacks/**", "/api/admin/snacks").hasAuthority(ADMIN)
+                        // Snacks aun no estan modelados por multiplex, por eso el CRUD queda global para ADMIN y MANAGER local.
+                        .requestMatchers("/api/admin/snacks/**", "/api/admin/snacks").hasAnyAuthority(ADMIN, MANAGER)
 
                         // Cualquier endpoint administrativo no clasificado queda reservado para ADMIN.
                         .requestMatchers("/api/admin/**").hasAuthority(ADMIN)

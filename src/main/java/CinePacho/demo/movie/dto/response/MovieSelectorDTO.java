@@ -9,5 +9,6 @@ import java.util.List;
 public record MovieSelectorDTO(
         TmdbMovieDTO movieInfo,
         Double rating,
+        String key,
         List<ScreeningInfoDTO> screenings
 ) { }
