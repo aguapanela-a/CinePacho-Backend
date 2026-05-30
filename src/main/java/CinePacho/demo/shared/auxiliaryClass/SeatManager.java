@@ -20,4 +20,5 @@ public interface SeatManager {
     void updateSeatStatus(UUID seatId, SeatStatus status);
     void scheduleRelease(UUID screeningId, UUID roomId, LocalDateTime screeningStartTime);
     void releaseAllSeatsInRoom(UUID roomId);
+    SeatEntity getSeatById(UUID seatId);
 }

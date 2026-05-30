@@ -145,11 +145,13 @@ public class StripeService {
         //añadir película al historuiial de pelis vistas por el usuario
         registerWatchedMovieForBuyer(token, request, summary, payment);
 
-        //cambiar el estado de las sillas a vendidas
-        request.getSeats().stream()
-                .forEach(
-                        seatsIDs -> seatManager.updateSeatStatus(seatsIDs.getSeatId(), SeatStatus.SOLD)
-                );
+        //cambiar el estado de las sillas a vendidas solo cuando estén BLOCKED pues es el estado de la silla al seleccionarla antes de la compra
+        request.getSeats().forEach(
+                        seatsIDs -> {
+                            if(seatManager.getSeatById(seatsIDs.getSeatId()).getStatus() == SeatStatus.BLOCKED){
+                                seatManager.updateSeatStatus(seatsIDs.getSeatId(), SeatStatus.SOLD);
+                            }
+                        });
 
         //inicializo el timer para liberar las sillas en 3 horas para la funcion de la request
         MovieScreening screening = movieManager.getMovieScreeningById(request.getScreeningId());
