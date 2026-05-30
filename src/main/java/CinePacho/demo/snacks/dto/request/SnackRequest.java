@@ -3,7 +3,8 @@ package CinePacho.demo.snacks.dto.request;
 import jakarta.validation.constraints.*;
 import lombok.*;
 import java.math.BigDecimal;
- 
+import java.util.UUID;
+
 @Getter
 @Setter
 @NoArgsConstructor
@@ -26,4 +27,7 @@ public class SnackRequest {
     @NotNull(message = "La cantidad es obligatoria")
     @Min(value = 0, message = "La cantidad no puede ser negativa")
     private int quantitySnack;
+
+    @NotNull(message = "El id del multiplex es obligatorio")
+    private UUID multiplexId;
 }

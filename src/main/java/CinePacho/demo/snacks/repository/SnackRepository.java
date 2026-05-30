@@ -12,5 +12,7 @@ import java.util.UUID;
 @Repository
 public interface SnackRepository extends JpaRepository<SnackEntity, UUID> {
     // Lista snacks con inventario disponible para la vista de compra
-    List<SnackEntity> findByQuantityGreaterThan(int quantity);
+    //List<SnackEntity> findByQuantityGreaterThan(int quantity);
+
+    List<SnackEntity> findByQuantityGreaterThanAndMultiplex_Id(int quantityIsGreaterThan, UUID multiplexId);
 }

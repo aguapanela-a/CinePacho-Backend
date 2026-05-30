@@ -4,6 +4,8 @@ import java.util.List;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
+import CinePacho.demo.shared.auxiliaryClass.MultiplexProvider;
+import CinePacho.demo.shared.serviceSecurity.AccessValidator;
 import org.springframework.stereotype.Service;
 
 import CinePacho.demo.snacks.dto.request.SnackRequest;
@@ -18,17 +20,23 @@ import lombok.RequiredArgsConstructor;
 public class SnackService {
  
     private final SnackRepository snackRepository;
- 
+    private final AccessValidator accessValidator;
+    private final MultiplexProvider multiplexProvider;
+
+    //Obtener todos los snacks
     public List<SnackResponse> getAll() {
+
         return snackRepository.findAll()
                 .stream()
                 .map(this::toResponse)
                 .collect(Collectors.toList());
     }
 
-    // Lista snacks disponibles para compra (cantidad > 0)
-    public List<SnackResponse> getAllAvailable() {
-        return snackRepository.findByQuantityGreaterThan(0)
+    // Lista snacks disponibles para compra (cantidad > 0) en un multiplex
+    public List<SnackResponse> getAllAvailable(UUID multiplexId) {
+
+
+        return snackRepository.findByQuantityGreaterThanAndMultiplex_Id(0, multiplexId)
                 .stream()
                 .map(this::toResponse)
                 .collect(Collectors.toList());
@@ -46,6 +54,7 @@ public class SnackService {
                 .description(request.getDescriptionSnack())
                 .price(request.getPriceSnack())
                 .quantity(request.getQuantitySnack())
+                .multiplex(multiplexProvider.getMultiplexById(request.getMultiplexId()))
                 .build();
         return toResponse(snackRepository.save(snack));
     }

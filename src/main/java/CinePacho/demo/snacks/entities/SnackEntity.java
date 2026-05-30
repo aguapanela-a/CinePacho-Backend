@@ -1,5 +1,6 @@
 package CinePacho.demo.snacks.entities;
 
+import CinePacho.demo.multiplex.entitites.MultiplexEntity;
 import jakarta.persistence.*;
 import lombok.*;
  
@@ -31,4 +32,8 @@ public class SnackEntity {
 
     @Column(name = "cantidad", nullable = false)
     private int quantity;
+
+    @ManyToOne
+    @JoinColumn(name = "multiplex_id", nullable = false)
+    private MultiplexEntity multiplex;
 }

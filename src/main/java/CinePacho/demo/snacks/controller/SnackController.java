@@ -28,12 +28,15 @@ public class SnackController {
  
     private final SnackService snackService;
 
-    // Endpoint público para compradores: lista de snacks disponibles
-    @GetMapping("snacks")
-    public ResponseEntity<List<SnackResponse>> getAvailable() {
-        return ResponseEntity.ok(snackService.getAllAvailable());
+    // Endpoint público para compradores: lista de snacks disponibles en un multiplex
+    @GetMapping("snacks/{multiplexId}")
+    public ResponseEntity<List<SnackResponse>> getAvailable(
+            @PathVariable UUID multiplexId
+    ) {
+        return ResponseEntity.ok(snackService.getAllAvailable(multiplexId));
     }
-  
+
+    //obtener todos los snacks de la BD central
     @GetMapping("admin/snacks")
     public ResponseEntity<List<SnackResponse>> getAll() {
         return ResponseEntity.ok(snackService.getAll());
