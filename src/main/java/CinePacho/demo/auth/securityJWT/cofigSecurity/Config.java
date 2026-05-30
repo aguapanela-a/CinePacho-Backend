@@ -12,6 +12,7 @@ import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.security.web.access.expression.WebExpressionAuthorizationManager;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.web.cors.CorsConfiguration;
@@ -26,8 +27,10 @@ public class Config {
 
     private static final String ADMIN = "ADMIN";
     private static final String MANAGER = "MANAGER";
-    private static final String EMPLOYEE = "EMPLOYEE";
     private static final String BUYER = "BUYER";
+    // Cambio: excluir CLEANER y ROOM_ATTENDANT de ventas aunque tengan autoridad EMPLOYEE.
+    private static final String SELL_PORTAL_ACCESS =
+            "hasAnyAuthority('BUYER','EMPLOYEE','MANAGER') and !hasAnyAuthority('CLEANER','ROOM_ATTENDANT')";
 
     private final JwtAuthenticationFilter jwtAuthenticationFilter;
     private final UserDetailsService userDetailService;
@@ -73,10 +76,15 @@ public class Config {
                         .requestMatchers(HttpMethod.GET, "/api/review/movie/**").permitAll()
 
                         // Portal buyer y portal empleado: cartelera, sillas, snacks y checkout.
-                        .requestMatchers(HttpMethod.GET, "/api/movie/multiplex/**").hasAnyAuthority(BUYER, EMPLOYEE)
-                        .requestMatchers("/api/seats/**").hasAnyAuthority(BUYER, EMPLOYEE)
-                        .requestMatchers(HttpMethod.GET, "/api/snacks").hasAnyAuthority(BUYER, EMPLOYEE, MANAGER)
-                        .requestMatchers("/api/checkout/**").hasAnyAuthority(BUYER, EMPLOYEE)
+                        // Todos los employees (EMPLOYEE y MANAGER) pueden acceder, EXCEPTO CLEANER y ROOM_ATTENDANT.
+                        .requestMatchers(HttpMethod.GET, "/api/movie/multiplex/**")
+                        .access(new WebExpressionAuthorizationManager(SELL_PORTAL_ACCESS))
+                        .requestMatchers("/api/seats/**")
+                        .access(new WebExpressionAuthorizationManager(SELL_PORTAL_ACCESS))
+                        .requestMatchers(HttpMethod.GET, "/api/snacks")
+                        .access(new WebExpressionAuthorizationManager(SELL_PORTAL_ACCESS))
+                        .requestMatchers("/api/checkout/**")
+                        .access(new WebExpressionAuthorizationManager(SELL_PORTAL_ACCESS))
 
                         // Reviews propias de compradores. El servicio valida identidad del BUYER.
                         .requestMatchers(HttpMethod.GET, "/api/*/review").hasAnyAuthority(BUYER, ADMIN)

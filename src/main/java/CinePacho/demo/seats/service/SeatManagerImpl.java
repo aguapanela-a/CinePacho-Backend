@@ -89,9 +89,20 @@ public class SeatManagerImpl implements SeatManager {
         return seatRepository.findAllByIdWithRoomAndMultiplex(ids);
     }
 
+    /**
+     * Actualiza el estado de una silla a partir de su ID.
+     * Utiliza getReferenceById para obtener la referencia proxied sin cargar la entidad completa,
+     * luego establece el nuevo estado y persiste el cambio en la base de datos.
+     * 
+     * @param seatId UUID de la silla a actualizar
+     * @param status Nuevo estado de la silla (AVAILABLE, BLOCKED, SOLD, etc)
+     */
     @Override
     public void updateSeatStatus(UUID seatId, SeatStatus status) {
         SeatEntity seat = seatRepository.getReferenceById(seatId);
+        // CORRECCIÓN: Se agregó setStatus() para realmente actualizar el estado.
+        // Antes no se estaba cambiando nada, solo guardaba la misma entidad sin modificaciones.
+        seat.setStatus(status);
         seatRepository.save(seat);
     }
 

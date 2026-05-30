@@ -44,7 +44,7 @@ public class EmployeeFactory implements UserFactory<RegisterEmployeeRequestDTO> 
         employee.setIdentityCard(extraData.indentityCard());
         employee.setPhoneNumber(extraData.phoneNumber());
         employee.setSalary(extraData.salary());
-        employee.setPosition(extraData.position());
+        employee.setRol(extraData.rol());
         employee.setUniqueCode(nextUniqueCode());
 
 

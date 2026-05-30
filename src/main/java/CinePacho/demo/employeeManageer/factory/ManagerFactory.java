@@ -43,7 +43,7 @@ public class ManagerFactory implements UserFactory<RegisterEmployeeRequestDTO> {
         manager.setIdentityCard(extraData.indentityCard());
         manager.setPhoneNumber(extraData.phoneNumber());
         manager.setSalary(extraData.salary());
-        manager.setPosition(extraData.position());
+        manager.setRol(extraData.rol());
         manager.setUniqueCode(nextUniqueCode());
 
         employeeRepository.save(manager);

@@ -1,5 +1,6 @@
 package CinePacho.demo.employeeManageer.dto.request;
 
+import CinePacho.demo.employeeManageer.enumeration.RolEmployee;
 import CinePacho.demo.shared.enumeration.UserType;
 import jakarta.validation.constraints.*;
 
@@ -35,7 +36,7 @@ public record RegisterEmployeeRequestDTO (
         BigDecimal salary,
 
         @NotNull(message = "El rol del empleado es obligatorio y debe ser válido")
-        String position,
+        RolEmployee rol,
 
         @NotNull(message = "El multiplex es obligatorio")
         UUID multiplexId // Multiplex asignado al empleado/gerente
