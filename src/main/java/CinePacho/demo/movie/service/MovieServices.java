@@ -25,7 +25,6 @@ import java.util.Map;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
-@AllArgsConstructor
 @Service
 public class MovieServices {
     private final RoomManager roomManager;
@@ -37,6 +36,13 @@ public class MovieServices {
     private String accessToken;
 
     private static final int LIMIT = 4;
+
+    public MovieServices(RoomManager roomManager, MovieScreeningRepository movieScreeningRepository, MovieRepository movieRepository, WebClient webClient) {
+        this.roomManager = roomManager;
+        this.movieScreeningRepository = movieScreeningRepository;
+        this.movieRepository = movieRepository;
+        this.webClient = webClient;
+    }
 
     // Provee la lista de movieScreenings por multiplexId sin acoplar movie al repositorio de rooms.
     private List<MovieScreening> movieScreeningsByMultiplexId(UUID multiplexId) {
