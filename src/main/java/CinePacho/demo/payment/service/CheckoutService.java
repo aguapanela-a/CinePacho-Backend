@@ -68,7 +68,7 @@ public class CheckoutService {
     }
 
     /**
-     * Método interno que construye el resumen calculando los precios de sillas y snacks, validando su existencia y disponibilidad.
+     * Méeodo interno que construye el resumen calculando los precios de sillas y snacks, validando su existencia y disponibilidad.
      */
     private CheckoutSummaryResponse buildSummary(CheckoutRequest request, String token) {
         String userEmail = jwtService.extractEmail(token);

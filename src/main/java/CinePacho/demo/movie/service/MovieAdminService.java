@@ -75,7 +75,7 @@ public class MovieAdminService {
         //Busca primero en BD
         if (movieRepository.existsById(id)) {
             MovieEntity movieEntity = movieRepository.getReferenceById(id);
-            return new MovieResponseDTO(movieEntity.getOriginalTitle(), movieEntity.getDirector(), "Película seleccionada con éxito");
+            return new MovieResponseDTO(movieEntity.getOriginalTitle(), "Película seleccionada con éxito");
         }
 
         // si no está en BD la busca en la API
@@ -105,7 +105,6 @@ public class MovieAdminService {
 
         return new MovieResponseDTO(
             movieEntity.getOriginalTitle(), 
-            movieEntity.getDirector(), 
             "Película añadida con éxito"
         );
     }
@@ -137,7 +136,6 @@ public class MovieAdminService {
                 movie.getOriginalTitle(),
                 movie.getOverview(),
                 movie.getRating(),
-                movie.getDirector(),
                 screening.getStatus(),
                 getGenreList(movie)
         );
@@ -177,8 +175,6 @@ public class MovieAdminService {
             movieDTO.genreIds().forEach(gdto -> genreEmbeddables.add(new GenreEmbeddable(gdto.id(), gdto.name())));
         }
 
-        System.out.println("Director: " + movieDTO.director());
-        System.out.println("--------------------------------------------------------");
 
         movieEntity.setGenres(genreEmbeddables);
         movieEntity.setOriginalLanguage(movieDTO.originalLanguage());
@@ -186,9 +182,8 @@ public class MovieAdminService {
         movieEntity.setOverview(movieDTO.overview());
         movieEntity.setPosterPath(movieDTO.posterPath());
         movieEntity.setReleaseDate(movieDTO.releaseDate());
-        movieEntity.setDirector(movieDTO.director());
 
-        movieEntity.setRating(0.0); // Inicializa el rating en 0.0, se actualizará cuando los usuarios califiquen la película
+        movieEntity.setRating(2.5); // Inicializa el rating en 2.5, se actualizará cuando los usuarios califiquen la película
         return movieEntity;
     }
 

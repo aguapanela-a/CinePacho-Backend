@@ -33,8 +33,6 @@ public record ScreeningResponseDTO(
 
         Double rating,
 
-        String director,
-
         @NotBlank
         ScreeningStatus status,
 

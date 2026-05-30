@@ -29,10 +29,7 @@ public record TmdbMovieDTO(
         String posterPath,
 
         @JsonProperty("release_date")
-        String releaseDate,
-
-        @JsonProperty("director")
-        String director
+        String releaseDate
 
 ) {
 }

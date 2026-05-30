@@ -77,18 +77,17 @@ public class MovieServices {
     public String getMovieTrailer(Long movieId) {
         TrailerResponseDTO movieKey = webClient.get()
                 .uri("/movie/"+movieId+"/videos?language=es-mx")
-                .header("Authorization: Bearer "+accessToken)
-                .header("accept: application/json")
+                .header("Authorization","Bearer "+accessToken)
+                .header("accept" ,"application/json")
                 .retrieve()
                 .bodyToMono(TrailerResponseDTO.class)
                 .block();
 
-        assert movieKey != null;
-        if (movieKey.results().isEmpty()) {
-            throw new CinePachoException("Esta película no tiene trailer :(");
+        if(movieKey.results().isEmpty()) {
+            return "No hay trailer disponible para esta pelicula";
         }
 
-        return movieKey.results().getFirst().key();
+        return movieKey.results().getFirst().key() != null ? movieKey.results().getFirst().key() : " " ;
     }
 
     //metodo para buscar MovieSelectorDTO por multiplex y por titulo
@@ -164,7 +163,6 @@ public class MovieServices {
                 .overview(movie.getOverview())
                 .posterPath(movie.getPosterPath())
                 .releaseDate(movie.getReleaseDate())
-                .director(movie.getDirector())
                 .build();
     }
 

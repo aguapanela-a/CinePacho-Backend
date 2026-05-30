@@ -53,6 +53,7 @@ public class MovieController {
     }
 
     //solo puede acceder buyer
+    //endpoitn paa obtener las 8 peliculas en cartelera de un multiplex
     @GetMapping("/movie/multiplex/{multiplexId}")
     public ResponseEntity<List<MovieListingResponseDTO>> getMovieListingByMultiplex(
             @PathVariable UUID multiplexId
