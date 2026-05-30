@@ -17,5 +17,5 @@ public interface SnackRepository extends JpaRepository<SnackEntity, UUID> {
 
     List<SnackEntity> findByQuantityGreaterThanAndMultiplex_Id(int quantityIsGreaterThan, UUID multiplexId);
 
-    List<SnackResponse> findAllByMultiplex_Id(UUID multiplexId);
+    List<SnackEntity> findAllByMultiplex_Id(UUID multiplexId);
 }

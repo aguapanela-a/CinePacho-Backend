@@ -27,14 +27,20 @@ public class SnackService {
     private final AccessValidator accessValidator;
     private final MultiplexProvider multiplexProvider;
 
-    //Obtener los snacks de la BD central listados por multiplex
+    //Obtener los snacks de la BD central listados por multiplex (SOLO ADMIN)
     public List<SnackByMultiplex> getAll() {
         return toSnackByMultiplexList(snackRepository.findAll());
     }
 
-    private List<SnackResponse> getAllByMultiplexId(UUID multiplexId) {
-        return snackRepository.findAllByMultiplex_Id(multiplexId);
+    //Obtener los snaks de un multiplex (SOLO EMPLEADO)
+    public List<SnackResponse> getAllByMultiplex(){
+        UUID multiplexId = accessValidator.getScopedMultiplexIdForAdminOrManager();
+        accessValidator.validateMultiplexAccess(multiplexId);
+        List<SnackEntity> snacksByMultiplex = snackRepository.findAllByMultiplex_Id(multiplexId);
+
+        return snacksByMultiplex.stream().map(this::toResponse).collect(Collectors.toList());
     }
+
 
     // Lista snacks disponibles para compra (cantidad > 0) en un multiplex
     public List<SnackResponse> getAllAvailable(UUID multiplexId) {
