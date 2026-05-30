@@ -4,6 +4,7 @@ package CinePacho.demo.snacks.controller;
 import java.util.List;
 import java.util.UUID;
 
+import CinePacho.demo.snacks.dto.response.SnackByMultiplex;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -28,7 +29,7 @@ public class SnackController {
  
     private final SnackService snackService;
 
-    // Endpoint público para compradores: lista de snacks disponibles en un multiplex
+    // Endpoint público para compradores: lista de snacks disponibles en un multiplex (solo admin)
     @GetMapping("snacks/{multiplexId}")
     public ResponseEntity<List<SnackResponse>> getAvailable(
             @PathVariable UUID multiplexId
@@ -38,7 +39,7 @@ public class SnackController {
 
     //obtener todos los snacks de la BD central
     @GetMapping("admin/snacks")
-    public ResponseEntity<List<SnackResponse>> getAll() {
+    public ResponseEntity<List<SnackByMultiplex>> getAll() {
         return ResponseEntity.ok(snackService.getAll());
     }
  

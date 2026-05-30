@@ -17,4 +17,5 @@ public class SnackResponse {
     private String descriptionSnack;
     private BigDecimal priceSnack;
     private int quantitySnack;
+    private Boolean availableSnack;
 }

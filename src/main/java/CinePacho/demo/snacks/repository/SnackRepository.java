@@ -1,6 +1,7 @@
 package CinePacho.demo.snacks.repository;
 
 
+import CinePacho.demo.snacks.dto.response.SnackResponse;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
@@ -15,4 +16,6 @@ public interface SnackRepository extends JpaRepository<SnackEntity, UUID> {
     //List<SnackEntity> findByQuantityGreaterThan(int quantity);
 
     List<SnackEntity> findByQuantityGreaterThanAndMultiplex_Id(int quantityIsGreaterThan, UUID multiplexId);
+
+    List<SnackResponse> findAllByMultiplex_Id(UUID multiplexId);
 }

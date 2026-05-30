@@ -1,11 +1,15 @@
 package CinePacho.demo.snacks.service;
 
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
+import CinePacho.demo.multiplex.entitites.MultiplexEntity;
 import CinePacho.demo.shared.auxiliaryClass.MultiplexProvider;
 import CinePacho.demo.shared.serviceSecurity.AccessValidator;
+import CinePacho.demo.snacks.dto.response.SnackByMultiplex;
 import org.springframework.stereotype.Service;
 
 import CinePacho.demo.snacks.dto.request.SnackRequest;
@@ -23,13 +27,13 @@ public class SnackService {
     private final AccessValidator accessValidator;
     private final MultiplexProvider multiplexProvider;
 
-    //Obtener todos los snacks
-    public List<SnackResponse> getAll() {
+    //Obtener los snacks de la BD central listados por multiplex
+    public List<SnackByMultiplex> getAll() {
+        return toSnackByMultiplexList(snackRepository.findAll());
+    }
 
-        return snackRepository.findAll()
-                .stream()
-                .map(this::toResponse)
-                .collect(Collectors.toList());
+    private List<SnackResponse> getAllByMultiplexId(UUID multiplexId) {
+        return snackRepository.findAllByMultiplex_Id(multiplexId);
     }
 
     // Lista snacks disponibles para compra (cantidad > 0) en un multiplex
@@ -84,7 +88,36 @@ public class SnackService {
                 .nameSnack(snack.getName())
                 .descriptionSnack(snack.getDescription())
                 .priceSnack(snack.getPrice())
+                .availableSnack(snack.getQuantity() > 0)
                 .quantitySnack(snack.getQuantity())
                 .build();
+    }
+
+    private List<SnackByMultiplex> toSnackByMultiplexList(List<SnackEntity> snack) {
+
+        if (snack.isEmpty()) {
+            return null;
+        }
+
+        List<SnackByMultiplex> snackByMultiplexList = new ArrayList<>();
+
+        Map<MultiplexEntity, List<SnackEntity>> snacksByMultiplex = snack.stream()
+                .collect(Collectors.groupingBy(SnackEntity::getMultiplex));
+
+        snacksByMultiplex.forEach((multiplex, snacks) -> {
+            List<SnackResponse> snackResponses = snacks.stream()
+                    .map(this::toResponse)
+                    .collect(Collectors.toList());
+
+
+            SnackByMultiplex snackByMultiplex = SnackByMultiplex.builder()
+                    .multiplexName(multiplex.getName())
+                    .snacks(snackResponses)
+                    .build();
+
+            snackByMultiplexList.add(snackByMultiplex);
+        });
+
+        return snackByMultiplexList;
     }
 }

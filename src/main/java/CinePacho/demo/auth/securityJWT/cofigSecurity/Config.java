@@ -96,7 +96,8 @@ public class Config {
                         .requestMatchers("/api/admin/movie/**").hasAnyAuthority(ADMIN, MANAGER)
 
                         // Snacks aun no estan modelados por multiplex, por eso el CRUD queda global para ADMIN y MANAGER local.
-                        .requestMatchers("/api/admin/snacks/**", "/api/admin/snacks").hasAnyAuthority(ADMIN, MANAGER)
+                        .requestMatchers("/api/admin/snacks/**").hasAnyAuthority(ADMIN, MANAGER)
+                        .requestMatchers(HttpMethod.GET, "/api/admin/snacks").hasAuthority(ADMIN)
 
                         // Cualquier endpoint administrativo no clasificado queda reservado para ADMIN.
                         .requestMatchers("/api/admin/**").hasAuthority(ADMIN)
