@@ -78,4 +78,10 @@ public class SeatManagerImpl implements SeatManager {
         return seatRepository.findAllByIdWithRoomAndMultiplex(ids);
     }
 
+    @Override
+    public void updateSeatStatus(UUID seatId, SeatStatus status) {
+        SeatEntity seat = seatRepository.getReferenceById(seatId);
+        seatRepository.save(seat);
+    }
+
 }

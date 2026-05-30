@@ -10,8 +10,10 @@ import CinePacho.demo.payment.dto.response.SnackSummaryResponse;
 import CinePacho.demo.payment.entities.PaymentEntity;
 import CinePacho.demo.payment.enumeration.PaymentStatus;
 import CinePacho.demo.payment.repository.PaymentRepository;
+import CinePacho.demo.seats.enumeration.SeatStatus;
 import CinePacho.demo.shared.auxiliaryClass.BuyerManager;
 import CinePacho.demo.shared.auxiliaryClass.MovieManager;
+import CinePacho.demo.shared.auxiliaryClass.SeatManager;
 import CinePacho.demo.shared.auxiliaryClass.UserManager;
 import CinePacho.demo.shared.enumeration.UserType;
 import CinePacho.demo.shared.serviceSecurity.JwtService;
@@ -38,15 +40,14 @@ public class StripeService {
     private final MovieManager movieManager;
     private final JwtService jwtService;
     private final UserManager userManager;
+    private final SeatManager seatManager;
 
     @Value("${stripe.api.key}")
     private String stripeApiKey;
 
     @Value("${app.base-url}")
-    private static String baseUrl;
+    private String baseUrl;
 
-    private static final String SUCCESS_URL = baseUrl+"/api/checkout/stripe/success";
-    private static final String CANCEL_URL = baseUrl+"/api/checkout/stripe/cancel";
     private static final String CURRENCY = "COP";
 
     @Autowired
@@ -56,7 +57,7 @@ public class StripeService {
             BuyerManager buyerManager,
             MovieManager movieManager,
             JwtService jwtService,
-            UserManager userManager
+            UserManager userManager, SeatManager seatManager
     ) {
         this.checkoutService = checkoutService;
         this.paymentRepository = paymentRepository;
@@ -64,9 +65,12 @@ public class StripeService {
         this.movieManager = movieManager;
         this.jwtService = jwtService;
         this.userManager = userManager;
+        this.seatManager = seatManager;
     }
 
     public CheckoutSummaryResponse checkoutProducts(CheckoutRequest request, String token) throws StripeException {
+
+
         Stripe.apiKey = stripeApiKey;
 
         CheckoutSummaryResponse summary = checkoutService.confirm(request, token);
@@ -112,10 +116,14 @@ public class StripeService {
             throw new CinePachoException("No hay productos para enviar al checkout de Stripe");
         }
 
+        // construye las URLs aquí donde baseUrl ya está inyectado
+        String successUrl = baseUrl + "/api/checkout/stripe/success";
+        String cancelUrl = baseUrl + "/api/checkout/stripe/cancel";
+
         SessionCreateParams params = SessionCreateParams.builder()
                 .setMode(SessionCreateParams.Mode.PAYMENT)
-                .setSuccessUrl(SUCCESS_URL)
-                .setCancelUrl(CANCEL_URL)
+                .setSuccessUrl(successUrl)
+                .setCancelUrl(cancelUrl)
                 .addAllLineItem(lineItems)
                 .build();
 
@@ -133,10 +141,20 @@ public class StripeService {
         summary.setSessionId(session.getId());
         summary.setSessionUrl(session.getUrl());
 
+        //añadir película al historuiial de pelis vistas por el usuario
         registerWatchedMovieForBuyer(token, request, summary, payment);
+
+        //cambiar el estado de las sillas a vendidas
+        request.getSeats().stream()
+                .forEach(
+                        seatsIDs -> seatManager.updateSeatStatus(seatsIDs.getSeatId(), SeatStatus.SOLD)
+                );
+
 
         return summary;
     }
+
+
 
     private void registerWatchedMovieForBuyer(
             String token,
