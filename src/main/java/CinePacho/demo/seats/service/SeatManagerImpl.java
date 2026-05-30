@@ -1,23 +1,34 @@
 package CinePacho.demo.seats.service;
 
+import CinePacho.demo.exception.CinePachoException;
 import CinePacho.demo.rooms.entities.RoomEntity;
 import CinePacho.demo.seats.entities.SeatEntity;
 import CinePacho.demo.seats.enumeration.SeatStatus;
 import CinePacho.demo.seats.repository.SeatRepository;
 import CinePacho.demo.shared.auxiliaryClass.SeatManager;
 import CinePacho.demo.shared.enumeration.SeatType;
+import org.springframework.scheduling.TaskScheduler;
 import org.springframework.stereotype.Component;
 
+import java.time.Instant;
+import java.time.LocalDateTime;
+import java.time.ZoneOffset;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ScheduledFuture;
 
 @Component
 public class SeatManagerImpl implements SeatManager {
 
     private final SeatRepository seatRepository;
+    private final Map<UUID, ScheduledFuture<?>> scheduledReleases = new ConcurrentHashMap<>();
+    private final TaskScheduler taskScheduler;
 
-    public SeatManagerImpl(SeatRepository seatRepository) {
+    public SeatManagerImpl(SeatRepository seatRepository, TaskScheduler taskScheduler) {
         this.seatRepository = seatRepository;
+        this.taskScheduler = taskScheduler;
     }
 
 
@@ -83,5 +94,54 @@ public class SeatManagerImpl implements SeatManager {
         SeatEntity seat = seatRepository.getReferenceById(seatId);
         seatRepository.save(seat);
     }
+
+    //programar la liberación de las sillas 3 horas después de iniciar la función
+    @Override
+    public void scheduleRelease(UUID screeningId, UUID roomId, LocalDateTime screeningStartTime) {
+
+        // Evita programar la misma función dos veces
+        if (scheduledReleases.containsKey(screeningId)) {
+            throw new CinePachoException("Esta función ya está programada para liberar las sillas");
+        }
+
+        // Calcula cuándo deben liberarse las sillas (3 horas después del inicio)
+        Instant releaseTime = screeningStartTime
+                .plusHours(3)
+                .toInstant(ZoneOffset.UTC);
+
+        // Si ese momento ya pasó, libera inmediatamente sin programar
+        if (releaseTime.isBefore(Instant.now())) {
+            this.releaseAllSeatsInRoom(roomId);
+            return;
+        }
+
+        // Programa la tarea para ejecutarse exactamente en releaseTime (ScheduledFuture es un timer activo)
+        ScheduledFuture<?> future = taskScheduler.schedule(
+                () -> {
+                    this.releaseAllSeatsInRoom(roomId); // libera las sillas
+                    scheduledReleases.remove(screeningId);           // limpia el timer del mapa
+                },
+                releaseTime // en este instante
+        );
+
+        // Guarda el timer asociado a esa función
+        scheduledReleases.put(screeningId, future);
+    }
+
+    @Override
+    //Liberar todas las sillas de una sala
+    public void releaseAllSeatsInRoom(UUID roomId) {
+        List<SeatEntity> seats = seatRepository.findByRoomId(roomId);
+        seats.forEach(
+                seat -> {
+                    seat.setStatus(SeatStatus.AVAILABLE);
+                    seat.setBlockedByUserEmail(null);
+                    seat.setBlockedUntil(null);
+                    seatRepository.save(seat);
+                }
+        );
+    }
+
+
 
 }

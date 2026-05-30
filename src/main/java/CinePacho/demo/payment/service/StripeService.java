@@ -3,6 +3,7 @@ package CinePacho.demo.payment.service;
 import CinePacho.demo.auth.entities.customers.BuyerEntity;
 import CinePacho.demo.auth.entities.user.UserEntity;
 import CinePacho.demo.exception.CinePachoException;
+import CinePacho.demo.movie.entities.MovieScreening;
 import CinePacho.demo.payment.dto.request.CheckoutRequest;
 import CinePacho.demo.payment.dto.response.CheckoutSummaryResponse;
 import CinePacho.demo.payment.dto.response.SeatSummaryResponse;
@@ -150,6 +151,14 @@ public class StripeService {
                         seatsIDs -> seatManager.updateSeatStatus(seatsIDs.getSeatId(), SeatStatus.SOLD)
                 );
 
+        //inicializo el timer para liberar las sillas en 3 horas para la funcion de la request
+        MovieScreening screening = movieManager.getMovieScreeningById(request.getScreeningId());
+
+        seatManager.scheduleRelease(
+                screening.getId(),
+                screening.getRoom().getId(),
+                screening.getDateTime()
+        );
 
         return summary;
     }

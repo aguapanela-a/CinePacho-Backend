@@ -5,6 +5,7 @@ import CinePacho.demo.seats.enumeration.SeatStatus;
 import CinePacho.demo.shared.enumeration.SeatType;
 import org.springframework.stereotype.Component;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
 
@@ -17,4 +18,6 @@ public interface SeatManager {
     Integer countByRoomId(UUID roomId); // Conteo total de sillas por sala
     List<SeatEntity> findAllByIdWithRoomAndMultiplex(List<UUID> ids); // Carga sillas con sala y multiplex
     void updateSeatStatus(UUID seatId, SeatStatus status);
+    void scheduleRelease(UUID screeningId, UUID roomId, LocalDateTime screeningStartTime);
+    void releaseAllSeatsInRoom(UUID roomId);
 }
