@@ -148,9 +148,12 @@ public class StripeService {
         //cambiar el estado de las sillas a vendidas solo cuando estén BLOCKED pues es el estado de la silla al seleccionarla antes de la compra
         request.getSeats().forEach(
                         seatsIDs -> {
-                            if(seatManager.getSeatById(seatsIDs.getSeatId()).getStatus() == SeatStatus.BLOCKED){
-                                seatManager.updateSeatStatus(seatsIDs.getSeatId(), SeatStatus.SOLD);
+                            if(seatManager.getSeatById(seatsIDs.getSeatId()).getStatus() != SeatStatus.BLOCKED){
+                                throw new CinePachoException("La silla no ha sido seleccionada previamente");
                             }
+                            // si sie stán BLOCKED, cambiar el estado a SOLD
+                            seatManager.updateSeatStatus(seatsIDs.getSeatId(), SeatStatus.SOLD);
+                            System.out.printf("Silla %s cambiada a %s", seatsIDs.getSeatId(), seatManager.getSeatById(seatsIDs.getSeatId()).getStatus());
                         });
 
         //inicializo el timer para liberar las sillas en 3 horas para la funcion de la request
@@ -160,7 +163,7 @@ public class StripeService {
                 screening.getId(),
                 screening.getRoom().getId(),
                 screening.getDateTime()
-        );
+        );;
 
         return summary;
     }

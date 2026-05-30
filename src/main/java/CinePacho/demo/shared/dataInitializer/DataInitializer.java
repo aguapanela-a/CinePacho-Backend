@@ -15,6 +15,7 @@ import org.springframework.boot.CommandLineRunner;
 import org.springframework.stereotype.Component;
 
 import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.util.List;
 
 // CommandLineRunner es una clase que ejecuta run() una unica vez después de que
@@ -64,7 +65,8 @@ public class DataInitializer implements CommandLineRunner {
 
         // limpiar sillas bloqueadas huérfanas al arrancar
         seatManager.findByStatus(SeatStatus.BLOCKED).forEach(seat -> {
-            if (seat.getBlockedUntil().isBefore(LocalDateTime.now())) {
+            System.out.printf("--------------Liberando silla %s", seat.getId());
+            if (seat.getBlockedUntil().isBefore(LocalDateTime.now(ZoneId.of("America/Bogota")))) {
                 seat.setStatus(SeatStatus.AVAILABLE);
                 seat.setBlockedByUserEmail(null);
                 seat.setBlockedUntil(null);
@@ -74,7 +76,7 @@ public class DataInitializer implements CommandLineRunner {
 
         //  reprogramar funciones pendientes para liberar sillas ----
         // tomo la hora actual
-        LocalDateTime now = LocalDateTime.now();
+        LocalDateTime now = LocalDateTime.now(ZoneId.of("America/Bogota"));
 
         //Busco las funciones que aún no han liberado las sillas (funciones que empezaron hace menos de 3 horas O que aún no han empezado)
         List<MovieScreening> pendingScreenings = movieManager.findByDateTimeAfter(now.minusHours(3));

@@ -10,9 +10,7 @@ import CinePacho.demo.shared.enumeration.SeatType;
 import org.springframework.scheduling.TaskScheduler;
 import org.springframework.stereotype.Component;
 
-import java.time.Instant;
-import java.time.LocalDateTime;
-import java.time.ZoneOffset;
+import java.time.*;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
@@ -92,6 +90,7 @@ public class SeatManagerImpl implements SeatManager {
     @Override
     public void updateSeatStatus(UUID seatId, SeatStatus status) {
         SeatEntity seat = seatRepository.getReferenceById(seatId);
+        seat.setStatus(status);
         seatRepository.save(seat);
     }
 
@@ -101,19 +100,25 @@ public class SeatManagerImpl implements SeatManager {
 
         // Evita programar la misma función dos veces
         if (scheduledReleases.containsKey(screeningId)) {
-            throw new CinePachoException("Esta función ya está programada para liberar las sillas");
+            System.out.printf("Esta funcion " + screeningId + " ya fue programada para liberar sillas a las " + screeningStartTime.plusHours(3) + "");
+            return;
         }
 
         // Calcula cuándo deben liberarse las sillas (3 horas después del inicio)
         Instant releaseTime = screeningStartTime
                 .plusHours(3)
-                .toInstant(ZoneOffset.UTC);
+                .atZone(ZoneId.of("America/Bogota"))
+                .toInstant();
+
+        System.out.printf("funcion prgoramada para liberar sillas en %s", releaseTime);
 
         // Si ese momento ya pasó, libera inmediatamente sin programar
-        if (releaseTime.isBefore(Instant.now())) {
+        if (releaseTime.isBefore(Instant.now(Clock.system(ZoneId.of("America/Bogota"))))) {
             this.releaseAllSeatsInRoom(roomId);
+            System.out.printf("-------- Liberando sillas inmediatamente: " + Instant.now());
             return;
         }
+
 
         // Programa la tarea para ejecutarse exactamente en releaseTime (ScheduledFuture es un timer activo)
         ScheduledFuture<?> future = taskScheduler.schedule(
@@ -124,6 +129,7 @@ public class SeatManagerImpl implements SeatManager {
                 releaseTime // en este instante
         );
 
+
         // Guarda el timer asociado a esa función
         scheduledReleases.put(screeningId, future);
     }
@@ -131,6 +137,7 @@ public class SeatManagerImpl implements SeatManager {
     @Override
     //Liberar todas las sillas de una sala
     public void releaseAllSeatsInRoom(UUID roomId) {
+        System.out.printf("--------///////// Liberando sillas en sala: " + roomId);
         List<SeatEntity> seats = seatRepository.findByRoomId(roomId);
         seats.forEach(
                 seat -> {

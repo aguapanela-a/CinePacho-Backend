@@ -18,8 +18,10 @@ import CinePacho.demo.seats.repository.SeatRepository;
 import CinePacho.demo.shared.enumeration.SeatType;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.Clock;
 import java.time.Instant;
 import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
@@ -101,7 +103,7 @@ public class SeatService {
     private void scheduleUnblock(UUID seatId) {
         ScheduledFuture<?> timer = taskScheduler.schedule(
                 () -> seatUnblockScheduler.forceUnblock(seatId),
-                Instant.now().plusSeconds(600)   // 10 minutos
+                Instant.now(Clock.system(ZoneId.of("America/Bogota"))).plusSeconds(600)   // 10 minutos
         );
         timers.put(seatId, timer);
     }
