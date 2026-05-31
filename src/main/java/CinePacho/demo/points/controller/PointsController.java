@@ -2,6 +2,7 @@ package CinePacho.demo.points.controller;
 
 import CinePacho.demo.auth.entities.customers.BuyerEntity;
 import CinePacho.demo.auth.service.BuyerManagerImpl;
+import CinePacho.demo.exception.CinePachoException;
 import CinePacho.demo.shared.auxiliaryClass.PointsManager;
 import CinePacho.demo.shared.auxiliaryClass.PointsRecordDTO;
 import CinePacho.demo.shared.auxiliaryClass.VoucherDTO;
@@ -11,6 +12,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 
 @RestController
@@ -22,7 +24,7 @@ public class PointsController {
     private final JwtService jwtService;
     private final BuyerManagerImpl buyerManager;
 
-    // Comprador consulta sus puntos e historial
+    // Comprador consulta sus puntos e historial (unicamente ingresa BUYER)
     @GetMapping
     public ResponseEntity<?> getMyPoints(@RequestHeader("Authorization") String auth) {
         String token = auth.replace("Bearer ", "");
@@ -48,10 +50,10 @@ public class PointsController {
 
     // Empleado/Gerente: validar y consumir voucher en taquilla
     @PostMapping("/validate")
-    public ResponseEntity<?> validateVoucher(@RequestBody java.util.Map<String, String> body) throws Exception {
+    public ResponseEntity<?> validateVoucher(@RequestBody Map<String, String> body) throws Exception {
         String code = body.get("code");
         if (code == null || code.isBlank()) {
-            throw new CinePacho.demo.exception.CinePachoException("El código es obligatorio");
+            throw new CinePachoException("El código es obligatorio");
         }
         VoucherDTO v = pointsManager.validateVoucher(code);
         return ResponseEntity.ok(v);
