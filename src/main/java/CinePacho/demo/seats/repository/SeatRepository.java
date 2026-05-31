@@ -31,4 +31,6 @@ public interface SeatRepository extends JpaRepository<SeatEntity, UUID> {
     // Carga sillas con sala y multiplex para evitar lazy loading en compras
     @Query("select s from SeatEntity s join fetch s.room r join fetch r.multiplex where s.id in :ids")
     List<SeatEntity> findAllByIdWithRoomAndMultiplex(@Param("ids") List<UUID> ids);
+
+    List<SeatEntity> getAllByRoom_Id(UUID roomId);
 }

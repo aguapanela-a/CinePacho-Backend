@@ -1,8 +1,9 @@
 package CinePacho.demo.payment.controller;
 
 import CinePacho.demo.payment.dto.request.CheckoutRequest;
-import CinePacho.demo.payment.dto.request.PaymentWebhookRequest;
+import CinePacho.demo.payment.dto.request.StripeSuccessRequest;
 import CinePacho.demo.payment.dto.response.CheckoutSummaryResponse;
+import CinePacho.demo.payment.service.BillingService;
 import CinePacho.demo.payment.service.StripeService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -12,12 +13,25 @@ import org.springframework.web.bind.annotation.*;
 
 import com.stripe.exception.StripeException;
 
+import java.util.Map;
+import java.util.UUID;
+
 @RestController
 @RequestMapping("/api/checkout")
 @RequiredArgsConstructor
 public class CheckoutController {
 
+
     private final StripeService stripeService;
+    private final BillingService billingService;
+
+    // Nota: endpoints /stripe y /stripe/success pueden ser invocados por BUYER o por EMPLOYEE/MANAGER
+    // - Si el actor es BUYER: el token identifica al comprador y todo se asocia a ese buyer.
+    // - Si el actor es EMPLOYEE/MANAGER: el frontend debe incluir buyerEmail en el CheckoutRequest
+    //   para que la venta se asocie al buyer indicado. El backend valida que el empleado pertenece
+    //   al multiplex de la función antes de crear factura/pago y antes de confirmar la venta.
+    // Implementación: la lógica de asociación y validaciones se gestiona en StripeService.handlePaymentSuccess
+    // y StripeService.checkoutProducts. No realizar cambios en frontend salvo enviar buyerEmail cuando aplique.
 
     @PostMapping("/stripe")
     public ResponseEntity<CheckoutSummaryResponse> stripe(
@@ -28,43 +42,33 @@ public class CheckoutController {
         return ResponseEntity.ok(stripeService.checkoutProducts(request, token));
     }
 
-    /**
-     * Endpoint para testing manual del webhook de Stripe en Postman.
-     * 
-     * En producción, Stripe envía webhooks automáticamente.
-     * Para testing manual, este endpoint permite simular la confirmación de pago.
-     * 
-     * ⚠️ IMPORTANTE: Este endpoint SOLO debe usarse en TESTING.
-     * En producción, implementar webhook real de Stripe con verificación de firma.
-     * 
-     * Flujo:
-     * 1. Usuario crea checkout → POST /api/checkout/stripe
-     * 2. Usuario completa pago en Stripe (o simula aquí)
-     * 3. Si exitoso → POST /api/checkout/stripe/webhook (ESTE endpoint)
-     * 4. handlePaymentSuccess() ejecuta cambios de estado
-     * 
-     * @param request DTO con checkoutRequest, paymentId, y userEmail
-     * @return 200 OK si el pago fue procesado exitosamente
-     * @throws CinePachoException si la validación falla (usuario no coincide, sillas no bloqueadas, etc)
-     */
-    @PostMapping("/stripe/webhook")
-    public ResponseEntity<?> handlePaymentSuccessManual(
-            @Valid @RequestBody PaymentWebhookRequest request
-    ) {
-        // Llamar al servicio con la información del webhook simulado
-        stripeService.handlePaymentSuccess(
-                request.getCheckoutRequest(),
-                request.getPaymentId(),
-                request.getUserEmail()
+    //redireccionamiento de stripe al completar el pago
+    @PostMapping("/stripe/success")
+    public ResponseEntity<Map<String, String>> success(
+            @RequestBody StripeSuccessRequest request,
+            @RequestHeader("Authorization") String token) {
+
+        token = token.replace("Bearer ", "");
+        Map<String, String> result = stripeService.handlePaymentSuccess(
+                request.checkoutRequest(),
+                request.paymentId(),
+                token
         );
-        return ResponseEntity.ok("Payment processed successfully");
+        return ResponseEntity.ok(result);
     }
 
+    //ENdpoint al escanear QR (SOLO EMPLEADO DE ESE MULTIPLEX PUEDE SCANEAR)
+    @PutMapping("/employee/billing/{billingId}/scan")
+    public ResponseEntity<Map<String, String>> scanQR(@PathVariable UUID billingId, @RequestHeader("Authorization") String token) {
+        token = token.replace("Bearer ", "");
+        return ResponseEntity.ok(billingService.scanQr(billingId, token));
+    }
 
-
-
-
-
+    //redireccionamiento de stripe al cancelar el pago
+    @GetMapping("/stripie/cancel")
+    public ResponseEntity<Map<String, String>> cancel() {
+        return ResponseEntity.ok(Map.of("message", "Pago cancelado"));
+    }
 
 
     // @PostMapping("/preview")

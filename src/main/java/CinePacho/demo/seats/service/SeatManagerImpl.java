@@ -10,9 +10,7 @@ import CinePacho.demo.shared.enumeration.SeatType;
 import org.springframework.scheduling.TaskScheduler;
 import org.springframework.stereotype.Component;
 
-import java.time.Instant;
-import java.time.LocalDateTime;
-import java.time.ZoneOffset;
+import java.time.*;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
@@ -25,10 +23,12 @@ public class SeatManagerImpl implements SeatManager {
     private final SeatRepository seatRepository;
     private final Map<UUID, ScheduledFuture<?>> scheduledReleases = new ConcurrentHashMap<>();
     private final TaskScheduler taskScheduler;
+    private final CinePacho.demo.shared.auxiliaryClass.SeatScreeningManager seatScreeningManager;
 
-    public SeatManagerImpl(SeatRepository seatRepository, TaskScheduler taskScheduler) {
+    public SeatManagerImpl(SeatRepository seatRepository, TaskScheduler taskScheduler, CinePacho.demo.shared.auxiliaryClass.SeatScreeningManager seatScreeningManager) {
         this.seatRepository = seatRepository;
         this.taskScheduler = taskScheduler;
+        this.seatScreeningManager = seatScreeningManager;
     }
 
 
@@ -89,20 +89,9 @@ public class SeatManagerImpl implements SeatManager {
         return seatRepository.findAllByIdWithRoomAndMultiplex(ids);
     }
 
-    /**
-     * Actualiza el estado de una silla a partir de su ID.
-     * Utiliza getReferenceById para obtener la referencia proxied sin cargar la entidad completa,
-     * luego establece el nuevo estado y persiste el cambio en la base de datos.
-     * 
-     * @param seatId UUID de la silla a actualizar
-     * @param status Nuevo estado de la silla (AVAILABLE, BLOCKED, SOLD, etc)
-     */
     @Override
     public void updateSeatStatus(UUID seatId, SeatStatus status) {
         SeatEntity seat = seatRepository.getReferenceById(seatId);
-        // CORRECCIÓN: Se agregó setStatus() para realmente actualizar el estado.
-        // Antes no se estaba cambiando nada, solo guardaba la misma entidad sin modificaciones.
-        seat.setStatus(status);
         seatRepository.save(seat);
     }
 
@@ -112,24 +101,31 @@ public class SeatManagerImpl implements SeatManager {
 
         // Evita programar la misma función dos veces
         if (scheduledReleases.containsKey(screeningId)) {
-            throw new CinePachoException("Esta función ya está programada para liberar las sillas");
+            System.out.printf("Esta funcion " + screeningId + " ya fue programada para liberar sillas a las " + screeningStartTime.plusHours(3) + "");
+            return;
         }
 
         // Calcula cuándo deben liberarse las sillas (3 horas después del inicio)
         Instant releaseTime = screeningStartTime
                 .plusHours(3)
-                .toInstant(ZoneOffset.UTC);
+                .atZone(ZoneId.of("America/Bogota"))
+                .toInstant();
+
+        System.out.printf("funcion prgoramada para liberar sillas en %s", releaseTime);
 
         // Si ese momento ya pasó, libera inmediatamente sin programar
-        if (releaseTime.isBefore(Instant.now())) {
-            this.releaseAllSeatsInRoom(roomId);
+        if (releaseTime.isBefore(Instant.now(Clock.system(ZoneId.of("America/Bogota"))))) {
+            // liberar las reservas específicas de la función
+            this.seatScreeningManager.releaseAllSeatsForScreening(screeningId);
+            System.out.printf("-------- Liberando sillas inmediatamente: " + Instant.now());
             return;
         }
 
         // Programa la tarea para ejecutarse exactamente en releaseTime (ScheduledFuture es un timer activo)
         ScheduledFuture<?> future = taskScheduler.schedule(
                 () -> {
-                    this.releaseAllSeatsInRoom(roomId); // libera las sillas
+                    // libera las reservas de la función
+                    this.seatScreeningManager.releaseAllSeatsForScreening(screeningId);
                     scheduledReleases.remove(screeningId);           // limpia el timer del mapa
                 },
                 releaseTime // en este instante
@@ -148,14 +144,19 @@ public class SeatManagerImpl implements SeatManager {
                     seat.setStatus(SeatStatus.AVAILABLE);
                     seat.setBlockedByUserEmail(null);
                     seat.setBlockedUntil(null);
-                    seatRepository.save(seat);
                 }
         );
+        seatRepository.saveAll(seats);
     }
 
     @Override
     public SeatEntity getSeatById(UUID seatId) {
         return seatRepository.findById(seatId).orElseThrow(()-> new CinePachoException("Silla no encontrada"));
+    }
+
+    @Override
+    public String getSeatNumber(UUID seatId) {
+        return seatRepository.findById(seatId).orElseThrow(()-> new CinePachoException("Silla no encontrada")).getSeatNumber().toString();
     }
 
 

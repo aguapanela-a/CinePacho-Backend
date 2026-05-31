@@ -7,23 +7,21 @@ import CinePacho.demo.movie.entities.MovieScreening;
 import CinePacho.demo.payment.dto.request.CheckoutRequest;
 import CinePacho.demo.payment.dto.request.SeatSelectionRequest;
 import CinePacho.demo.payment.dto.request.SnackSelectionRequest;
+import CinePacho.demo.payment.dto.response.BillingDTO;
 import CinePacho.demo.payment.dto.response.CheckoutSummaryResponse;
 import CinePacho.demo.payment.dto.response.SeatSummaryResponse;
 import CinePacho.demo.payment.dto.response.SnackSummaryResponse;
+import CinePacho.demo.payment.entities.BillingEntity;
 import CinePacho.demo.payment.entities.PaymentEntity;
 import CinePacho.demo.payment.enumeration.PaymentStatus;
+import CinePacho.demo.payment.repository.BillingRepository;
 import CinePacho.demo.payment.repository.PaymentRepository;
 import CinePacho.demo.reports.entities.SnackSaleEntity;
 import CinePacho.demo.reports.entities.TicketSaleEntity;
 import CinePacho.demo.reports.repository.SnackSaleRepository;
 import CinePacho.demo.reports.repository.TicketSaleRepository;
-import CinePacho.demo.seats.entities.SeatEntity;
 import CinePacho.demo.seats.enumeration.SeatStatus;
-import CinePacho.demo.shared.auxiliaryClass.BuyerManager;
-import CinePacho.demo.shared.auxiliaryClass.MovieManager;
-import CinePacho.demo.shared.auxiliaryClass.SeatManager;
-import CinePacho.demo.shared.auxiliaryClass.SnackManager;
-import CinePacho.demo.shared.auxiliaryClass.UserManager;
+import CinePacho.demo.shared.auxiliaryClass.*;
 import CinePacho.demo.multiplex.repository.MultiplexRepository;
 import CinePacho.demo.shared.enumeration.SeatType;
 import CinePacho.demo.shared.enumeration.UserType;
@@ -36,10 +34,13 @@ import com.stripe.param.checkout.SessionCreateParams;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.time.LocalDateTime;
+import java.time.ZoneId;
+import java.util.*;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -54,13 +55,16 @@ public class StripeService {
     private final PaymentRepository paymentRepository;
     private final TicketSaleRepository ticketSaleRepository;
     private final SnackSaleRepository snackSaleRepository;
-    private final MultiplexRepository multiplexRepository;
+    private final EmailService emailService;
     private final BuyerManager buyerManager;
     private final MovieManager movieManager;
     private final JwtService jwtService;
     private final UserManager userManager;
     private final SeatManager seatManager;
-    private final SnackManager snackManager;
+    private final SeatScreeningManager seatScreeningManager;
+    private final BillingService billingService;
+    private final BillingRepository billingRepository;
+    private final CinePacho.demo.shared.auxiliaryClass.EmployeeMultiplexProvider employeeMultiplexProvider;
 
     @Value("${stripe.api.key}")
     private String stripeApiKey;
@@ -74,27 +78,25 @@ public class StripeService {
     public StripeService(
             CheckoutService checkoutService,
             PaymentRepository paymentRepository,
-            TicketSaleRepository ticketSaleRepository,
-            SnackSaleRepository snackSaleRepository,
-            MultiplexRepository multiplexRepository,
+            TicketSaleRepository ticketSaleRepository, EmailService emailService,
             BuyerManager buyerManager,
             MovieManager movieManager,
             JwtService jwtService,
-            UserManager userManager,
-            SeatManager seatManager,
-            SnackManager snackManager
-    ) {
+            UserManager userManager, SeatManager seatManager, SeatScreeningManager seatScreeningManager, BillingService billingService,
+            BillingRepository billingRepository, CinePacho.demo.shared.auxiliaryClass.EmployeeMultiplexProvider employeeMultiplexProvider) {
         this.checkoutService = checkoutService;
         this.paymentRepository = paymentRepository;
         this.ticketSaleRepository = ticketSaleRepository;
-        this.snackSaleRepository = snackSaleRepository;
-        this.multiplexRepository = multiplexRepository;
+        this.emailService = emailService;
         this.buyerManager = buyerManager;
         this.movieManager = movieManager;
         this.jwtService = jwtService;
         this.userManager = userManager;
         this.seatManager = seatManager;
-        this.snackManager = snackManager;
+        this.seatScreeningManager = seatScreeningManager;
+        this.billingService = billingService;
+        this.billingRepository = billingRepository;
+        this.employeeMultiplexProvider = employeeMultiplexProvider;
     }
 
     public CheckoutSummaryResponse checkoutProducts(CheckoutRequest request, String token) throws StripeException {
@@ -162,7 +164,26 @@ public class StripeService {
         // IMPORTANTE: El cambio a COMPLETED debería ocurrir en el webhook de Stripe después de confirmación exitosa.
         // Por ahora se mantiene PENDING aquí y se actualiza cuando la sesión es confirmada.
         PaymentEntity payment = new PaymentEntity();
-        payment.setUserId(checkoutService.getUserIdFromToken(token));
+        // Determinar actor (buyer o employee) a partir del token
+        String actorEmail = jwtService.extractEmail(token);
+        UserEntity actorUser = userManager.getUserByEmail(actorEmail);
+
+        String buyerEmailForPayment = actorEmail; // por defecto
+        if (actorUser.getUserType() != UserType.BUYER) {
+            // actor es empleado/manager -> requiere buyerEmail en request
+            if (request.getBuyerEmail() == null) {
+                throw new CinePachoException("Cuando un empleado realiza la venta, debe proveer el email del comprador");
+            }
+            buyerEmailForPayment = request.getBuyerEmail();
+            // validar que el empleado pertenece al multiplex de la función
+            MovieScreening screeningForValidation = movieManager.getMovieScreeningById(request.getScreeningId());
+            java.util.UUID empMultiplex = employeeMultiplexProvider.getMultiplexIdByUserEmail(actorEmail);
+            if (!empMultiplex.equals(screeningForValidation.getRoom().getMultiplex().getId())) {
+                throw new CinePachoException("El empleado no pertenece a este multiplex");
+            }
+        }
+
+        payment.setUserId(buyerManager.getBuyerByEmail(buyerEmailForPayment).getBuyerId());
         payment.setAmount(summary.getTotalPurchase());
         payment.setPaymentMethod("STRIPE");
         payment.setStatus(PaymentStatus.PENDING);
@@ -170,185 +191,180 @@ public class StripeService {
 
         // Se retorna la sesión de Stripe sin procesar cambios de estado ni registrar ventas.
         // Los cambios de estado y registro de ventas ocurrirán SOLO después de que Stripe confirme el pago.
-        summary.setStatus("SUCCESS");
-        summary.setMessage("Checkout creado correctamente. Por favor completar el pago en Stripe.");
+        summary.setStatus("PENDING");
+        summary.setMessage("Checkout creado correctamente. Complete el pago en Stripe.");
         summary.setSessionId(session.getId());
         summary.setSessionUrl(session.getUrl());
-        // Se incluye el paymentId en la respuesta para que el frontend pueda usarlo en el webhook de confirmación.
-        // Esto es necesario para testing manual en Postman o para llamadas directas al webhook.
         summary.setPaymentId(payment.getPaymentId());
 
+        //Creación de factura con QR: usar buyerEmailForPayment
+        MovieScreening screening = movieManager.getMovieScreeningById(request.getScreeningId());
+        BillingEntity billing = billingService.createBilling(payment, buyerManager.getBuyerByEmail(buyerEmailForPayment), summary, screening);
+
+        //agrega el id de la fatura para que el front lo reciba
+        summary.setBillingId(billing.getId());
+
+        // NO registrar películas ni cambiar estados aquí: la confirmación y cambios se realizan cuando Stripe notifica el pago (handlePaymentSuccess)
         return summary;
     }
 
-    /**
-     * Método invocado cuando Stripe confirma el pago exitoso (via webhook).
-     * Realiza todas las acciones que dependen de un pago confirmado:
-     * 1. Valida que el usuario actual sea el propietario de todas las sillas bloqueadas
-     * 2. Actualiza el estado del pago a COMPLETED
-     * 3. Cambia el estado de las sillas de BLOCKED a SOLD
-     * 4. Registra la venta de tickets para el módulo de reportes
-     * 5. Registra la venta de snacks para el módulo de reportes
-     * 6. Agrega la película al historial del comprador
-     * 7. Programa la liberación automática de sillas en 3 horas
-     * 
-     * IMPORTANTE: Este método debe ser llamado SOLAMENTE después de que Stripe confirme el pago.
-     * Idealmente desde un webhook: POST /api/checkout/stripe/webhook
-     * 
-     * @param checkoutRequest Información de la compra original
-     * @param paymentId ID del pago que fue confirmado
-     * @param userEmail Email del usuario que realizó la compra (del JWT)
-     * @throws CinePachoException Si la validación falla (usuario no coincide, sillas no disponibles, etc)
-     */
-    public void handlePaymentSuccess(CheckoutRequest checkoutRequest, UUID paymentId, String userEmail) {
-        // PASO 1: Validar que el usuario actual sea quien bloqueó las sillas.
-        // Esto previene que múltiples usuarios compitan por la misma silla bloqueada.
-        List<UUID> seatIds = checkoutRequest.getSeats().stream()
-                .map(SeatSelectionRequest::getSeatId)
-                .collect(Collectors.toList());
+        /**
+         * Método invocado cuando Stripe confirma el pago exitoso (via webhook).
+         * Realiza todas las acciones que dependen de un pago confirmado:
+         * 1. Valida que el usuario actual sea el propietario de todas las sillas bloqueadas
+         * 2. Actualiza el estado del pago a COMPLETED
+         * 3. Cambia el estado de las sillas de BLOCKED a SOLD
+         * 4. Registra la venta de tickets para el módulo de reportes
+         * 5. Agrega la película al historial del comprador
+         * 6. Programa la liberación automática de sillas en 3 horas
+         *
+         * IMPORTANTE: Este método debe ser llamado SOLAMENTE después de que Stripe confirme el pago.
+         * Idealmente desde un webhook: POST /api/checkout/stripe/webhook
+         *
+         * @param checkoutRequest Información de la compra original
+         * @param paymentId ID del pago que fue confirmado
+         * @param token token del usuario que realizó la compra (del JWT)
+         * @throws CinePachoException Si la validación falla (usuario no coincide, sillas no disponibles, etc)
+         */
 
-        List<SeatEntity> seats = seatManager.findAllByIdWithRoomAndMultiplex(seatIds);
 
-        // Verificar que TODAS las sillas pertenecen al usuario actual y están en estado BLOCKED.
-        for (SeatEntity seat : seats) {
-            if (seat.getStatus() != SeatStatus.BLOCKED) {
-                throw new CinePachoException("La silla " + seat.getId() + " no está bloqueada. Estado actual: " + seat.getStatus());
+
+        @Transactional
+        public Map<String, String> handlePaymentSuccess(CheckoutRequest checkoutRequest, UUID paymentId, String token){
+
+            // Determinar actor y buyerEmail
+            String actorEmail = jwtService.extractEmail(token);
+            UserEntity actorUser = userManager.getUserByEmail(actorEmail);
+            String buyerEmail;
+            MovieScreening screening = movieManager.getMovieScreeningById(checkoutRequest.getScreeningId());
+
+            if (actorUser.getUserType() == UserType.BUYER) {
+                buyerEmail = actorEmail;
+            } else {
+                // actor es empleado/manager -> checkoutRequest debe incluir buyerEmail
+                if (checkoutRequest.getBuyerEmail() == null) {
+                    throw new CinePachoException("Cuando un empleado confirma el pago, debe incluir el email del comprador en la solicitud");
+                }
+                buyerEmail = checkoutRequest.getBuyerEmail();
+                // validar que el empleado pertenece al multiplex de la función
+                java.util.UUID empMultiplex = employeeMultiplexProvider.getMultiplexIdByUserEmail(actorEmail);
+                if (!empMultiplex.equals(screening.getRoom().getMultiplex().getId())) {
+                    throw new CinePachoException("El empleado no pertenece a este multiplex");
+                }
             }
-            if (seat.getBlockedByUserEmail() == null || !seat.getBlockedByUserEmail().equals(userEmail)) {
-                // PREVENCIÓN DE RACE CONDITION: Si otro usuario bloqueó esta silla después de este usuario,
-                // rechazar el pago para garantizar consistencia. El usuario debe hacer checkout nuevamente.
-                throw new CinePachoException("La silla " + seat.getId() + " fue bloqueada por otro usuario. Por favor intente nuevamente.");
+
+            // Validación por función: asegurar que las reservas (SeatScreening) para esta función están bloqueadas por el buyer
+            List<UUID> seatIds = checkoutRequest.getSeats().stream()
+                    .map(SeatSelectionRequest::getSeatId)
+                    .collect(Collectors.toList());
+
+            for (UUID seatId : seatIds) {
+                var ss = seatScreeningManager.getSeatScreening(seatId, checkoutRequest.getScreeningId());
+                if (ss == null) {
+                    throw new CinePachoException("La silla " + seatId + " no está reservada para esta función");
+                }
+                if (ss.getStatus() != SeatStatus.BLOCKED) {
+                    throw new CinePachoException("La silla " + seatId + " no está bloqueada para esta función. Estado: " + ss.getStatus());
+                }
+                if (ss.getBlockedByUserEmail() == null || !ss.getBlockedByUserEmail().equals(buyerEmail)) {
+                    throw new CinePachoException("La silla " + seatId + " fue bloqueada por otro usuario. Por favor intente nuevamente.");
+                }
             }
+
+            // Actualizar el estado del pago a COMPLETED
+            PaymentEntity payment = paymentRepository.findById(paymentId)
+                    .orElseThrow(() -> new CinePachoException("Pago no encontrado con ID: " + paymentId));
+            payment.setStatus(PaymentStatus.COMPLETED);
+            paymentRepository.save(payment);
+
+            // Marcar cada SeatScreening como SOLD
+            checkoutRequest.getSeats().forEach(seatSelection -> {
+                seatScreeningManager.markSold(seatSelection.getSeatId(), checkoutRequest.getScreeningId());
+            });
+
+            // Registrar la venta en el módulo de reportes
+            TicketSaleEntity ticketSale = TicketSaleEntity.builder()
+                    .multiplex(screening.getRoom().getMultiplex())
+                    .screening(screening)
+                    .soldAt(LocalDateTime.now(ZoneId.of("America/Bogota")))
+                    .ticketsQuantity(seatIds.size())
+                    .totalAmount(payment.getAmount())
+                    .build();
+            ticketSaleRepository.save(ticketSale);
+
+            //recupero la factura de la BD
+            BillingEntity billing = billingRepository.findByPayment_PaymentId(paymentId);
+            //Creo DTO con esa factura
+            BillingDTO bdt = BillingDTO.builder()
+                        .status("COMPLETED")
+                        .message("Pago exitoso")
+                        .totalSeats(billing.getTotalSeats())
+                        .totalSnacks(billing.getTotalSnacks())
+                        .totalPurchase(billing.getTotalPurchase())
+                        .seats(null)
+                        .snacks(null)
+                        .roomNumber(billing.getRoomNumber())
+                        .seatsNumbers(null)
+                        .movieTitle(billing.getMovieTitle())
+                        .screeningDate(billing.getScreeningDate())
+                        .build();
+            //Enviar a correo el QR generado en check
+
+            emailService.sendBillingEmail(buyerEmail,userManager.getUserByEmail(buyerEmail).getUsername(),bdt,billing.getQrBase64());
+
+            // Agregar película al historial del comprador usando el método existente registerWatchedMovieForBuyer
+            try {
+                registerWatchedMovieForBuyerByEmail(buyerEmail, checkoutRequest);
+            } catch (Exception e){
+                // No detener el flujo principal si hay un problema reportando el historial; loguear y continuar
+                System.out.printf("Advertencia: no fue posible registrar la película en el historial: %s", e.getMessage());
+            }
+
+            // Programar la liberación automática de sillas 3 horas después del inicio de la función
+            seatManager.scheduleRelease(
+                    screening.getId(),
+                    screening.getRoom().getId(),
+                    screening.getDateTime()
+            );
+            return Map.of("message:", "Pago realizado con éxito");
         }
 
-        // PASO 2: Actualizar el estado del pago a COMPLETED.
-        PaymentEntity payment = paymentRepository.findById(paymentId)
-                .orElseThrow(() -> new CinePachoException("Pago no encontrado con ID: " + paymentId));
-        payment.setStatus(PaymentStatus.COMPLETED);
-        paymentRepository.save(payment);
 
-        // PASO 3: Cambiar el estado de las sillas de BLOCKED a SOLD.
-        checkoutRequest.getSeats().forEach(seatSelection -> {
-            seatManager.updateSeatStatus(seatSelection.getSeatId(), SeatStatus.SOLD);
-        });
+        private void registerWatchedMovieForBuyer (
+                String token,
+                CheckoutRequest request,
+                CheckoutSummaryResponse summary,
+                PaymentEntity payment
+    ){
+            String userEmail = jwtService.extractEmail(token);
+            UserEntity currentUser = userManager.getUserByEmail(userEmail);
 
-        // PASO 4: Registrar la venta de tickets para el módulo de reportes mensales.
-        // Se obtiene la screening para acceder al multiplex y película.
-        MovieScreening screening = movieManager.getMovieScreeningById(checkoutRequest.getScreeningId());
-        BigDecimal totalSeatsAmount = calculateSeatsTotal(seats);
-        TicketSaleEntity ticketSale = TicketSaleEntity.builder()
-                .multiplex(screening.getRoom().getMultiplex())
-                .screening(screening)
-                .soldAt(LocalDateTime.now())
-                .ticketsQuantity(seatIds.size())
-                // Se registra solo el total de sillas para no mezclar con snacks.
-                .totalAmount(totalSeatsAmount)
-                .build();
-        ticketSaleRepository.save(ticketSale);
+            if (currentUser.getUserType() != UserType.BUYER || !summary.getStatus().equals("SUCCESS") || payment.getUserId() == null) {
+                throw new CinePachoException("El usuario no es un comprador o el pago no fue exitoso");
 
-        // PASO 5: Registrar la venta de snacks para el módulo de reportes mensuales.
-        registerSnackSales(checkoutRequest);
+            }
 
-        // PASO 6: Agregar la película al historial de películas vistas por el comprador.
-        UserEntity currentUser = userManager.getUserByEmail(userEmail);
-        if (currentUser.getUserType() == UserType.BUYER) {
             BuyerEntity buyer = buyerManager.getBuyerByEmail(userEmail);
-            Long movieId = movieManager.getMovieIdByScreeningId(checkoutRequest.getScreeningId());
+            Long movieId = movieManager.getMovieIdByScreeningId(request.getScreeningId());
             buyerManager.addWatchedMovie(buyer.getBuyerId(), movieId);
         }
 
-        // PASO 7: Programar la liberación automática de sillas 3 horas después del inicio de la función.
-        // Esto garantiza que si el comprador no asiste, las sillas se liberen automáticamente.
-        seatManager.scheduleRelease(
-                screening.getId(),
-                screening.getRoom().getId(),
-                screening.getDateTime()
-        );
-    }
-
-    private BigDecimal calculateSeatsTotal(List<SeatEntity> seats) {
-        // Calcula el total de sillas usando los precios configurados en el multiplex.
-        if (seats.isEmpty()) {
-            return BigDecimal.ZERO;
-        }
-
-        BigDecimal generalPrice = seats.get(0).getRoom().getMultiplex().getGeneralSeatPrice();
-        BigDecimal preferentialPrice = seats.get(0).getRoom().getMultiplex().getPreferentialSeatPrice();
-        if (generalPrice == null || preferentialPrice == null) {
-            throw new CinePachoException("El multiplex no tiene precios de silla configurados");
-        }
-
-        BigDecimal total = BigDecimal.ZERO;
-        for (SeatEntity seat : seats) {
-            BigDecimal seatPrice = seat.getType() == SeatType.GENERAL ? generalPrice : preferentialPrice;
-            total = total.add(seatPrice);
-        }
-        return total;
-    }
-
-    private void registerSnackSales(CheckoutRequest checkoutRequest) {
-        // Registra ventas de snacks (si existen) agrupadas por snack y multiplex.
-        if (checkoutRequest.getSnacks() == null || checkoutRequest.getSnacks().isEmpty()) {
-            return;
-        }
-
-        List<UUID> snackIds = checkoutRequest.getSnacks().stream()
-                .map(snackSelection -> snackSelection.getSnackId())
-                .collect(Collectors.toList());
-
-        List<SnackEntity> snacks = snackManager.findAllById(snackIds);
-        if (snacks.size() != snackIds.size()) {
-            throw new CinePachoException("No se encontraron snacks para registrar la venta");
-        }
-
-        Map<UUID, SnackEntity> snackMap = snacks.stream()
-                .collect(Collectors.toMap(SnackEntity::getId, snack -> snack));
-
-        for (SnackSelectionRequest snackSelection : checkoutRequest.getSnacks()) {
-            SnackEntity snack = snackMap.get(snackSelection.getSnackId());
-            BigDecimal unitPrice = snack.getPrice();
-            if (unitPrice == null) {
-                throw new CinePachoException("El snack " + snack.getId() + " no tiene precio configurado");
+        // Versión alternativa que acepta email en vez de token: útil para webhooks que no llevan JWT
+        private void registerWatchedMovieForBuyerByEmail(String userEmail, CheckoutRequest request){
+            UserEntity currentUser = userManager.getUserByEmail(userEmail);
+            if (currentUser.getUserType() != UserType.BUYER) {
+                throw new CinePachoException("El usuario no es un comprador");
             }
-            BigDecimal total = unitPrice.multiply(BigDecimal.valueOf(snackSelection.getQuantity()));
-
-            SnackSaleEntity snackSale = SnackSaleEntity.builder()
-                    .multiplex(snack.getMultiplex())
-                    .snack(snack)
-                    .soldAt(LocalDateTime.now())
-                    .snacksQuantity(snackSelection.getQuantity())
-                    .totalAmount(total)
-                    .build();
-            snackSaleRepository.save(snackSale);
-        }
-    }
-    
-
-
-
-    private void registerWatchedMovieForBuyer(
-            String token,
-            CheckoutRequest request,
-            CheckoutSummaryResponse summary,
-            PaymentEntity payment
-    ) {
-        String userEmail = jwtService.extractEmail(token);
-        UserEntity currentUser = userManager.getUserByEmail(userEmail);
-
-        if (currentUser.getUserType() != UserType.BUYER || !summary.getStatus().equals("SUCCESS") || payment.getUserId() == null) {
-            throw new CinePachoException("El usuario no es un comprador o el pago no fue exitoso");
-
+            BuyerEntity buyer = buyerManager.getBuyerByEmail(userEmail);
+            Long movieId = movieManager.getMovieIdByScreeningId(request.getScreeningId());
+            buyerManager.addWatchedMovie(buyer.getBuyerId(), movieId);
         }
 
-        BuyerEntity buyer = buyerManager.getBuyerByEmail(userEmail);
-        Long movieId = movieManager.getMovieIdByScreeningId(request.getScreeningId());
-        buyerManager.addWatchedMovie(buyer.getBuyerId(), movieId);
-    }
-
-    private long toStripeAmount(BigDecimal amount) {
-        if (amount == null) {
-            throw new CinePachoException("El precio del producto no puede ser nulo");
+        private long toStripeAmount (BigDecimal amount){
+            if (amount == null) {
+                throw new CinePachoException("El precio del producto no puede ser nulo");
+            }
+            return amount.setScale(0, RoundingMode.HALF_UP).longValue();
         }
-        return amount.setScale(0, RoundingMode.HALF_UP).longValue();
-    }
+
 }

@@ -15,6 +15,7 @@ import org.springframework.boot.CommandLineRunner;
 import org.springframework.stereotype.Component;
 
 import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.util.List;
 
 // CommandLineRunner es una clase que ejecuta run() una unica vez después de que
@@ -28,13 +29,17 @@ public class DataInitializer implements CommandLineRunner {
     private final UserRepository userRepository;
     private final SeatManager seatManager;
     private final MovieManager movieManager;
+    private final CinePacho.demo.seats.repository.SeatScreeningRepository seatScreeningRepository;
+    private final CinePacho.demo.shared.auxiliaryClass.SeatScreeningManager seatScreeningManager;
 
     @Autowired
-    public DataInitializer(UserCreationService userCreationService, UserRepository userRepository, SeatManager seatManager, MovieManager movieManager) {
+    public DataInitializer(UserCreationService userCreationService, UserRepository userRepository, SeatManager seatManager, MovieManager movieManager, CinePacho.demo.seats.repository.SeatScreeningRepository seatScreeningRepository, CinePacho.demo.shared.auxiliaryClass.SeatScreeningManager seatScreeningManager) {
         this.userCreationService = userCreationService;
         this.userRepository = userRepository;
         this.seatManager = seatManager;
         this.movieManager = movieManager;
+        this.seatScreeningRepository = seatScreeningRepository;
+        this.seatScreeningManager = seatScreeningManager;
     }
 
     @Value("${admin.email}")
@@ -62,9 +67,10 @@ public class DataInitializer implements CommandLineRunner {
             userRepository.save(admin);
         }
 
-        // limpiar sillas bloqueadas huérfanas al arrancar
+        // limpiar sillas bloqueadas huérfanas al arrancar (globales)
         seatManager.findByStatus(SeatStatus.BLOCKED).forEach(seat -> {
-            if (seat.getBlockedUntil().isBefore(LocalDateTime.now())) {
+            System.out.printf("--------------Liberando silla %s", seat.getId());
+            if (seat.getBlockedUntil().isBefore(LocalDateTime.now(ZoneId.of("America/Bogota")))) {
                 seat.setStatus(SeatStatus.AVAILABLE);
                 seat.setBlockedByUserEmail(null);
                 seat.setBlockedUntil(null);
@@ -72,9 +78,20 @@ public class DataInitializer implements CommandLineRunner {
             }
         });
 
+        // limpiar reservas por función que hayan expirado
+        seatScreeningRepository.findByStatus(SeatStatus.BLOCKED).forEach(ss -> {
+            System.out.printf("--------------Liberando reserva por función %s", ss.getId());
+            if (ss.getBlockedUntil() != null && ss.getBlockedUntil().isBefore(LocalDateTime.now(ZoneId.of("America/Bogota")))){
+                ss.setStatus(SeatStatus.AVAILABLE);
+                ss.setBlockedByUserEmail(null);
+                ss.setBlockedUntil(null);
+                seatScreeningRepository.save(ss);
+            }
+        });
+
         //  reprogramar funciones pendientes para liberar sillas ----
         // tomo la hora actual
-        LocalDateTime now = LocalDateTime.now();
+        LocalDateTime now = LocalDateTime.now(ZoneId.of("America/Bogota"));
 
         //Busco las funciones que aún no han liberado las sillas (funciones que empezaron hace menos de 3 horas O que aún no han empezado)
         List<MovieScreening> pendingScreenings = movieManager.findByDateTimeAfter(now.minusHours(3));
@@ -94,6 +111,8 @@ public class DataInitializer implements CommandLineRunner {
             movieScreening.setStatus(ScreeningStatus.COMPLETED);
             //marca la sala como activa
             movieScreening.getRoom().setActive(true);
+
+            movieManager.save(movieScreening);
 
         });
     }

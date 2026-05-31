@@ -1,8 +1,10 @@
 package CinePacho.demo.seats.service;
 
 import CinePacho.demo.exception.CinePachoException;
+import CinePacho.demo.seats.entities.SeatScreeningEntity;
 import CinePacho.demo.seats.enumeration.SeatStatus;
 import CinePacho.demo.shared.auxiliaryClass.RoomManager;
+import CinePacho.demo.shared.auxiliaryClass.SeatScreeningManager;
 import CinePacho.demo.shared.serviceSecurity.JwtService;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
@@ -18,8 +20,11 @@ import CinePacho.demo.seats.repository.SeatRepository;
 import CinePacho.demo.shared.enumeration.SeatType;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.Clock;
 import java.time.Instant;
 import java.time.LocalDateTime;
+import java.time.ZoneId;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
@@ -34,66 +39,52 @@ public class SeatService {
     private final SeatRepository seatRepository;
     private final RoomManager roomManager;
     private final JwtService jwtUtil;
+    private final SeatScreeningManager seatScreeningManager;
     private final Map<UUID, ScheduledFuture<?>> timers = new ConcurrentHashMap<>();
     private final TaskScheduler taskScheduler;
     private final SeatUnblockScheduler seatUnblockScheduler;
 
 
-    // GET ALL by room
-    public List<SeatResponse> getAllByRoom(UUID roomId) {
-        List<SeatEntity> allSeats = seatRepository.findByRoomId(roomId);
- 
-        return allSeats.stream()
-                .map(this::toResponse)
-                .collect(Collectors.toList());
+    public List<SeatResponse> getAllByRoom(UUID roomId, UUID screeningId) {
+
+        //extraigo todas las sillas de esa sala
+        List<SeatEntity> seats = seatRepository.getAllByRoom_Id(roomId);
+
+        List<SeatResponse> responses =  new ArrayList<>();
+
+        seats.forEach(seat -> {
+            //agarro las sillas de ese screening
+            SeatScreeningEntity seatScreening = seatScreeningManager.getSeatScreening(seat.getId(), screeningId);
+            responses.add(
+                    new SeatResponse(
+                            seat.getId().toString(),
+                            seat.getRoom().getId().toString(),
+                            seat.getSeatNumber(),
+                            seat.getType().name(),
+                            seatScreening != null ? seatScreening.getStatus() : SeatStatus.AVAILABLE
+                        )
+                );
+        });
+        return responses;
     }
 
     @Transactional
-    // CAMBIAR ESTADO DE LA SILLA
-    public SeatResponse toggleSeat(UUID seatId, String token) {
+    // CAMBIAR ESTADO DE LA SILLA (ahora por función)
+    public SeatResponse toggleSeat(UUID seatId, String token, UUID screeningId) {
 
         //se extrae el email del usuario del token
         String userEmail = jwtUtil.extractEmail(token);
 
-        //se busca el asiento por id
+        // delegar la lógica a SeatScreeningManager que maneja bloqueo por función
+        var ss = seatScreeningManager.toggleSeatForScreening(seatId, screeningId, userEmail);
+
         SeatEntity seat = seatRepository.findById(seatId)
-                .orElseThrow(() -> new CinePachoException("Silla no encontrada "+ HttpStatus.NOT_FOUND.name()));
+                .orElseThrow(() -> new CinePachoException("Silla no encontrada " + HttpStatus.NOT_FOUND.name()));
 
-        //Se evalúa cada estado de la silla
-        switch (seat.getStatus()) {
-
-            case AVAILABLE -> {
-                // bloquear
-                seat.setStatus(SeatStatus.BLOCKED);
-                seat.setBlockedByUserEmail(userEmail);
-                seat.setBlockedUntil(LocalDateTime.now().plusMinutes(10));
-                seatRepository.save(seat);
-                scheduleUnblock(seatId);   // timer de 10 min
-            }
-
-            case BLOCKED -> {
-                // solo el mismo usuario puede desbloquear
-                if (!seat.getBlockedByUserEmail().equals(userEmail)) {
-                    throw new CinePachoException(
-                            "Esta silla está reservada por otro usuario "+
-                                    HttpStatus.CONFLICT.name()
-                    );
-                }
-                // desbloquear
-                seat.setStatus(SeatStatus.AVAILABLE);
-                seat.setBlockedByUserEmail(null);
-                seat.setBlockedUntil(null);
-                seatRepository.save(seat);
-                cancelUnblock(seatId);    // cancela el timer
-            }
-
-            case SOLD -> throw new CinePachoException(
-                    "Esta silla ya fue vendida "+
-                            HttpStatus.CONFLICT.name()
-            );
-        }
-
-        return toResponse(seat);
+        SeatResponse response = toResponse(seat);
+        // sobreescribir el status con el estado específico para la función
+        response.setStatus(ss.getStatus());
+        return response;
     }
 
 
@@ -101,7 +92,7 @@ public class SeatService {
     private void scheduleUnblock(UUID seatId) {
         ScheduledFuture<?> timer = taskScheduler.schedule(
                 () -> seatUnblockScheduler.forceUnblock(seatId),
-                Instant.now().plusSeconds(600)   // 10 minutos
+                Instant.now(Clock.system(ZoneId.of("America/Bogota"))).plusSeconds(600)   // 10 minutos
         );
         timers.put(seatId, timer);
     }
