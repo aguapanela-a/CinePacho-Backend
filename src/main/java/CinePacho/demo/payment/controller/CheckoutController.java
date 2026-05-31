@@ -5,9 +5,11 @@ import CinePacho.demo.payment.dto.request.StripeSuccessRequest;
 import CinePacho.demo.payment.dto.response.CheckoutSummaryResponse;
 import CinePacho.demo.payment.service.BillingService;
 import CinePacho.demo.payment.service.StripeService;
+import CinePacho.demo.shared.auxiliaryClass.DTOResponse;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -44,7 +46,7 @@ public class CheckoutController {
 
     //redireccionamiento de stripe al completar el pago
     @PostMapping("/stripe/success")
-    public ResponseEntity<Map<String, String>> success(
+    public ResponseEntity<DTOResponse> success(
             @RequestBody StripeSuccessRequest request,
             @RequestHeader("Authorization") String token) {
 
@@ -54,14 +56,21 @@ public class CheckoutController {
                 request.paymentId(),
                 token
         );
-        return ResponseEntity.ok(result);
+        // Respuesta estándar para confirmación de pago
+        String message = result.getOrDefault("message", result.getOrDefault("message:", "Pago realizado con éxito"));
+        DTOResponse response = DTOResponse.withStatus(message, HttpStatus.OK.value());
+        return ResponseEntity.ok(response);
     }
 
     //ENdpoint al escanear QR (SOLO EMPLEADO DE ESE MULTIPLEX PUEDE SCANEAR)
     @PutMapping("/employee/billing/{billingId}/scan")
-    public ResponseEntity<Map<String, String>> scanQR(@PathVariable UUID billingId, @RequestHeader("Authorization") String token) {
+    public ResponseEntity<DTOResponse> scanQR(@PathVariable UUID billingId, @RequestHeader("Authorization") String token) {
         token = token.replace("Bearer ", "");
-        return ResponseEntity.ok(billingService.scanQr(billingId, token));
+        Map<String, String> result = billingService.scanQr(billingId, token);
+        // Respuesta estándar para validación de QR
+        String message = result.getOrDefault("message", "Entrada válida. Bienvenido a CinePacho");
+        DTOResponse response = DTOResponse.withStatus(message, HttpStatus.OK.value());
+        return ResponseEntity.ok(response);
     }
 
     //redireccionamiento de stripe al cancelar el pago

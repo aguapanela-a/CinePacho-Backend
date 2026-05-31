@@ -27,6 +27,7 @@ import CinePacho.demo.shared.enumeration.SeatType;
 import CinePacho.demo.shared.enumeration.UserType;
 import CinePacho.demo.shared.serviceSecurity.JwtService;
 import CinePacho.demo.snacks.entities.SnackEntity;
+import CinePacho.demo.snacks.repository.SnackRepository;
 import com.stripe.Stripe;
 import com.stripe.exception.StripeException;
 import com.stripe.model.checkout.Session;
@@ -65,6 +66,7 @@ public class StripeService {
     private final BillingService billingService;
     private final BillingRepository billingRepository;
     private final CinePacho.demo.shared.auxiliaryClass.EmployeeMultiplexProvider employeeMultiplexProvider;
+    private final SnackRepository snackRepository;
 
     @Value("${stripe.api.key}")
     private String stripeApiKey;
@@ -83,10 +85,12 @@ public class StripeService {
             MovieManager movieManager,
             JwtService jwtService,
             UserManager userManager, SeatManager seatManager, SeatScreeningManager seatScreeningManager, BillingService billingService,
-            BillingRepository billingRepository, CinePacho.demo.shared.auxiliaryClass.EmployeeMultiplexProvider employeeMultiplexProvider) {
+            BillingRepository billingRepository, CinePacho.demo.shared.auxiliaryClass.EmployeeMultiplexProvider employeeMultiplexProvider,
+            SnackRepository snackRepository) {
         this.checkoutService = checkoutService;
         this.paymentRepository = paymentRepository;
         this.ticketSaleRepository = ticketSaleRepository;
+        this.snackSaleRepository = null;
         this.emailService = emailService;
         this.buyerManager = buyerManager;
         this.movieManager = movieManager;
@@ -97,6 +101,7 @@ public class StripeService {
         this.billingService = billingService;
         this.billingRepository = billingRepository;
         this.employeeMultiplexProvider = employeeMultiplexProvider;
+        this.snackRepository = snackRepository;
     }
 
     public CheckoutSummaryResponse checkoutProducts(CheckoutRequest request, String token) throws StripeException {
@@ -238,6 +243,9 @@ public class StripeService {
             String buyerEmail;
             MovieScreening screening = movieManager.getMovieScreeningById(checkoutRequest.getScreeningId());
 
+            
+
+
             if (actorUser.getUserType() == UserType.BUYER) {
                 buyerEmail = actorEmail;
             } else {
@@ -276,6 +284,43 @@ public class StripeService {
                     .orElseThrow(() -> new CinePachoException("Pago no encontrado con ID: " + paymentId));
             payment.setStatus(PaymentStatus.COMPLETED);
             paymentRepository.save(payment);
+
+            // Restar snacks comprados del inventario por multiplex
+            List<SnackSelectionRequest> snackSelections = checkoutRequest.getSnacks() == null
+                    ? Collections.emptyList()
+                    : checkoutRequest.getSnacks();
+
+            // Multiplex de la función para validar inventario correcto
+            UUID screeningMultiplexId = screening.getRoom().getMultiplex().getId();
+            for (SnackSelectionRequest snackSelection : snackSelections) {
+                if (snackSelection.getQuantity() == null || snackSelection.getQuantity() <= 0) {
+                    continue;
+                }
+
+                // Asegurar que el cliente envíe el multiplexId y que coincida con la función
+                if (snackSelection.getMultiplexId() == null) {
+                    throw new CinePachoException("El multiplexId del snack es obligatorio");
+                }
+                if (!screeningMultiplexId.equals(snackSelection.getMultiplexId())) {
+                    throw new CinePachoException("El snack no pertenece al multiplex de la función seleccionada");
+                }
+
+                SnackEntity snack = snackRepository.findById(snackSelection.getSnackId())
+                        .orElseThrow(() -> new CinePachoException("Snack no encontrado con ID: " + snackSelection.getSnackId()));
+
+                java.util.UUID multiplexId = snackSelection.getMultiplexId();
+                if (snack.getMultiplex() == null || !snack.getMultiplex().getId().equals(multiplexId)) {
+                    throw new CinePachoException("El snack no pertenece al multiplex indicado");
+                }
+
+                Integer currentStock = snack.getQuantity();
+                if (currentStock == null || currentStock < snackSelection.getQuantity()) {
+                    throw new CinePachoException("Stock insuficiente para el snack: " + snack.getName());
+                }
+
+                snack.setQuantity(currentStock - snackSelection.getQuantity());
+                snackRepository.save(snack);
+            }
 
             // Marcar cada SeatScreening como SOLD
             checkoutRequest.getSeats().forEach(seatSelection -> {
@@ -330,24 +375,7 @@ public class StripeService {
         }
 
 
-        private void registerWatchedMovieForBuyer (
-                String token,
-                CheckoutRequest request,
-                CheckoutSummaryResponse summary,
-                PaymentEntity payment
-    ){
-            String userEmail = jwtService.extractEmail(token);
-            UserEntity currentUser = userManager.getUserByEmail(userEmail);
-
-            if (currentUser.getUserType() != UserType.BUYER || !summary.getStatus().equals("SUCCESS") || payment.getUserId() == null) {
-                throw new CinePachoException("El usuario no es un comprador o el pago no fue exitoso");
-
-            }
-
-            BuyerEntity buyer = buyerManager.getBuyerByEmail(userEmail);
-            Long movieId = movieManager.getMovieIdByScreeningId(request.getScreeningId());
-            buyerManager.addWatchedMovie(buyer.getBuyerId(), movieId);
-        }
+        
 
         // Versión alternativa que acepta email en vez de token: útil para webhooks que no llevan JWT
         private void registerWatchedMovieForBuyerByEmail(String userEmail, CheckoutRequest request){

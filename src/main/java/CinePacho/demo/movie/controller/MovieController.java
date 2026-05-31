@@ -10,9 +10,10 @@ import CinePacho.demo.movie.enumeration.ScreeningStatus;
 import CinePacho.demo.movie.service.MovieScreeningService;
 import CinePacho.demo.movie.service.MovieAdminService;
 import CinePacho.demo.movie.service.MovieServices;
+import CinePacho.demo.shared.auxiliaryClass.DTOResponse;
 import jakarta.validation.Valid;
-import jakarta.validation.constraints.NotBlank;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -104,30 +105,19 @@ public class MovieController {
 
 
     @PutMapping("/admin/movie/changeStatus/{idScreening}")
-    public ResponseEntity<StatusResponse> deleteMovie(
+    public ResponseEntity<DTOResponse> deleteMovie(
             @Valid
             @PathVariable UUID idScreening,
             @RequestParam ScreeningStatus status
     ){
         movieAdminService.changeScreeningStatus(idScreening, status);
 
-        return ResponseEntity.ok(
-                new StatusResponse(
-                    status,
-                    idScreening
-        ));
+        // Respuesta estándar para actualización de estado
+        DTOResponse response = DTOResponse.withStatus(
+                "Estado de la función actualizado correctamente",
+                HttpStatus.OK.value()
+        );
+        return ResponseEntity.ok(response);
     }
-
-
-
-
-
-    //Record sencillo para respuestas sencillas y propias del controlador
-    public record StatusResponse(
-            @NotBlank
-            ScreeningStatus screeningStatus,
-            @NotBlank
-            UUID screeningId
-    ) { }
 
 }

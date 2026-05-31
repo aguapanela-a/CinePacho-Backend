@@ -114,6 +114,8 @@ public class CheckoutService {
         BigDecimal totalSnacks = BigDecimal.ZERO;
 
         if (!snackRequests.isEmpty()) {
+            // Validar que los snacks pertenezcan al mismo multiplex de las sillas seleccionadas
+            UUID multiplexId = seats.get(0).getRoom().getMultiplex().getId();
             List<UUID> snackIds = snackRequests.stream()
                     .map(SnackSelectionRequest::getSnackId)
                     .collect(Collectors.toList());
@@ -127,7 +129,18 @@ public class CheckoutService {
                     .collect(Collectors.toMap(SnackEntity::getId, s -> s));
 
             for (SnackSelectionRequest snackRequest : snackRequests) {
+                // Asegurar que el cliente envíe el multiplexId y que coincida con la función elegida
+                if (snackRequest.getMultiplexId() == null) {
+                    throw new CinePachoException("El multiplexId del snack es obligatorio");
+                }
+                if (!multiplexId.equals(snackRequest.getMultiplexId())) {
+                    throw new CinePachoException("El snack no pertenece al multiplex de la función seleccionada");
+                }
                 SnackEntity snack = snackMap.get(snackRequest.getSnackId());
+                // Validar que el snack realmente pertenece al multiplex indicado
+                if (snack.getMultiplex() == null || !multiplexId.equals(snack.getMultiplex().getId())) {
+                    throw new CinePachoException("El snack no pertenece al multiplex indicado");
+                }
                 if (snack.getQuantity() < snackRequest.getQuantity()) {
                     throw new CinePachoException(
                             "Stock insuficiente para el snack '" + snack.getName() + "'");

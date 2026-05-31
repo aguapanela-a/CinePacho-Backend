@@ -5,6 +5,7 @@ import java.util.List;
 import java.util.UUID;
 
 import CinePacho.demo.snacks.dto.response.SnackByMultiplex;
+import CinePacho.demo.shared.auxiliaryClass.DTOResponse;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -58,9 +59,14 @@ public class SnackController {
     
     //Status y mensaje de error o exito
     @PostMapping("/admin/snacks")
-    public ResponseEntity<Void> create(@Valid @RequestBody SnackRequest request) {
+    public ResponseEntity<DTOResponse> create(@Valid @RequestBody SnackRequest request) {
         snackService.create(request);
-        return ResponseEntity.status(HttpStatus.CREATED).build();
+        // Respuesta estándar para creación de snack
+        DTOResponse response = DTOResponse.withStatus(
+                "Snack creado con éxito",
+                HttpStatus.CREATED.value()
+        );
+        return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
  
     @PutMapping("/admin/snacks/{id}")
@@ -71,8 +77,13 @@ public class SnackController {
     }
  
     @DeleteMapping("/admin/snacks/{id}")
-    public ResponseEntity<Void> delete(@PathVariable UUID id) {
+    public ResponseEntity<DTOResponse> delete(@PathVariable UUID id) {
         snackService.delete(id);
-        return ResponseEntity.noContent().build();
+        // Respuesta estándar para eliminación de snack
+        DTOResponse response = DTOResponse.withStatus(
+                "Snack eliminado con éxito",
+                HttpStatus.OK.value()
+        );
+        return ResponseEntity.ok(response);
     }
 }

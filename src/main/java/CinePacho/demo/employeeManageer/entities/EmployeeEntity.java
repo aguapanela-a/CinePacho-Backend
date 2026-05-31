@@ -38,6 +38,10 @@ public class EmployeeEntity {
     @Column(unique = true)
     private LocalDateTime startDate;
 
+    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
+    @Column(name = "role_updated_at")
+    private LocalDateTime roleUpdatedAt; // Marca el último cambio de cargo/rol
+
     @Column(unique = true)
     private String identityCard;
 

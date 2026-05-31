@@ -11,6 +11,8 @@ import CinePacho.demo.shared.factory.UserFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
+import java.time.LocalDateTime;
+import java.time.ZoneOffset;
 
 @Component
 public class EmployeeFactory implements UserFactory<RegisterEmployeeRequestDTO> {
@@ -46,6 +48,8 @@ public class EmployeeFactory implements UserFactory<RegisterEmployeeRequestDTO> 
         employee.setSalary(extraData.salary());
         employee.setRol(extraData.rol());
         employee.setUniqueCode(nextUniqueCode());
+        // Se registra la fecha del último cambio de cargo/rol al momento de crear el empleado
+        employee.setRoleUpdatedAt(LocalDateTime.now(ZoneOffset.UTC));
 
 
         employeeRepository.save(employee);
