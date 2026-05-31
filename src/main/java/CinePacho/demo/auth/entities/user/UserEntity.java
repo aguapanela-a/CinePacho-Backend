@@ -71,4 +71,8 @@ public class UserEntity implements UserDetails {
         return this.password;
     }
 
+    @Override
+    public boolean isEnabled() {
+        return enabled;
+    }
 }
