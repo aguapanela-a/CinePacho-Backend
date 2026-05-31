@@ -19,6 +19,7 @@ import CinePacho.demo.seats.entities.SeatEntity;
 import CinePacho.demo.seats.repository.SeatRepository;
 import CinePacho.demo.shared.enumeration.SeatType;
 import org.springframework.transaction.annotation.Transactional;
+import CinePacho.demo.seats.repository.SeatScreeningRepository;
 
 import java.time.Clock;
 import java.time.Instant;
@@ -39,22 +40,29 @@ public class SeatService {
     private final SeatRepository seatRepository;
     private final RoomManager roomManager;
     private final JwtService jwtUtil;
+    private final SeatScreeningManagerImpl seatScreeningManagerImpl;
     private final SeatScreeningManager seatScreeningManager;
     private final Map<UUID, ScheduledFuture<?>> timers = new ConcurrentHashMap<>();
     private final TaskScheduler taskScheduler;
     private final SeatUnblockScheduler seatUnblockScheduler;
+    private final SeatScreeningRepository seatScreeningRepository;
 
 
     public List<SeatResponse> getAllByRoom(UUID roomId, UUID screeningId) {
 
         //extraigo todas las sillas de esa sala
         List<SeatEntity> seats = seatRepository.getAllByRoom_Id(roomId);
+        System.out.println("Sillas encontradas para sala " + roomId + ": " + seats.size());
 
         List<SeatResponse> responses =  new ArrayList<>();
 
         seats.forEach(seat -> {
             //agarro las sillas de ese screening
             SeatScreeningEntity seatScreening = seatScreeningManager.getSeatScreening(seat.getId(), screeningId);
+            System.out.println("OBJETO SEAT SCREENING: " + seatScreening);
+
+            System.out.println("SeatScreening status for seat " + seat.getId() + ": " + (seatScreening != null ? seatScreening.getStatus() : "null"));
+
             responses.add(
                     new SeatResponse(
                             seat.getId().toString(),
@@ -68,23 +76,19 @@ public class SeatService {
         return responses;
     }
 
-    @Transactional
+    
     // CAMBIAR ESTADO DE LA SILLA (ahora por función)
+    @Transactional
     public SeatResponse toggleSeat(UUID seatId, String token, UUID screeningId) {
 
-        //se extrae el email del usuario del token
         String userEmail = jwtUtil.extractEmail(token);
 
-        // delegar la lógica a SeatScreeningManager que maneja bloqueo por función
-        var ss = seatScreeningManager.toggleSeatForScreening(seatId, screeningId, userEmail);
+        SeatScreeningEntity ss = seatScreeningManagerImpl.toggleSeatForScreening(seatId, screeningId, userEmail);
 
         SeatEntity seat = seatRepository.findById(seatId)
-                .orElseThrow(() -> new CinePachoException("Silla no encontrada " + HttpStatus.NOT_FOUND.name()));
-
-        SeatResponse response = toResponse(seat);
-        // sobreescribir el status con el estado específico para la función
-        response.setStatus(ss.getStatus());
-        return response;
+                .orElseThrow(() -> new CinePachoException("Silla no encontrada"));
+    
+        return toResponse(seat, ss);
     }
 
 
@@ -116,50 +120,48 @@ public class SeatService {
                 .build();
     }
 
-
- 
-    // GET BY ID
-    public SeatResponse getById(UUID id) {
-        return toResponse(findOrThrow(id));
-    }
+    // // GET BY ID
+    // public SeatResponse getById(UUID id) {
+    //     return toResponse(findOrThrow(id));
+    // }
  
 
     // Disponibilidad de un asiento específico
     // CREATE 
-    public SeatResponse create(SeatRequest request) {
-        if (seatRepository.existsByRoomIdAndSeatNumber(request.getRoomId(), request.getSeatNumber())) {
-            throw new CinePachoException(
-                    "Ya existe el asiento número " + request.getSeatNumber() + " en esa sala");
-        }
+    // public SeatResponse create(SeatRequest request) {
+    //     if (seatRepository.existsByRoomIdAndSeatNumber(request.getRoomId(), request.getSeatNumber())) {
+    //         throw new CinePachoException(
+    //                 "Ya existe el asiento número " + request.getSeatNumber() + " en esa sala");
+    //     }
  
-        SeatEntity seat = SeatEntity.builder()
-                .room(roomManager.getRoom(request.getRoomId()))
-                .seatNumber(request.getSeatNumber())
-                .type(request.getType())
-                .build();
+    //     SeatEntity seat = SeatEntity.builder()
+    //             .room(roomManager.getRoom(request.getRoomId()))
+    //             .seatNumber(request.getSeatNumber())
+    //             .type(request.getType())
+    //             .build();
  
-        return toResponse(seatRepository.save(seat));
-    }
+    //     return toResponse(seatRepository.save(seat));
+    // }
  
     // UPDATE
-    public SeatResponse update(UUID id, SeatRequest request) {
-        SeatEntity seat = findOrThrow(id);
+    // public SeatResponse update(UUID id, SeatRequest request) {
+    //     SeatEntity seat = findOrThrow(id);
  
-        boolean cambioNumero = !seat.getSeatNumber().equals(request.getSeatNumber())
-                || !seat.getRoom().getId().equals(request.getRoomId());
+    //     boolean cambioNumero = !seat.getSeatNumber().equals(request.getSeatNumber())
+    //             || !seat.getRoom().getId().equals(request.getRoomId());
  
-        if (cambioNumero && seatRepository.existsByRoomIdAndSeatNumber(
-                request.getRoomId(), request.getSeatNumber())) {
-            throw new IllegalArgumentException(
-                    "Ya existe el asiento número " + request.getSeatNumber() + " en esa sala");
-        }
+    //     if (cambioNumero && seatRepository.existsByRoomIdAndSeatNumber(
+    //             request.getRoomId(), request.getSeatNumber())) {
+    //         throw new IllegalArgumentException(
+    //                 "Ya existe el asiento número " + request.getSeatNumber() + " en esa sala");
+    //     }
 
-        seat.setRoom(roomManager.getRoom(request.getRoomId()));
-        seat.setSeatNumber(request.getSeatNumber());
-        seat.setType(request.getType());
+    //     seat.setRoom(roomManager.getRoom(request.getRoomId()));
+    //     seat.setSeatNumber(request.getSeatNumber());
+    //     seat.setType(request.getType());
  
-        return toResponse(seatRepository.save(seat));
-    }
+    //     return toResponse(seatRepository.save(seat));
+    // }
  
     // DELETE (physical)
     public void delete(UUID id) {
@@ -176,14 +178,14 @@ public class SeatService {
                 .orElseThrow(() -> new CinePachoException("Asiento no encontrado con id: " + id));
     }
  
-    private SeatResponse toResponse(SeatEntity seat) {
-        return SeatResponse.builder()
-                .idSeat(seat.getId().toString())
-                .roomId(seat.getRoom().getId().toString())
-                .seatNumber(seat.getSeatNumber())
-                .type(seat.getType().name())
-                .status(seat.getStatus())
-                .build();
+    private SeatResponse toResponse(SeatEntity seat, SeatScreeningEntity ss) {
+    return SeatResponse.builder()
+            .idSeat(seat.getId().toString())
+            .roomId(seat.getRoom().getId().toString())
+            .seatNumber(seat.getSeatNumber())
+            .type(seat.getType().name())
+            .status(ss.getStatus()) // ✅ status de la función, no de la silla
+            .build();
     }
 
     

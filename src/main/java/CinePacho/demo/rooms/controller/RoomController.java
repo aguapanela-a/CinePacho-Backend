@@ -29,9 +29,8 @@ public class RoomController {
     @PostMapping("admin/{multiplexId}/rooms")
     public ResponseEntity<DTOResponse> create(@Valid @PathVariable UUID multiplexId) {
 
-        RoomDetailResponse detail = roomService.create(multiplexId);
-        // Se elimina la segunda creación para evitar duplicar salas
-
+        roomService.create(multiplexId);
+        
         // Respuesta estándar para creación de sala
         DTOResponse response = DTOResponse.withStatus(
                 "Sala de cine creada con éxito",

@@ -18,14 +18,14 @@ public class SeatController {
 
     private final SeatService seatService;
 
-    @PutMapping("/seats/{seatId}/changeStatus") // Endpoint compartido para BUYER y EMPLOYEE
+    @PutMapping("/seats/{seatId}/screening/{screeningId}/changeStatus") // Endpoint compartido para BUYER y EMPLOYEE
     public ResponseEntity<SeatResponse> changeState(
             @PathVariable UUID seatId,
-            @RequestParam UUID screeningId,
+            @PathVariable UUID screeningId,
             @RequestHeader("Authorization") String token
             ) {
         token = token.replace("Bearer ", "");
-        return ResponseEntity.ok(seatService.toggleSeat(seatId,token, screeningId));
+        return ResponseEntity.ok(seatService.toggleSeat(seatId, token, screeningId));
     }
 
 
