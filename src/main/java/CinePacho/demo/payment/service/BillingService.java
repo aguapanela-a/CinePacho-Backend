@@ -8,6 +8,7 @@ import CinePacho.demo.payment.entities.BillingEntity;
 import CinePacho.demo.payment.entities.PaymentEntity;
 import CinePacho.demo.payment.enumeration.QrStatus;
 import CinePacho.demo.payment.repository.BillingRepository;
+import CinePacho.demo.shared.enumeration.UserType;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
@@ -24,6 +25,9 @@ public class BillingService {
 
     private final BillingRepository billingRepository;
     private final QrGeneratorService qrGeneratorService;
+    private final CinePacho.demo.shared.auxiliaryClass.EmployeeMultiplexProvider employeeMultiplexProvider;
+    private final CinePacho.demo.shared.auxiliaryClass.UserManager userManager;
+    private final CinePacho.demo.shared.serviceSecurity.JwtService jwtService;
 
     @Value("${app.base-url}")
     private String baseUrl;
@@ -50,6 +54,8 @@ public class BillingService {
                 .roomNumber(screening.getRoom().getRoomNumber())
                 .movieTitle(screening.getMovie().getOriginalTitle())
                 .screeningDate(screening.getDateTime().toString())
+                .screeningId(screening.getId())
+                .multiplexId(screening.getRoom().getMultiplex().getId())
                 .build();
 
         BillingEntity saved = billingRepository.save(billing);
@@ -67,10 +73,23 @@ public class BillingService {
      * Valida el QR cuando el empleado lo escanea.
      * Solo permite el escaneo una vez.
      */
-    public Map<String, String> scanQr(UUID billingId) {
+    public Map<String, String> scanQr(UUID billingId, String token) {
 
         BillingEntity billing = billingRepository.findById(billingId)
                 .orElseThrow(() -> new CinePachoException("Factura no encontrada"));
+
+        // validar token y que el usuario sea empleado del multiplex de la factura
+        String employeeEmail = jwtService.extractEmail(token);
+        var user = userManager.getUserByEmail(employeeEmail);
+        if (user.getUserType() != UserType.EMPLOYEE
+                && user.getUserType() != UserType.MANAGER) {
+            throw new CinePachoException("Solo el personal del multiplex puede escanear facturas");
+        }
+
+        UUID empMultiplex = employeeMultiplexProvider.getMultiplexIdByUserEmail(employeeEmail);
+        if (!empMultiplex.equals(billing.getMultiplexId())) {
+            throw new CinePachoException("Empleado no pertenece a este multiplex");
+        }
 
         // Evita escaneos duplicados
         if (billing.getQrStatus() == QrStatus.SCANNED) {

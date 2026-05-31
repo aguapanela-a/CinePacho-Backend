@@ -28,6 +28,7 @@ public class Config {
     private static final String ADMIN = "ADMIN";
     private static final String MANAGER = "MANAGER";
     private static final String BUYER = "BUYER";
+    private static final String EMPLOYEE = "EMPLOYEE";
     // Cambio: excluir CLEANER y ROOM_ATTENDANT de ventas aunque tengan autoridad EMPLOYEE.
     private static final String SELL_PORTAL_ACCESS =
             "hasAnyAuthority('BUYER','EMPLOYEE','MANAGER') and !hasAnyAuthority('CLEANER','ROOM_ATTENDANT')";
@@ -106,6 +107,10 @@ public class Config {
                         // Snacks aun no estan modelados por multiplex, por eso el CRUD queda global para ADMIN y MANAGER local.
                         .requestMatchers("/api/admin/snacks/**").hasAnyAuthority(ADMIN, MANAGER)
                         .requestMatchers(HttpMethod.GET, "/api/admin/snacks").hasAnyAuthority(ADMIN, MANAGER)
+                        .requestMatchers(HttpMethod.POST, "/api/checkout/stripe").hasAnyAuthority(SELL_PORTAL_ACCESS)
+                        .requestMatchers(HttpMethod.POST, "/api/checkout/stripe/success").hasAnyAuthority(SELL_PORTAL_ACCESS)
+                        .requestMatchers(HttpMethod.POST, "/api/checkout/stripe/cancel").hasAnyAuthority(SELL_PORTAL_ACCESS)
+                        .requestMatchers(HttpMethod.PUT, "/api/checkout/employee/*/scan").hasAnyAuthority(EMPLOYEE, MANAGER)
 
                         // Cualquier endpoint administrativo no clasificado queda reservado para ADMIN.
                         .requestMatchers("/api/admin/**").hasAuthority(ADMIN)

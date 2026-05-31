@@ -34,6 +34,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -52,6 +53,7 @@ public class StripeService {
     private final SeatScreeningManager seatScreeningManager;
     private final BillingService billingService;
     private final BillingRepository billingRepository;
+    private final CinePacho.demo.shared.auxiliaryClass.EmployeeMultiplexProvider employeeMultiplexProvider;
 
     @Value("${stripe.api.key}")
     private String stripeApiKey;
@@ -70,7 +72,7 @@ public class StripeService {
             MovieManager movieManager,
             JwtService jwtService,
             UserManager userManager, SeatManager seatManager, SeatScreeningManager seatScreeningManager, BillingService billingService,
-            BillingRepository billingRepository) {
+            BillingRepository billingRepository, CinePacho.demo.shared.auxiliaryClass.EmployeeMultiplexProvider employeeMultiplexProvider) {
         this.checkoutService = checkoutService;
         this.paymentRepository = paymentRepository;
         this.ticketSaleRepository = ticketSaleRepository;
@@ -83,6 +85,7 @@ public class StripeService {
         this.seatScreeningManager = seatScreeningManager;
         this.billingService = billingService;
         this.billingRepository = billingRepository;
+        this.employeeMultiplexProvider = employeeMultiplexProvider;
     }
 
     public CheckoutSummaryResponse checkoutProducts(CheckoutRequest request, String token) throws StripeException {
@@ -150,7 +153,26 @@ public class StripeService {
         // IMPORTANTE: El cambio a COMPLETED debería ocurrir en el webhook de Stripe después de confirmación exitosa.
         // Por ahora se mantiene PENDING aquí y se actualiza cuando la sesión es confirmada.
         PaymentEntity payment = new PaymentEntity();
-        payment.setUserId(checkoutService.getUserIdFromToken(token));
+        // Determinar actor (buyer o employee) a partir del token
+        String actorEmail = jwtService.extractEmail(token);
+        UserEntity actorUser = userManager.getUserByEmail(actorEmail);
+
+        String buyerEmailForPayment = actorEmail; // por defecto
+        if (actorUser.getUserType() != UserType.BUYER) {
+            // actor es empleado/manager -> requiere buyerEmail en request
+            if (request.getBuyerEmail() == null) {
+                throw new CinePachoException("Cuando un empleado realiza la venta, debe proveer el email del comprador");
+            }
+            buyerEmailForPayment = request.getBuyerEmail();
+            // validar que el empleado pertenece al multiplex de la función
+            MovieScreening screeningForValidation = movieManager.getMovieScreeningById(request.getScreeningId());
+            java.util.UUID empMultiplex = employeeMultiplexProvider.getMultiplexIdByUserEmail(actorEmail);
+            if (!empMultiplex.equals(screeningForValidation.getRoom().getMultiplex().getId())) {
+                throw new CinePachoException("El empleado no pertenece a este multiplex");
+            }
+        }
+
+        payment.setUserId(buyerManager.getBuyerByEmail(buyerEmailForPayment).getBuyerId());
         payment.setAmount(summary.getTotalPurchase());
         payment.setPaymentMethod("STRIPE");
         payment.setStatus(PaymentStatus.PENDING);
@@ -164,9 +186,9 @@ public class StripeService {
         summary.setSessionUrl(session.getUrl());
         summary.setPaymentId(payment.getPaymentId());
 
-        //Creación de factura con QR (cuando se aplique que el tokens ea de un employee, reemplazar esto por simplemente buscar por email, pues se requerirá el email del buyer esi es un employee quién está atendiendo)
-        BillingEntity billing = billingService.createBilling(payment,buyerManager.getBuyerByEmail(jwtService.extractEmail(token)), summary, movieManager.getMovieScreeningById(request.getScreeningId()));
-
+        //Creación de factura con QR: usar buyerEmailForPayment
+        MovieScreening screening = movieManager.getMovieScreeningById(request.getScreeningId());
+        BillingEntity billing = billingService.createBilling(payment, buyerManager.getBuyerByEmail(buyerEmailForPayment), summary, screening);
 
         //agrega el id de la fatura para que el front lo reciba
         summary.setBillingId(billing.getId());
@@ -199,9 +221,28 @@ public class StripeService {
         @Transactional
         public Map<String, String> handlePaymentSuccess(CheckoutRequest checkoutRequest, UUID paymentId, String token){
 
-            String userEmail = jwtService.extractEmail(token);
+            // Determinar actor y buyerEmail
+            String actorEmail = jwtService.extractEmail(token);
+            UserEntity actorUser = userManager.getUserByEmail(actorEmail);
+            String buyerEmail;
+            MovieScreening screening = movieManager.getMovieScreeningById(checkoutRequest.getScreeningId());
 
-            // Validación por función: asegurar que las reservas (SeatScreening) para esta función están bloqueadas por este usuario
+            if (actorUser.getUserType() == UserType.BUYER) {
+                buyerEmail = actorEmail;
+            } else {
+                // actor es empleado/manager -> checkoutRequest debe incluir buyerEmail
+                if (checkoutRequest.getBuyerEmail() == null) {
+                    throw new CinePachoException("Cuando un empleado confirma el pago, debe incluir el email del comprador en la solicitud");
+                }
+                buyerEmail = checkoutRequest.getBuyerEmail();
+                // validar que el empleado pertenece al multiplex de la función
+                java.util.UUID empMultiplex = employeeMultiplexProvider.getMultiplexIdByUserEmail(actorEmail);
+                if (!empMultiplex.equals(screening.getRoom().getMultiplex().getId())) {
+                    throw new CinePachoException("El empleado no pertenece a este multiplex");
+                }
+            }
+
+            // Validación por función: asegurar que las reservas (SeatScreening) para esta función están bloqueadas por el buyer
             List<UUID> seatIds = checkoutRequest.getSeats().stream()
                     .map(SeatSelectionRequest::getSeatId)
                     .collect(Collectors.toList());
@@ -214,7 +255,7 @@ public class StripeService {
                 if (ss.getStatus() != SeatStatus.BLOCKED) {
                     throw new CinePachoException("La silla " + seatId + " no está bloqueada para esta función. Estado: " + ss.getStatus());
                 }
-                if (ss.getBlockedByUserEmail() == null || !ss.getBlockedByUserEmail().equals(userEmail)) {
+                if (ss.getBlockedByUserEmail() == null || !ss.getBlockedByUserEmail().equals(buyerEmail)) {
                     throw new CinePachoException("La silla " + seatId + " fue bloqueada por otro usuario. Por favor intente nuevamente.");
                 }
             }
@@ -231,11 +272,10 @@ public class StripeService {
             });
 
             // Registrar la venta en el módulo de reportes
-            MovieScreening screening = movieManager.getMovieScreeningById(checkoutRequest.getScreeningId());
             TicketSaleEntity ticketSale = TicketSaleEntity.builder()
                     .multiplex(screening.getRoom().getMultiplex())
                     .screening(screening)
-                    .soldAt(LocalDateTime.now())
+                    .soldAt(LocalDateTime.now(ZoneId.of("America/Bogota")))
                     .ticketsQuantity(seatIds.size())
                     .totalAmount(payment.getAmount())
                     .build();
@@ -259,11 +299,11 @@ public class StripeService {
                         .build();
             //Enviar a correo el QR generado en check
 
-            emailService.sendBillingEmail(userEmail,userManager.getUserByEmail(userEmail).getUsername(),bdt,billing.getQrBase64());
+            emailService.sendBillingEmail(buyerEmail,userManager.getUserByEmail(buyerEmail).getUsername(),bdt,billing.getQrBase64());
 
             // Agregar película al historial del comprador usando el método existente registerWatchedMovieForBuyer
             try {
-                registerWatchedMovieForBuyerByEmail(userEmail, checkoutRequest);
+                registerWatchedMovieForBuyerByEmail(buyerEmail, checkoutRequest);
             } catch (Exception e){
                 // No detener el flujo principal si hay un problema reportando el historial; loguear y continuar
                 System.out.printf("Advertencia: no fue posible registrar la película en el historial: %s", e.getMessage());

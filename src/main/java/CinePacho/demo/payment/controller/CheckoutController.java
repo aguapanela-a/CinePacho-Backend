@@ -25,12 +25,13 @@ public class CheckoutController {
     private final StripeService stripeService;
     private final BillingService billingService;
 
-    //TODO:
-    //Todos los siguientes endpoints pueden acceder buyer y employee desde sus páneles
-    // hacer que pida email de usuario para cuando sea employee asociar
-    // tod0 lo que se asocia en la compra (factura, SeatCreening, snacks, sillas, historial, puntos, etc)
-    // a el buyer que desea observar la película y aplicar la lógica interna
-    // que si el token devolvió un email de empleado entonces use el email del buyer para asociar y así
+    // Nota: endpoints /stripe y /stripe/success pueden ser invocados por BUYER o por EMPLOYEE/MANAGER
+    // - Si el actor es BUYER: el token identifica al comprador y todo se asocia a ese buyer.
+    // - Si el actor es EMPLOYEE/MANAGER: el frontend debe incluir buyerEmail en el CheckoutRequest
+    //   para que la venta se asocie al buyer indicado. El backend valida que el empleado pertenece
+    //   al multiplex de la función antes de crear factura/pago y antes de confirmar la venta.
+    // Implementación: la lógica de asociación y validaciones se gestiona en StripeService.handlePaymentSuccess
+    // y StripeService.checkoutProducts. No realizar cambios en frontend salvo enviar buyerEmail cuando aplique.
 
     @PostMapping("/stripe")
     public ResponseEntity<CheckoutSummaryResponse> stripe(
@@ -58,12 +59,13 @@ public class CheckoutController {
 
     //ENdpoint al escanear QR (SOLO EMPLEADO DE ESE MULTIPLEX PUEDE SCANEAR)
     @PutMapping("/employee/billing/{billingId}/scan")
-    public ResponseEntity<Map<String, String>> scanQR(@PathVariable UUID billingId) {
-        return ResponseEntity.ok(billingService.scanQr(billingId));
+    public ResponseEntity<Map<String, String>> scanQR(@PathVariable UUID billingId, @RequestHeader("Authorization") String token) {
+        token = token.replace("Bearer ", "");
+        return ResponseEntity.ok(billingService.scanQr(billingId, token));
     }
 
     //redireccionamiento de stripe al cancelar el pago
-    @GetMapping("/cancel")
+    @GetMapping("/stripie/cancel")
     public ResponseEntity<Map<String, String>> cancel() {
         return ResponseEntity.ok(Map.of("message", "Pago cancelado"));
     }

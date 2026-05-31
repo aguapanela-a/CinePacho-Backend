@@ -26,4 +26,8 @@ public class CheckoutRequest {
     // Lista de snacks seleccionados (opcional)
     @Valid
     private List<SnackSelectionRequest> snacks;
+
+    // Email del buyer (opcional). Si el usuario que inicia la acción es un empleado,
+    // debe proveer el email del buyer para asociar la compra.
+    private String buyerEmail;
 }

@@ -40,11 +40,14 @@ public class BillingEntity {
     private LocalDateTime createdAt;
     private LocalDateTime scannedAt;
 
-    // ← Agrega estos campos para no depender del summary después
     private BigDecimal totalSeats;
     private BigDecimal totalSnacks;
     private BigDecimal totalPurchase;
     private String roomNumber;
     private String movieTitle;
     private String screeningDate;
+
+    // Para validaciones del empleado al escanear el QR
+    private java.util.UUID screeningId;
+    private java.util.UUID multiplexId;
 }
