@@ -56,28 +56,12 @@ public class EmailService {
     public void sendBillingEmail(String userEmail, String userName,
                                  BillingDTO billingDTO, String qrBase64) {
 
-        // Construye el resumen de sillas para el cuerpo del correo
-        String seatsDetail = billingDTO.seats().stream()
-                .map(seat -> "  - Silla " + seatManager.getSeatNumber(seat.getSeatId())
-                        + " (" + seat.getSeatType() + "): $"
-                        + seat.getSeatPrice())
-                .collect(Collectors.joining("\\n"));
-
-        // Construye el resumen de snacks si los hay
-        String snacksDetail = billingDTO.snacks() == null || billingDTO.snacks().isEmpty()
-                ? "  Sin snacks"
-                : billingDTO.snacks().stream()
-                .map(snack -> "  - " + snack.getNameSnack()
-                              + " x" + snack.getQuantity()
-                              + ": $" + snack.getSubtotal())
-                .collect(Collectors.joining("\\n"));
-
         String body = """
         {
             "sender": {"name": "CinePacho", "email": "ericksbp23@gmail.com"},
             "to": [{"email": "%s", "name": "%s"}],
             "subject": "Tu factura CinePacho - %s",
-            "textContent": "Hola %s,\\n\\nGracias por tu compra. Aquí está el resumen:\\n\\nPelícula: %s\\nFecha: %s\\nSala: %s\\n\\nSillas:\\n%s\\n\\nSnacks:\\n%s\\n\\nTotal sillas: $%s\\nTotal snacks: $%s\\nTOTAL: $%s\\n\\nTu entrada (QR) va adjunta en este correo. Preséntala al empleado al ingresar.\\n\\nHasta pronto,\\nCinePacho",
+            "textContent": "Hola %s,\\n\\nGracias por tu compra. Aquí está el resumen:\\n\\nPelícula: %s\\nFecha: %s\\nSala: %s\\n\\nTotal sillas: $%s\\nTotal snacks: $%s\\nTOTAL: $%s\\n\\nTu entrada (QR) va adjunta en este correo. Preséntala al empleado al ingresar.\\n\\nHasta pronto,\\nCinePacho",
             "attachment": [
                 {
                     "content": "%s",
@@ -93,8 +77,6 @@ public class EmailService {
                 billingDTO.movieTitle(),
                 billingDTO.screeningDate(),
                 billingDTO.roomNumber(),
-                seatsDetail,
-                snacksDetail,
                 billingDTO.totalSeats(),
                 billingDTO.totalSnacks(),
                 billingDTO.totalPurchase(),

@@ -29,6 +29,7 @@ import com.stripe.param.checkout.SessionCreateParams;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
@@ -195,6 +196,7 @@ public class StripeService {
 
 
 
+        @Transactional
         public Map<String, String> handlePaymentSuccess(CheckoutRequest checkoutRequest, UUID paymentId, String token){
 
             String userEmail = jwtService.extractEmail(token);
