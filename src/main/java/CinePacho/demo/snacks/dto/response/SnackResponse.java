@@ -18,4 +18,6 @@ public class SnackResponse {
     private BigDecimal priceSnack;
     private int quantitySnack;
     private Boolean availableSnack;
+    // Puntos asignados al snack
+    private Integer pointsSnack;
 }

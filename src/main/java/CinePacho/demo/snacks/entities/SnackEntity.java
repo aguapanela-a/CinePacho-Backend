@@ -33,6 +33,9 @@ public class SnackEntity {
     @Column(name = "cantidad", nullable = false)
     private int quantity;
 
+    @Column(name = "points")
+    private Integer points;
+
     @ManyToOne
     @JoinColumn(name = "multiplex_id", nullable = false)
     private MultiplexEntity multiplex;

@@ -1,5 +1,270 @@
 # API Documentation - CinePacho Backend
 
+Documento actualizado y completo. Contiene todos los endpoints actuales del proyecto con detalles para que el frontend implemente correctamente las integraciones.
+
+## Modelo de acceso
+
+Roles principales:
+- `BUYER`: comprador del portal.
+- `EMPLOYEE`: personal de taquilla.
+- `MANAGER`: gerente asignado a un multiplex (alcance limitado por AccessValidator).
+- `ADMIN`: administrador global.
+
+Reglas generales:
+- Endpoints públicos: `/api/auth/*`, `/topRatedMovies`, `GET /api/review/movie/**`, `/api/movie/trailer/**`.
+- Portal y taquilla (BUYER, EMPLOYEE): cartelera, sillas por función, snacks y checkout.
+- Administración (MANAGER con alcance, ADMIN global): multiplex, salas, películas, snacks, reports.
+- Points: configuración por ADMIN; redención por BUYER; validación de vouchers por EMPLOYEE/MANAGER.
+
+---
+
+# 1. Autenticación
+
+## POST /api/auth/register
+- Acceso: público
+- Request: { email, name, password, userType }
+- Response 201: { userType, username, message }
+- Errores: email duplicado, validación de password, userType inválido.
+
+## POST /api/auth/login
+- Acceso: público
+- Request: { email, password }
+- Response 200: { token, userType, name }
+- Nota: usar token en header Authorization: Bearer <token>
+
+## GET /api/auth/verify?token={token}
+- Acceso: público
+- Acción: confirma cuenta por token enviado por correo.
+
+---
+
+# 2. Películas y cartelera
+
+## GET /topRatedMovies
+- Acceso: público
+- Uso: pantalla inicio, top 10.
+
+## GET /api/movie/trailer/{movieId}
+- Acceso: público
+- Response: { key: "youtube_key" }
+
+## GET /api/movie/multiplex/{multiplexId}
+- Acceso: BUYER, EMPLOYEE
+- Devuelve top8 MovieListingResponseDTO para multiplex.
+
+## GET /api/movie/multiplex/{multiplexId}/selectors?query={q}
+- Acceso: BUYER, EMPLOYEE
+- Devuelve lista de MovieSelectorDTO (películas + screenings). Query opcional para buscar por título.
+
+## GET /api/movie/multiplex/{multiplexId}/selectors/{movieId}
+- Acceso: BUYER, EMPLOYEE
+- Devuelve un MovieSelectorDTO con detalles y screenings de la película seleccionada.
+
+---
+
+# 3. Sillas (Seat / SeatScreening)
+
+## GET /api/seats/{roomId}/screening/{screeningId}
+- Acceso: BUYER, EMPLOYEE
+- Response: lista de sillas con estado para esa función (cada item incluye seatId y, si aplica, seatScreeningId).
+- Uso frontend: renderizar mapa de asientos por función.
+
+## PUT /api/seats/{seatId}/screening/{screeningId}/changeStatus
+- Acceso: BUYER, EMPLOYEE
+- Headers: Authorization: Bearer <token>
+- Efecto: toggle entre AVAILABLE <-> BLOCKED (10 minutos) o error si BLOCKED por otro usuario o SOLD.
+- Response: DTO con estado actualizado.
+- Nota: si actor es EMPLOYEE y realiza venta para otro buyer, incluir buyerEmail en el CheckoutRequest durante el checkout.
+
+---
+
+# 4. Snacks
+
+## GET /api/snacks
+- Acceso: BUYER, EMPLOYEE, MANAGER
+- Devuelve snacks con quantity > 0; incluye price y points si configurados.
+
+## ADMIN - /api/admin/snacks
+- GET /api/admin/snacks (ADMIN, MANAGER): lista completa
+- GET /api/admin/snacks/{id} (ADMIN, MANAGER): detalle
+- POST /api/admin/snacks (ADMIN, MANAGER): crea snack
+  - Body: SnackRequest { nameSnack, descriptionSnack, priceSnack, quantitySnack, multiplexId, pointsSnack }
+- PUT /api/admin/snacks/{id} (ADMIN, MANAGER): actualiza
+- DELETE /api/admin/snacks/{id} (ADMIN, MANAGER): elimina
+
+Notas: incluir pointsSnack al crear/actualizar para configurar la recompensa por snack.
+
+---
+
+# 5. Checkout / pagos / facturación
+
+Base: /api/checkout
+
+## POST /api/checkout/stripe
+- Acceso: BUYER, EMPLOYEE
+- Headers: Authorization: Bearer <token>
+- Request (CheckoutRequest): {
+    screeningId: UUID,
+    seats: [{ seatId: UUID }],      // ideal: seatScreeningId o incluir screeningId
+    snacks: [{ snackId: UUID, quantity: int, multiplexId?: UUID }],
+    buyerEmail?: string            // obligatorio si actor es EMPLOYEE/manager
+  }
+- Response 200: CheckoutSummaryResponse { totals, sessionId, sessionUrl, paymentId, billingId }
+- Flujo front: redirigir a sessionUrl para pago; guardar paymentId
+
+## POST /api/checkout/stripe/success
+- Acceso: BUYER, EMPLOYEE
+- Acción: confirmar pago (si no se usa webhook)
+- Efectos en backend:
+  - Payment.status -> COMPLETED
+  - Reduce stock de snacks
+  - Marca SeatScreenings como SOLD
+  - Guarda TicketSale y SnackSale para reportes
+  - Registra película en historial del buyer
+  - Invoca PointsManager.processPurchase(buyerId, checkoutRequest)
+- Nota: PointsManager está diseñado para no bloquear el flujo principal en caso de error; revisa logs para fallos.
+
+## PUT /api/checkout/employee/billing/{billingId}/scan
+- Acceso: EMPLOYEE, MANAGER
+- Acción: empleado escanea QR para validar entrada; marca la factura como escaneada (una sola vez).
+
+---
+
+# 6. Points (Puntos de fidelidad) - detalle para frontend
+
+Concepto:
+- Dos modos de acumulación (ADMIN configura):
+  - byUnit=true: cada unidad suma sus puntos (ej. snack.points * qty).
+  - byUnit=false (byPurchase): por tipo de producto suma una vez (ej. aunque compres 345 snacks del mismo tipo, suma snack.points una vez).
+- Puntos asignables: SnackEntity.points y SeatScreeningEntity.points.
+- Se registra cada movimiento en points_gained (PointsGainedEntity).
+- Redención: 100 pts -> voucher (VoucherEntity) con vigencia 6 meses.
+
+Endpoints:
+- GET /api/points (BUYER)
+  - Respuesta: { pointsNow: int, historyPoints: [ { points, description, createdAt } ] }
+- POST /api/points/redeem (BUYER)
+  - Acción: descuenta 100 pts y crea voucher; Response: { code, expiry, used:false }
+  - Errores: CinePachoException("Puntos insuficientes para redimir") -> 400
+- POST /api/points/validate (EMPLOYEE, MANAGER)
+  - Body: { "code": "<voucher_code>" }
+  - Acción: valida existencia, vigencia y uso; si válido marca used=true y devuelve VoucherDTO.
+  - Errores: Voucher no existe / ya usado / vencido -> lanzar CinePachoException (mapeado a 404/400/410 según controller global)
+- PUT /api/points/admin/mode?byUnit={true|false} (ADMIN)
+- PUT /api/points/admin/snack/{snackId}/points?points={n} (ADMIN)
+- PUT /api/points/admin/seat/{seatScreeningId}/points?points={n} (ADMIN)
+
+Integración frontend:
+- Asegurar que CheckoutRequest.seats[].seatId sea el identificador que PointsService espera (preferible seatScreeningId). Si frontend sólo tiene Seat.id, incluir screeningId para que backend busque SeatScreening por pair (seatId, screeningId).
+- PointsService usa getters getSnacks/getSeats/getScreeningId; mantener DTOs compatibles.
+
+---
+
+# 7. Multiplex y salas (admin)
+
+- GET /api/admin/multiplexes (ADMIN, MANAGER)
+- GET /api/admin/multiplexes/{id} (ADMIN, MANAGER)
+- POST /api/admin/multiplexes (ADMIN)
+- PUT /api/admin/multiplexes/{id} (ADMIN, MANAGER)
+- DELETE /api/admin/multiplexes/{id} (ADMIN)
+
+- POST /api/admin/{multiplexId}/rooms (ADMIN, MANAGER)
+- DELETE /api/admin/rooms/{id} (ADMIN, MANAGER)
+
+Validaciones: Manager limitado a su multiplex por AccessValidator.
+
+---
+
+# 8. Películas (admin)
+
+- GET /api/admin/movie/search?query={text}&page={n} (ADMIN, MANAGER)
+- POST /api/admin/movie/select/{movieId} (ADMIN, MANAGER)
+- POST /api/admin/movie/createScreening (ADMIN, MANAGER)
+- PUT /api/admin/movie/changeStatus/{idScreening}?status={status} (ADMIN, MANAGER)
+
+---
+
+# 9. Empleados / managers
+
+- POST /api/admin/register_employee (ADMIN, MANAGER)
+  - Request: { email, name, password, userType, indentityCard, phoneNumber, salary, position, multiplexId }
+- PUT /api/admin/update_employee (ADMIN, MANAGER)
+
+---
+
+# 10. Reviews
+
+- GET /api/review/movie/{movieId} (public)
+- GET /api/{buyerId}/review (BUYER, ADMIN)
+- POST /api/{buyerId}/review/movie (BUYER)
+- POST /api/{buyerId}/review/service (BUYER)
+
+Validaciones: buyer autenticado debe coincidir con buyerId en POST; no duplicados por movie.
+
+---
+
+# 11. Reports (admin)
+
+- POST /api/admin/reports/snacks (ADMIN) - filtros por fecha/multiplex
+- POST /api/admin/reports/sales (ADMIN)
+
+Response: report DTOs para mostrar ventas por dia/multiplex/producto.
+
+---
+
+# 12. Seguridad - resumen (SecurityFilterChain)
+
+- `OPTIONS /**`: permit
+- `/api/auth/**`: permit
+- `GET /topRatedMovies`, `GET /api/movie/trailer/**`, `GET /api/review/movie/**`: permit
+- `GET /api/movie/multiplex/**`, `/api/seats/**`, `/api/checkout/**`: BUYER, EMPLOYEE (with exceptions)
+- `GET /api/snacks`: BUYER, EMPLOYEE, MANAGER
+- `/api/admin/**`: ADMIN (some endpoints allow MANAGER per AccessValidator)
+- `/api/points/admin/**`: ADMIN
+- `GET /api/points`, `POST /api/points/redeem`: BUYER
+- `POST /api/points/validate`: EMPLOYEE, MANAGER
+- Any other route: deny
+
+---
+
+# 13. Flujo de pruebas (step-by-step)
+
+1) Preparación admin:
+   - Login ADMIN -> token
+   - Crear snacks (/api/admin/snacks) y asignar points: PUT /api/points/admin/snack/{id}/points?points=5
+   - Crear/identificar screening y assignar puntos a seat_screening: PUT /api/points/admin/seat/{seatScreeningId}/points?points=10
+   - Configurar modo: PUT /api/points/admin/mode?byUnit=true
+
+2) Compra (modo byUnit):
+   - Buyer login -> token
+   - Seleccionar sillas: PUT /api/seats/{seatId}/screening/{screeningId}/changeStatus (repetir)
+   - POST /api/checkout/stripe con CheckoutRequest (seats[] y snacks[])
+   - Redirigir a Stripe; confirmar pago (webhook o POST /api/checkout/stripe/success)
+   - Verificar GET /api/points -> puntos sumados correctamente
+
+3) Redención y validación:
+   - BUYER: POST /api/points/redeem -> recibe code
+   - EMPLOYEE: POST /api/points/validate { code } -> si válido marca used=true y permite ingreso
+
+---
+
+# 14. Manejo de errores
+
+- CinePachoException para negocio. ControllerAdvice central maneja y devuelve códigos HTTP adecuados.
+- PointsService captura errores no críticos durante asignación de puntos y registra warnings sin detener compra.
+
+---
+
+# 15. Recomendaciones para frontend
+
+- Usar seatScreeningId en CheckoutRequest.seats[].seatId o enviar seatId + screeningId para que backend resuelva.
+- Mantener los nombres de getters en DTOs (getSnacks, getSeats, getScreeningId) para compatibilidad con PointsService.
+- Mostrar mensajes exactos retornados por CinePachoException para claridad UX.
+- Validar respuesta de /api/checkout/stripe: paymentId y sessionUrl deben guardarse para confirmar pago.
+
+
+Fin del documento.
+
 Documento actualizado contra los controladores reales del proyecto.
 
 ## Modelo de acceso

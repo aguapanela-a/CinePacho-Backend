@@ -67,6 +67,7 @@ public class StripeService {
     private final BillingRepository billingRepository;
     private final CinePacho.demo.shared.auxiliaryClass.EmployeeMultiplexProvider employeeMultiplexProvider;
     private final SnackRepository snackRepository;
+    private final CinePacho.demo.shared.auxiliaryClass.PointsManager pointsManager;
 
     @Value("${stripe.api.key}")
     private String stripeApiKey;
@@ -86,7 +87,7 @@ public class StripeService {
             JwtService jwtService,
             UserManager userManager, SeatManager seatManager, SeatScreeningManager seatScreeningManager, BillingService billingService,
             BillingRepository billingRepository, CinePacho.demo.shared.auxiliaryClass.EmployeeMultiplexProvider employeeMultiplexProvider,
-            SnackRepository snackRepository) {
+            SnackRepository snackRepository, CinePacho.demo.shared.auxiliaryClass.PointsManager pointsManager) {
         this.checkoutService = checkoutService;
         this.paymentRepository = paymentRepository;
         this.ticketSaleRepository = ticketSaleRepository;
@@ -102,6 +103,7 @@ public class StripeService {
         this.billingRepository = billingRepository;
         this.employeeMultiplexProvider = employeeMultiplexProvider;
         this.snackRepository = snackRepository;
+        this.pointsManager = pointsManager;
     }
 
     public CheckoutSummaryResponse checkoutProducts(CheckoutRequest request, String token) throws StripeException {
@@ -219,7 +221,7 @@ public class StripeService {
             buyerEmailForPayment = request.getBuyerEmail();
             // validar que el empleado pertenece al multiplex de la función
             MovieScreening screeningForValidation = movieManager.getMovieScreeningById(request.getScreeningId());
-            java.util.UUID empMultiplex = employeeMultiplexProvider.getMultiplexIdByUserEmail(actorEmail);
+            UUID empMultiplex = employeeMultiplexProvider.getMultiplexIdByUserEmail(actorEmail);
             if (!empMultiplex.equals(screeningForValidation.getRoom().getMultiplex().getId())) {
                 throw new CinePachoException("El empleado no pertenece a este multiplex");
             }
@@ -331,7 +333,7 @@ public class StripeService {
                     throw new CinePachoException("El snack no pertenece al multiplex de la función seleccionada");
                 }
 
-                SnackEntity snack = snackRepository.findById(snackSelection.getSnackId())
+                    SnackEntity snack = snackRepository.findById(snackSelection.getSnackId())
                         .orElseThrow(() -> new CinePachoException("Snack no encontrado con ID: " + snackSelection.getSnackId()));
 
                 java.util.UUID multiplexId = snackSelection.getMultiplexId();
@@ -353,7 +355,16 @@ public class StripeService {
                 seatScreeningManager.markSold(seatSelection.getSeatId(), checkoutRequest.getScreeningId());
             });
 
-            // Registrar la venta en el módulo de reportes
+                // Calcular y asignar puntos según configuración (delegar a PointsManager)
+                try {
+                    BuyerEntity buyer = buyerManager.getBuyerByEmail(buyerEmail);
+                    pointsManager.processPurchase(buyer.getBuyerId(), checkoutRequest);
+                } catch (Exception e) {
+                    // No interrumpir el flujo principal si hay problema asignando puntos
+                    System.out.printf("Advertencia: fallo al asignar puntos: %s", e.getMessage());
+                }
+
+                // Registrar la venta en el módulo de reportes
             TicketSaleEntity ticketSale = TicketSaleEntity.builder()
                     .multiplex(screening.getRoom().getMultiplex())
                     .screening(screening)

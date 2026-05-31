@@ -45,4 +45,8 @@ public class SeatScreeningEntity {
 
     @Column(name = "blocked_until")
     private LocalDateTime blockedUntil;
+
+    // Puntos asignados a esta silla/función
+    @Column(name = "points")
+    private Integer points;
 }

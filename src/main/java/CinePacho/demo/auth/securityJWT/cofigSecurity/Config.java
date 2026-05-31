@@ -112,6 +112,11 @@ public class Config {
                         .requestMatchers(HttpMethod.POST, "/api/checkout/stripe/cancel").hasAnyAuthority(SELL_PORTAL_ACCESS)
                         .requestMatchers(HttpMethod.PUT, "/api/checkout/employee/*/scan").hasAnyAuthority(EMPLOYEE, MANAGER)
 
+                        // Endpoints de points: admin y buyer
+                        .requestMatchers("/api/points/admin/**").hasAuthority(ADMIN)
+                        .requestMatchers("/api/points/redeem", "/api/points").hasAuthority(BUYER)
+                        .requestMatchers("/api/points/validate").hasAnyAuthority(EMPLOYEE, MANAGER)
+
                         // Cualquier endpoint administrativo no clasificado queda reservado para ADMIN.
                         .requestMatchers("/api/admin/**").hasAuthority(ADMIN)
 
