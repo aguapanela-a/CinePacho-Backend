@@ -1,8 +1,10 @@
 package CinePacho.demo.seats.service;
 
 import CinePacho.demo.exception.CinePachoException;
+import CinePacho.demo.seats.entities.SeatScreeningEntity;
 import CinePacho.demo.seats.enumeration.SeatStatus;
 import CinePacho.demo.shared.auxiliaryClass.RoomManager;
+import CinePacho.demo.shared.auxiliaryClass.SeatScreeningManager;
 import CinePacho.demo.shared.serviceSecurity.JwtService;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
@@ -22,6 +24,7 @@ import java.time.Clock;
 import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
@@ -36,25 +39,40 @@ public class SeatService {
     private final SeatRepository seatRepository;
     private final RoomManager roomManager;
     private final JwtService jwtUtil;
-    private final CinePacho.demo.shared.auxiliaryClass.SeatScreeningManager seatScreeningManager;
+    private final SeatScreeningManager seatScreeningManager;
     private final Map<UUID, ScheduledFuture<?>> timers = new ConcurrentHashMap<>();
     private final TaskScheduler taskScheduler;
     private final SeatUnblockScheduler seatUnblockScheduler;
 
 
-    //TODO: ahcer que esto ahora genere la respuesta según la srcreening y el room
+    //TODO: hacer que esto ahora genere la respuesta según la srcreening y el room
     // GET ALL by room
-    public List<SeatResponse> getAllByRoom(UUID roomId) {
-        List<SeatEntity> allSeats = seatRepository.findByRoomId(roomId);
- 
-        return allSeats.stream()
-                .map(this::toResponse)
-                .collect(Collectors.toList());
+    public List<SeatResponse> getAllByRoom(UUID roomId, UUID screeningId) {
+
+        //extraigo todas las sillas de esa sala
+        List<SeatEntity> seats = seatRepository.getAllByRoom_Id(roomId);
+
+        List<SeatResponse> responses =  new ArrayList<>();
+
+        seats.forEach(seat -> {
+            //agarro las sillas de ese screening
+            SeatScreeningEntity seatScreening = seatScreeningManager.getSeatScreening(seat.getId(), screeningId);
+            responses.add(
+                    new SeatResponse(
+                            seat.getId().toString(),
+                            seat.getRoom().getId().toString(),
+                            seat.getSeatNumber(),
+                            seat.getType().name(),
+                            seatScreening != null ? seatScreening.getStatus() : SeatStatus.AVAILABLE
+                        )
+                );
+        });
+        return responses;
     }
 
     @Transactional
     // CAMBIAR ESTADO DE LA SILLA (ahora por función)
-    public SeatResponse toggleSeat(UUID seatId, String token, java.util.UUID screeningId) {
+    public SeatResponse toggleSeat(UUID seatId, String token, UUID screeningId) {
 
         //se extrae el email del usuario del token
         String userEmail = jwtUtil.extractEmail(token);

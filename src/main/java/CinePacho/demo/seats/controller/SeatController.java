@@ -29,11 +29,12 @@ public class SeatController {
     }
 
 
-    @GetMapping("/seats/{roomId}")
+    @GetMapping("/seats/{roomId}/screening/{screeningId}")
     public ResponseEntity<List<SeatResponse>>
     getAllByRoom(
-            @PathVariable UUID roomId
+            @PathVariable UUID roomId,
+            @PathVariable UUID screeningId
     ) {
-        return ResponseEntity.ok(seatService.getAllByRoom(roomId));
+        return ResponseEntity.ok(seatService.getAllByRoom(roomId, screeningId));
     }
 }

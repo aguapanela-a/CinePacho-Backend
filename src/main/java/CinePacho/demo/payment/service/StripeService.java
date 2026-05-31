@@ -14,7 +14,6 @@ import CinePacho.demo.payment.enumeration.PaymentStatus;
 import CinePacho.demo.payment.repository.PaymentRepository;
 import CinePacho.demo.reports.entities.TicketSaleEntity;
 import CinePacho.demo.reports.repository.TicketSaleRepository;
-import CinePacho.demo.seats.entities.SeatEntity;
 import CinePacho.demo.seats.enumeration.SeatStatus;
 import CinePacho.demo.shared.auxiliaryClass.*;
 import CinePacho.demo.multiplex.repository.MultiplexRepository;
