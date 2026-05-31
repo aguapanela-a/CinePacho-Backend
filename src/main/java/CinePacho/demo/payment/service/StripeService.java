@@ -6,11 +6,14 @@ import CinePacho.demo.exception.CinePachoException;
 import CinePacho.demo.movie.entities.MovieScreening;
 import CinePacho.demo.payment.dto.request.CheckoutRequest;
 import CinePacho.demo.payment.dto.request.SeatSelectionRequest;
+import CinePacho.demo.payment.dto.response.BillingDTO;
 import CinePacho.demo.payment.dto.response.CheckoutSummaryResponse;
 import CinePacho.demo.payment.dto.response.SeatSummaryResponse;
 import CinePacho.demo.payment.dto.response.SnackSummaryResponse;
+import CinePacho.demo.payment.entities.BillingEntity;
 import CinePacho.demo.payment.entities.PaymentEntity;
 import CinePacho.demo.payment.enumeration.PaymentStatus;
+import CinePacho.demo.payment.repository.BillingRepository;
 import CinePacho.demo.payment.repository.PaymentRepository;
 import CinePacho.demo.reports.entities.TicketSaleEntity;
 import CinePacho.demo.reports.repository.TicketSaleRepository;
@@ -39,13 +42,15 @@ public class StripeService {
     private final CheckoutService checkoutService;
     private final PaymentRepository paymentRepository;
     private final TicketSaleRepository ticketSaleRepository;
-    private final MultiplexRepository multiplexRepository;
+    private final EmailService emailService;
     private final BuyerManager buyerManager;
     private final MovieManager movieManager;
     private final JwtService jwtService;
     private final UserManager userManager;
     private final SeatManager seatManager;
     private final SeatScreeningManager seatScreeningManager;
+    private final BillingService billingService;
+    private final BillingRepository billingRepository;
 
     @Value("${stripe.api.key}")
     private String stripeApiKey;
@@ -59,23 +64,24 @@ public class StripeService {
     public StripeService(
             CheckoutService checkoutService,
             PaymentRepository paymentRepository,
-            TicketSaleRepository ticketSaleRepository,
-            MultiplexRepository multiplexRepository,
+            TicketSaleRepository ticketSaleRepository, EmailService emailService,
             BuyerManager buyerManager,
             MovieManager movieManager,
             JwtService jwtService,
-            UserManager userManager, SeatManager seatManager, SeatScreeningManager seatScreeningManager
-    ) {
+            UserManager userManager, SeatManager seatManager, SeatScreeningManager seatScreeningManager, BillingService billingService,
+            BillingRepository billingRepository) {
         this.checkoutService = checkoutService;
         this.paymentRepository = paymentRepository;
         this.ticketSaleRepository = ticketSaleRepository;
-        this.multiplexRepository = multiplexRepository;
+        this.emailService = emailService;
         this.buyerManager = buyerManager;
         this.movieManager = movieManager;
         this.jwtService = jwtService;
         this.userManager = userManager;
         this.seatManager = seatManager;
         this.seatScreeningManager = seatScreeningManager;
+        this.billingService = billingService;
+        this.billingRepository = billingRepository;
     }
 
     public CheckoutSummaryResponse checkoutProducts(CheckoutRequest request, String token) throws StripeException {
@@ -157,6 +163,13 @@ public class StripeService {
         summary.setSessionUrl(session.getUrl());
         summary.setPaymentId(payment.getPaymentId());
 
+        //Creación de factura con QR (cuando se aplique que el tokens ea de un employee, reemplazar esto por simplemente buscar por email, pues se requerirá el email del buyer esi es un employee quién está atendiendo)
+        BillingEntity billing = billingService.createBilling(payment,buyerManager.getBuyerByEmail(jwtService.extractEmail(token)), summary, movieManager.getMovieScreeningById(request.getScreeningId()));
+
+
+        //agrega el id de la fatura para que el front lo reciba
+        summary.setBillingId(billing.getId());
+
         // NO registrar películas ni cambiar estados aquí: la confirmación y cambios se realizan cuando Stripe notifica el pago (handlePaymentSuccess)
         return summary;
     }
@@ -225,6 +238,26 @@ public class StripeService {
                     .totalAmount(payment.getAmount())
                     .build();
             ticketSaleRepository.save(ticketSale);
+
+            //recupero la factura de la BD
+            BillingEntity billing = billingRepository.findByPayment_PaymentId(paymentId);
+            //Creo DTO con esa factura
+            BillingDTO bdt = BillingDTO.builder()
+                        .status("COMPLETED")
+                        .message("Pago exitoso")
+                        .totalSeats(billing.getTotalSeats())
+                        .totalSnacks(billing.getTotalSnacks())
+                        .totalPurchase(billing.getTotalPurchase())
+                        .seats(null)
+                        .snacks(null)
+                        .roomNumber(billing.getRoomNumber())
+                        .seatsNumbers(null)
+                        .movieTitle(billing.getMovieTitle())
+                        .screeningDate(billing.getScreeningDate())
+                        .build();
+            //Enviar a correo el QR generado en check
+
+            emailService.sendBillingEmail(userEmail,userManager.getUserByEmail(userEmail).getUsername(),bdt,billing.getQrBase64());
 
             // Agregar película al historial del comprador usando el método existente registerWatchedMovieForBuyer
             try {

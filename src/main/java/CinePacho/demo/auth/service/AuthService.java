@@ -5,6 +5,7 @@ import CinePacho.demo.auth.dto.request.LoginRequestDTO;
 import CinePacho.demo.auth.dto.response.RegisterResponseDTO;
 import CinePacho.demo.auth.entities.user.UserEntity;
 import CinePacho.demo.auth.entities.token.VerificationToken;
+import CinePacho.demo.shared.auxiliaryClass.EmailService;
 import CinePacho.demo.shared.user.UserRepository;
 import CinePacho.demo.auth.repository.VerificationTokenRepository;
 import CinePacho.demo.shared.serviceSecurity.JwtService;

@@ -45,8 +45,6 @@ public class SeatService {
     private final SeatUnblockScheduler seatUnblockScheduler;
 
 
-    //TODO: hacer que esto ahora genere la respuesta según la srcreening y el room
-    // GET ALL by room
     public List<SeatResponse> getAllByRoom(UUID roomId, UUID screeningId) {
 
         //extraigo todas las sillas de esa sala
