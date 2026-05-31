@@ -31,10 +31,7 @@ import org.springframework.stereotype.Service;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.UUID;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
@@ -159,6 +156,7 @@ public class StripeService {
         summary.setMessage("Checkout creado correctamente. Complete el pago en Stripe.");
         summary.setSessionId(session.getId());
         summary.setSessionUrl(session.getUrl());
+        summary.setPaymentId(payment.getPaymentId());
 
         // NO registrar películas ni cambiar estados aquí: la confirmación y cambios se realizan cuando Stripe notifica el pago (handlePaymentSuccess)
         return summary;
@@ -179,11 +177,16 @@ public class StripeService {
          *
          * @param checkoutRequest Información de la compra original
          * @param paymentId ID del pago que fue confirmado
-         * @param userEmail Email del usuario que realizó la compra (del JWT)
+         * @param token token del usuario que realizó la compra (del JWT)
          * @throws CinePachoException Si la validación falla (usuario no coincide, sillas no disponibles, etc)
          */
 
-        public void handlePaymentSuccess(CheckoutRequest checkoutRequest, UUID paymentId, String userEmail){
+
+
+        public Map<String, String> handlePaymentSuccess(CheckoutRequest checkoutRequest, UUID paymentId, String token){
+
+            String userEmail = jwtService.extractEmail(token);
+
             // Validación por función: asegurar que las reservas (SeatScreening) para esta función están bloqueadas por este usuario
             List<UUID> seatIds = checkoutRequest.getSeats().stream()
                     .map(SeatSelectionRequest::getSeatId)
@@ -238,6 +241,7 @@ public class StripeService {
                     screening.getRoom().getId(),
                     screening.getDateTime()
             );
+            return Map.of("message:", "Pago realizado con éxito");
         }
 
 

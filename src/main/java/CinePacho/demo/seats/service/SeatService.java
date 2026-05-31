@@ -42,6 +42,7 @@ public class SeatService {
     private final SeatUnblockScheduler seatUnblockScheduler;
 
 
+    //TODO: ahcer que esto ahora genere la respuesta según la srcreening y el room
     // GET ALL by room
     public List<SeatResponse> getAllByRoom(UUID roomId) {
         List<SeatEntity> allSeats = seatRepository.findByRoomId(roomId);

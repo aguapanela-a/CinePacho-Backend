@@ -1,6 +1,7 @@
 package CinePacho.demo.payment.controller;
 
 import CinePacho.demo.payment.dto.request.CheckoutRequest;
+import CinePacho.demo.payment.dto.request.StripeSuccessRequest;
 import CinePacho.demo.payment.dto.response.CheckoutSummaryResponse;
 import CinePacho.demo.payment.service.StripeService;
 import jakarta.validation.Valid;
@@ -10,6 +11,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import com.stripe.exception.StripeException;
+
+import java.util.Map;
 
 @RestController
 @RequestMapping("/api/checkout")
@@ -25,6 +28,27 @@ public class CheckoutController {
     ) throws StripeException {
         token = token.replace("Bearer ", "");
         return ResponseEntity.ok(stripeService.checkoutProducts(request, token));
+    }
+
+    //redireccionamiento de stripe al completar el pago
+    @PostMapping("/stripe/success")
+    public ResponseEntity<Map<String, String>> success(
+            @RequestBody StripeSuccessRequest request,
+            @RequestHeader("Authorization") String token) {
+
+        token = token.replace("Bearer ", "");
+        Map<String, String> result = stripeService.handlePaymentSuccess(
+                request.checkoutRequest(),
+                request.paymentId(),
+                token
+        );
+        return ResponseEntity.ok(result);
+    }
+
+    //redireccionamiento de stripe al cancelar el pago
+    @GetMapping("/cancel")
+    public ResponseEntity<Map<String, String>> cancel() {
+        return ResponseEntity.ok(Map.of("message", "Pago cancelado"));
     }
 
 

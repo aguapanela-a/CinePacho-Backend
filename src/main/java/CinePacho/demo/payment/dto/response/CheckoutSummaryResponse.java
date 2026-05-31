@@ -17,6 +17,7 @@ public class CheckoutSummaryResponse {
     private String message;
     private String sessionId;
     private String sessionUrl;
+    private UUID paymentId;
 
     // Multiplex asociado a las sillas seleccionadas
     private UUID multiplexId;
