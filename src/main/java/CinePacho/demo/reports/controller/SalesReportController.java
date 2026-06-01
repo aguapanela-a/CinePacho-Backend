@@ -1,15 +1,16 @@
 package CinePacho.demo.reports.controller;
 
 import CinePacho.demo.reports.dto.request.SalesReportRequest;
+import CinePacho.demo.reports.dto.response.MultiplexSalesReport;
 import CinePacho.demo.reports.dto.response.SalesReportResponse;
 import CinePacho.demo.reports.service.SalesReportService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
+
+import java.time.LocalDate;
+import java.util.UUID;
 
 /**
  * Controlador de reportes de ventas para administración.
@@ -27,5 +28,15 @@ public class SalesReportController {
             @Valid @RequestBody SalesReportRequest request
     ) {
         return ResponseEntity.ok(salesReportService.buildMonthlySalesReport(request.getEndDate()));
+    }
+
+
+    @GetMapping("/sales/{multiplexId}")
+    public ResponseEntity<MultiplexSalesReport> getMonthlySalesReportByMultiplex(
+            @PathVariable UUID multiplexId,
+            @RequestParam("endDate") LocalDate endDate
+    ) {
+        MultiplexSalesReport report = salesReportService.buildMonthlySalesReportByMultiplex(multiplexId, endDate);
+        return ResponseEntity.ok(report);
     }
 }
