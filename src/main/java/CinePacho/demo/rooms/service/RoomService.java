@@ -31,14 +31,11 @@ public class RoomService {
 
     //Obtener todas las salas de un multiplex
     // ── GET ALL ─────────────────────────────────────────────────────────────────
-    public List<RoomResponse> getAll() {
-        return roomRepository.findAll()
-                .stream()
+    public List<RoomResponse> getAllByMultiplexId(UUID multiplexId) {
+        return roomRepository.findByMultiplexId(multiplexId).stream()
                 .map(this::toSummary)
                 .collect(Collectors.toList());
     }
-
-    //TODO: smétodo para cambiar estado de una sala por multiplex id y room id
 
 
     public RoomDetailResponse create(UUID multiplexId) {

@@ -1,5 +1,6 @@
 package CinePacho.demo.rooms.controller;
 
+import CinePacho.demo.rooms.dto.response.RoomResponse;
 import CinePacho.demo.shared.auxiliaryClass.DTOResponse;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -10,6 +11,7 @@ import CinePacho.demo.rooms.service.RoomService;
 import CinePacho.demo.reports.service.SalesReportService;
 
 
+import java.util.List;
 import java.util.UUID;
  
 @RestController
@@ -26,10 +28,14 @@ public class RoomController {
     // }
 
 
-    //TODO: retornar lista de salas con la info de cada sala de un multiplex por el id de este
+    @GetMapping("/admin/rooms/{multiplexId}")
+    public ResponseEntity<List<RoomResponse>> getAllRoomsByMultiplexId(
+            @PathVariable UUID multiplexId
+    ) {
+        return ResponseEntity.ok(roomService.getAllByMultiplexId(multiplexId));
+    }
 
-
-    @PostMapping("admin/{multiplexId}/rooms")
+    @PostMapping("/admin/{multiplexId}/rooms")
     public ResponseEntity<DTOResponse> create(@Valid @PathVariable UUID multiplexId) {
 
         roomService.create(multiplexId);
@@ -42,7 +48,7 @@ public class RoomController {
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
   
-    @DeleteMapping("admin/rooms/{id}")
+    @DeleteMapping("/admin/rooms/{id}")
     public ResponseEntity<DTOResponse> delete(@PathVariable UUID id) {
         roomService.delete(id);
         // Respuesta estándar para eliminación de sala
