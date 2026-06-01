@@ -7,6 +7,8 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.Setter;
 
+import java.util.UUID;
+
 @AllArgsConstructor
 @Getter
 @Setter
@@ -20,5 +22,7 @@ public class AuthResponseDTO {
 
     @NotBlank(message = "El nombre de usuario no puede estar vacío")
     String name;
+
+    UUID userId;
 
 }

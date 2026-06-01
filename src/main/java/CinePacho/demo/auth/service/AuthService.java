@@ -122,8 +122,9 @@ public class AuthService {
 
         return new AuthResponseDTO(
             jwtService.generateToken(user),
-            user.getUserType(), 
-            user.getUsername()
+                user.getUserType(),
+                user.getUsername(),
+                user.getUserId()
         );
     }
 
