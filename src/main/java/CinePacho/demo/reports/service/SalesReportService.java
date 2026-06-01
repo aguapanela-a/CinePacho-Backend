@@ -2,7 +2,7 @@ package CinePacho.demo.reports.service;
 
 import CinePacho.demo.exception.CinePachoException;
 import CinePacho.demo.multiplex.entitites.MultiplexEntity;
-import CinePacho.demo.multiplex.repository.MultiplexRepository;
+import CinePacho.demo.shared.auxiliaryClass.MultiplexProvider;
 import CinePacho.demo.reports.dto.response.DailySalesReport;
 import CinePacho.demo.reports.dto.response.MultiplexSalesReport;
 import CinePacho.demo.reports.dto.response.SalesReportResponse;
@@ -31,7 +31,7 @@ import java.util.UUID;
 public class SalesReportService {
 
     private final TicketSaleRepository ticketSaleRepository;
-    private final MultiplexRepository multiplexRepository;
+    private final MultiplexProvider multiplexProvider;
 
     /**
      * Construye el reporte agrupado por multiplex, día y función.
@@ -53,7 +53,7 @@ public class SalesReportService {
         List<LocalDate> days = buildDaysRange(startDate, endDate);
 
         List<MultiplexSalesReport> multiplexReports = new ArrayList<>();
-        for (MultiplexEntity multiplex : multiplexRepository.findAll()) {
+        for (MultiplexEntity multiplex : multiplexProvider.findAllMultiplexes()) {
             Map<LocalDate, Map<UUID, AggregatedScreeningSales>> byDay = aggregated
                     .getOrDefault(multiplex.getId(), new HashMap<>());
 

@@ -20,7 +20,9 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.lang.reflect.Method;
 import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.util.List;
 import java.util.UUID;
 import java.util.stream.Collectors;
@@ -43,13 +45,13 @@ public class PointsService implements PointsManager {
         if (checkoutRequest == null) return;
         try{
             // Reflection-lite: intentar acceder a getSnacks y getSeats métodos del checkoutRequest
-            java.lang.reflect.Method getSnacks = checkoutRequest.getClass().getMethod("getSnacks");
-            java.lang.reflect.Method getSeats = checkoutRequest.getClass().getMethod("getSeats");
-            java.lang.reflect.Method getScreeningId = checkoutRequest.getClass().getMethod("getScreeningId");
+            Method getSnacks = checkoutRequest.getClass().getMethod("getSnacks");
+            Method getSeats = checkoutRequest.getClass().getMethod("getSeats");
+            Method getScreeningId = checkoutRequest.getClass().getMethod("getScreeningId");
 
             List<?> snacks = (List<?>) getSnacks.invoke(checkoutRequest);
             List<?> seats = (List<?>) getSeats.invoke(checkoutRequest);
-            java.util.UUID screeningId = (java.util.UUID) getScreeningId.invoke(checkoutRequest);
+            UUID screeningId = (UUID) getScreeningId.invoke(checkoutRequest);
 
             PointsConfigEntity cfg = pointsConfigRepository.findTopByOrderByIdDesc().orElse(null);
             boolean byUnit = cfg == null || cfg.isByUnit();
@@ -59,9 +61,9 @@ public class PointsService implements PointsManager {
             if (snacks != null) {
                 for (Object s : snacks) {
                     // cada s es SnackSelectionRequest con getSnackId() y getQuantity()
-                    java.lang.reflect.Method getSnackId = s.getClass().getMethod("getSnackId");
-                    java.lang.reflect.Method getQuantity = s.getClass().getMethod("getQuantity");
-                    java.util.UUID snackId = (java.util.UUID) getSnackId.invoke(s);
+                    Method getSnackId = s.getClass().getMethod("getSnackId");
+                    Method getQuantity = s.getClass().getMethod("getQuantity");
+                    UUID snackId = (UUID) getSnackId.invoke(s);
                     Integer qty = (Integer) getQuantity.invoke(s);
                     SnackEntity snack = snackRepository.findById(snackId)
                             .orElse(null);
@@ -80,8 +82,8 @@ public class PointsService implements PointsManager {
             if (seats != null && !seats.isEmpty()){
                 if (byUnit){
                     for (Object seatSel : seats){
-                        java.lang.reflect.Method getSeatId = seatSel.getClass().getMethod("getSeatId");
-                        java.util.UUID seatId = (java.util.UUID) getSeatId.invoke(seatSel);
+                        Method getSeatId = seatSel.getClass().getMethod("getSeatId");
+                        UUID seatId = (java.util.UUID) getSeatId.invoke(seatSel);
                         SeatScreeningEntity ss = seatScreeningRepository.findById(seatId).orElse(null);
                         if (ss == null) continue;
                         Integer sp = ss.getPoints() == null ? 0 : ss.getPoints();
@@ -90,8 +92,8 @@ public class PointsService implements PointsManager {
                 } else {
                     // añadir puntos de screening una sola vez: tomar la primera silla
                     Object first = seats.get(0);
-                    java.lang.reflect.Method getSeatId = first.getClass().getMethod("getSeatId");
-                    java.util.UUID seatId = (java.util.UUID) getSeatId.invoke(first);
+                    Method getSeatId = first.getClass().getMethod("getSeatId");
+                    UUID seatId = (UUID) getSeatId.invoke(first);
                     SeatScreeningEntity ss = seatScreeningRepository.findById(seatId).orElse(null);
                     if (ss != null) {
                         Integer sp = ss.getPoints() == null ? 0 : ss.getPoints();
@@ -148,9 +150,12 @@ public class PointsService implements PointsManager {
         BuyerEntity buyer = buyerRepository.findById(buyerId)
                 .orElseThrow(() -> new CinePachoException("Buyer not found"));
         Integer current = buyer.getPoints() == null ? 0 : buyer.getPoints();
+        //si no tiene 100 puntos NO puede redimir
         if (current < 100) {
             throw new CinePachoException("Puntos insuficientes para redimir");
         }
+
+        //si si tiene 100 o más genera el boucher
         buyer.setPoints(current - 100);
         buyerRepository.save(buyer);
 
@@ -174,7 +179,7 @@ public class PointsService implements PointsManager {
         if (v.isUsed()) {
             throw new CinePachoException("Voucher ya fue usado");
         }
-        if (v.getExpiry().isBefore(LocalDateTime.now())) {
+        if (v.getExpiry().isBefore(LocalDateTime.now(ZoneId.of("America/Bogota")))) {
             throw new CinePachoException("Voucher vencido");
         }
         // Marcar como usado

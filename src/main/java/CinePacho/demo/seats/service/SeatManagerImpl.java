@@ -6,6 +6,7 @@ import CinePacho.demo.seats.entities.SeatEntity;
 import CinePacho.demo.seats.enumeration.SeatStatus;
 import CinePacho.demo.seats.repository.SeatRepository;
 import CinePacho.demo.shared.auxiliaryClass.SeatManager;
+import CinePacho.demo.shared.auxiliaryClass.SeatScreeningManager;
 import CinePacho.demo.shared.enumeration.SeatType;
 import org.springframework.scheduling.TaskScheduler;
 import org.springframework.stereotype.Component;
@@ -23,9 +24,9 @@ public class SeatManagerImpl implements SeatManager {
     private final SeatRepository seatRepository;
     private final Map<UUID, ScheduledFuture<?>> scheduledReleases = new ConcurrentHashMap<>();
     private final TaskScheduler taskScheduler;
-    private final CinePacho.demo.shared.auxiliaryClass.SeatScreeningManager seatScreeningManager;
+    private final SeatScreeningManager seatScreeningManager;
 
-    public SeatManagerImpl(SeatRepository seatRepository, TaskScheduler taskScheduler, CinePacho.demo.shared.auxiliaryClass.SeatScreeningManager seatScreeningManager) {
+    public SeatManagerImpl(SeatRepository seatRepository, TaskScheduler taskScheduler, SeatScreeningManager seatScreeningManager) {
         this.seatRepository = seatRepository;
         this.taskScheduler = taskScheduler;
         this.seatScreeningManager = seatScreeningManager;

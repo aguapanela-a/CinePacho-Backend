@@ -4,7 +4,7 @@ import jakarta.persistence.*;
 import lombok.*;
 
 import java.util.UUID;
-
+// entidad para seleccionar si se suman puntos por unidad o por 'combo de compra'
 @Entity
 @Table(name = "points_config")
 @Getter
