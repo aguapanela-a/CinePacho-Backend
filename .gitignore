@@ -8,7 +8,6 @@ target/
 !**/src/test/**/target/
 .env
 
-.env
 
 /mermaid
 /.junie
