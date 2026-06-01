@@ -6,12 +6,9 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-
-import CinePacho.demo.rooms.dto.response.RoomDetailResponse;
 import CinePacho.demo.rooms.service.RoomService;
 import CinePacho.demo.reports.service.SalesReportService;
-import CinePacho.demo.reports.dto.response.MultiplexSalesReport;
-import java.time.LocalDate;
+
 
 import java.util.UUID;
  
@@ -56,12 +53,4 @@ public class RoomController {
         return ResponseEntity.ok(response);
     }
 
-    @GetMapping("admin/{multiplexId}/reports/sales/monthly")
-    public ResponseEntity<MultiplexSalesReport> getMonthlySalesReportByMultiplex(
-            @PathVariable UUID multiplexId,
-            @RequestParam("endDate") LocalDate endDate
-    ) {
-        MultiplexSalesReport report = salesReportService.buildMonthlySalesReportByMultiplex(multiplexId, endDate);
-        return ResponseEntity.ok(report);
-    }
 }
