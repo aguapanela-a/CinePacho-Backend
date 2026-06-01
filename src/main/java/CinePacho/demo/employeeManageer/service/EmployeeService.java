@@ -42,12 +42,19 @@ public class EmployeeService {
         this.multiplexProvider = multiplexProvider;
     }
 
+
+
     public List<EmployeesResponseDTO> getAllEmployees() {
 
         List<EmployeeEntity> employees = employeeRepository.findAll();
+
+        employees.forEach(employee -> {
+            System.out.println(employee.getUser().getName());
+
+        });
         // Implementación pendiente: se debe obtener la lista de empleados y mapearla a EmployeesResponseDTO
         return employees.stream().map(employee -> new EmployeesResponseDTO(
-                employee.getUser().getUsername(),
+                employee.getUser().getName(),
                 employee.getUser().getEmail(),
                 employee.getPhoneNumber(),
                 employee.getRol().toString(),
@@ -56,6 +63,7 @@ public class EmployeeService {
                 employee.getStartDate() != null ? employee.getStartDate().toLocalDate() : null,
                 employee.getRoleUpdatedAt() != null ? employee.getRoleUpdatedAt().toLocalDate() : null
         )).collect(Collectors.toList());
+
 
     }
 
