@@ -72,6 +72,7 @@ public class RoomService {
         return RoomResponse.builder()
                 .idRoom(room.getId())
                 .isRoomActive(room.getActive())
+                .roomNumber(room.getRoomNumber())
                 .build();
     }
 

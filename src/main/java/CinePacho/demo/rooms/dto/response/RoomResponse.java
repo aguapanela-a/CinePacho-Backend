@@ -13,5 +13,6 @@ public class RoomResponse {
  
     private UUID idRoom;
     private Boolean isRoomActive;
+    private String roomNumber;
 }
  
