@@ -10,6 +10,10 @@ target/
 
 .env
 
+/mermaid
+/.junie
+/.fastRequest
+
 ### STS ###
 .apt_generated
 .classpath
