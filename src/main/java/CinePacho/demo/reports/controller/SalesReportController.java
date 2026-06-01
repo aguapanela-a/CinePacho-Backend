@@ -14,6 +14,8 @@ import org.springframework.web.bind.annotation.RestController;
 /**
  * Controlador de reportes de ventas para administración.
  */
+
+// TODO:  hacer filtro de reportes por multiplex id
 @RestController
 @RequestMapping("/api/admin/reports")
 @RequiredArgsConstructor

@@ -44,7 +44,7 @@ public class MovieController {
         return ResponseEntity.ok(movieServices.searchMovieSelectorsByMultiplex(multiplexId, query));
     }
 
-    //Endpoint para obtener una unica "info" de peli en la cartelera
+    //Endpoint para obtener una unica "info" de peli en la cartelera de un multiplex
     @GetMapping("/movie/multiplex/{multiplexId}/selectors/{movieId}")
     public ResponseEntity<MovieSelectorDTO> getMovieSelectorByMultiplexAndMovie(
             @PathVariable UUID multiplexId,

@@ -9,6 +9,9 @@ import org.springframework.web.bind.annotation.*;
 
 import CinePacho.demo.rooms.dto.response.RoomDetailResponse;
 import CinePacho.demo.rooms.service.RoomService;
+import CinePacho.demo.reports.service.SalesReportService;
+import CinePacho.demo.reports.dto.response.MultiplexSalesReport;
+import java.time.LocalDate;
 
 import java.util.UUID;
  
@@ -18,12 +21,15 @@ import java.util.UUID;
 public class RoomController {
  
     private final RoomService roomService;
+    private final SalesReportService salesReportService;
     
     // @GetMapping("admin/rooms/{id}")
     // public ResponseEntity<RoomDetailResponse> getById(@PathVariable UUID id) {
     //     return ResponseEntity.ok(roomService.getById(id));
     // }
 
+
+    //TODO: retornar lista de salas con la info de cada sala de un multiplex por el id de este
 
 
     @PostMapping("admin/{multiplexId}/rooms")
@@ -48,5 +54,14 @@ public class RoomController {
                 HttpStatus.OK.value()
         );
         return ResponseEntity.ok(response);
+    }
+
+    @GetMapping("admin/{multiplexId}/reports/sales/monthly")
+    public ResponseEntity<MultiplexSalesReport> getMonthlySalesReportByMultiplex(
+            @PathVariable UUID multiplexId,
+            @RequestParam("endDate") LocalDate endDate
+    ) {
+        MultiplexSalesReport report = salesReportService.buildMonthlySalesReportByMultiplex(multiplexId, endDate);
+        return ResponseEntity.ok(report);
     }
 }
