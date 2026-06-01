@@ -48,6 +48,7 @@ public class EmployeeFactory implements UserFactory<RegisterEmployeeRequestDTO> 
         employee.setSalary(extraData.salary());
         employee.setRol(extraData.rol());
         employee.setUniqueCode(nextUniqueCode());
+        employee.setStartDate(extraData.startDate());
         // Se registra la fecha del último cambio de cargo/rol al momento de crear el empleado
         employee.setRoleUpdatedAt(LocalDateTime.now(ZoneOffset.UTC));
 
