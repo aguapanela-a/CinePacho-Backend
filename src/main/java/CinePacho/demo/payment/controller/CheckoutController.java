@@ -104,9 +104,9 @@ public class CheckoutController {
     // }
 
 // Obtener todas las facturas de un usuario por userId (UserEntity.userId)
-@GetMapping("/billings/user/{userId}")
-public ResponseEntity<List<BillingDTO>> getAllBillingsByUserId(@PathVariable UUID userId) {
-    List<BillingDTO> list = billingService.getAllBillingsByUserId(userId);
-    return ResponseEntity.ok(list);
-}
+    @GetMapping("/billings/user/{userId}")
+    public ResponseEntity<List<BillingDTO>> getAllBillingsByUserId(@PathVariable UUID userId) {
+        List<BillingDTO> list = billingService.getAllBillingsByUserId(userId);
+        return ResponseEntity.ok(list);
+    }
 }
