@@ -3,6 +3,7 @@ package CinePacho.demo.employeeManageer.service;
 import CinePacho.demo.auth.dto.response.RegisterResponseDTO;
 import CinePacho.demo.auth.entities.user.UserEntity;
 import CinePacho.demo.employeeManageer.dto.request.RegisterEmployeeRequestDTO;
+import CinePacho.demo.employeeManageer.dto.response.EmployeesResponseDTO;
 import CinePacho.demo.employeeManageer.entities.EmployeeEntity;
 import CinePacho.demo.employeeManageer.repository.EmployeeRepository;
 import CinePacho.demo.exception.CinePachoException;
@@ -17,6 +18,8 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
+import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 public class EmployeeService {
@@ -37,6 +40,23 @@ public class EmployeeService {
         this.accessValidator = accessValidator;
         this.employeeRepository = employeeRepository;
         this.multiplexProvider = multiplexProvider;
+    }
+
+    public List<EmployeesResponseDTO> getAllEmployees() {
+
+        List<EmployeeEntity> employees = employeeRepository.findAll();
+        // Implementación pendiente: se debe obtener la lista de empleados y mapearla a EmployeesResponseDTO
+        return employees.stream().map(employee -> new EmployeesResponseDTO(
+                employee.getUser().getUsername(),
+                employee.getUser().getEmail(),
+                employee.getPhoneNumber(),
+                employee.getRol().toString(),
+                employee.getUniqueCode(),
+                employee.getMultiplex().getName(),
+                employee.getStartDate() != null ? employee.getStartDate().toLocalDate() : null,
+                employee.getRoleUpdatedAt() != null ? employee.getRoleUpdatedAt().toLocalDate() : null
+        )).collect(Collectors.toList());
+
     }
 
     @Transactional

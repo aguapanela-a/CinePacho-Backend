@@ -2,11 +2,16 @@ package CinePacho.demo.employeeManageer.controller;
 
 import CinePacho.demo.auth.dto.response.RegisterResponseDTO;
 import CinePacho.demo.employeeManageer.dto.request.RegisterEmployeeRequestDTO;
+import CinePacho.demo.employeeManageer.dto.response.EmployeesResponseDTO;
 import CinePacho.demo.employeeManageer.service.EmployeeService;
 import jakarta.validation.Valid;
+
+import java.util.List;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -21,6 +26,11 @@ public class EmployeeController {
     @Autowired
     public EmployeeController(EmployeeService employeeService) {
         this.employeeService = employeeService;
+    }
+
+    @GetMapping("/admin/employees")
+    public ResponseEntity<List<EmployeesResponseDTO>> getAllEmployees() {
+        return ResponseEntity.ok(employeeService.getAllEmployees());
     }
 
     //Necesita aplicar filtro JWT
