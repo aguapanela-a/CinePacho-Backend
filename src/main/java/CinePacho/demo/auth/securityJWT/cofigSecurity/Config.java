@@ -80,8 +80,10 @@ public class Config {
                         // Todos los employees (EMPLOYEE y MANAGER) pueden acceder, EXCEPTO CLEANER y ROOM_ATTENDANT.
                         .requestMatchers(HttpMethod.GET, "/api/movie/multiplex/**")
                         .access(new WebExpressionAuthorizationManager(SELL_PORTAL_ACCESS))
-                        .requestMatchers("/api/seats/**")
-                        .access(new WebExpressionAuthorizationManager(SELL_PORTAL_ACCESS))
+                        .requestMatchers("api/movie/multiplex/*/selectors").hasAnyAuthority(BUYER, EMPLOYEE, MANAGER)
+                        .requestMatchers("/api/movie/multiplex/*/selectors/**").hasAnyAuthority(BUYER, EMPLOYEE, MANAGER)
+                        .requestMatchers("/api/topRatedMovies").permitAll()
+                        .requestMatchers("/api/seats/**").hasAnyAuthority(BUYER, EMPLOYEE, MANAGER)
                         .requestMatchers(HttpMethod.GET, "/api/snacks")
                         .access(new WebExpressionAuthorizationManager(SELL_PORTAL_ACCESS))
                         .requestMatchers("/api/checkout/**")
@@ -116,6 +118,8 @@ public class Config {
                         .requestMatchers("/api/points/admin/**").hasAuthority(ADMIN)
                         .requestMatchers("/api/points/redeem", "/api/points").hasAuthority(BUYER)
                         .requestMatchers("/api/points/validate").hasAnyAuthority(EMPLOYEE, MANAGER)
+
+                        .requestMatchers("/api/snacks/**").hasAnyAuthority(BUYER, EMPLOYEE, MANAGER)
 
                         // Cualquier endpoint administrativo no clasificado queda reservado para ADMIN.
                         .requestMatchers("/api/admin/**").hasAuthority(ADMIN)
