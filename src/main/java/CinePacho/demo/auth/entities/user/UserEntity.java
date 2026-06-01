@@ -66,6 +66,10 @@ public class UserEntity implements UserDetails {
         return this.email;
     }
 
+    public String getName() {
+        return this.username;
+    }
+
     @Override
     public String getPassword() {
         return this.password;
