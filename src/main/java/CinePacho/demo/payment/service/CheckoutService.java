@@ -31,13 +31,15 @@ import java.util.stream.Collectors;
 public class CheckoutService {
 
     private final SeatManager seatManager;
+    private final CinePacho.demo.shared.auxiliaryClass.SeatScreeningManager seatScreeningManager;
     private final SnackManager snackManager;
     private final JwtService jwtService;
     private final UserManager userManager;
 
     @Autowired
-    public CheckoutService(SeatManager seatManager, SnackManager snackManager, JwtService jwtService, UserManager userManager ) {
+    public CheckoutService(SeatManager seatManager, CinePacho.demo.shared.auxiliaryClass.SeatScreeningManager seatScreeningManager, SnackManager snackManager, JwtService jwtService, UserManager userManager ) {
         this.seatManager = seatManager;
+        this.seatScreeningManager = seatScreeningManager;
         this.snackManager = snackManager;
         this.jwtService = jwtService;
         this.userManager = userManager;
@@ -83,7 +85,7 @@ public class CheckoutService {
         validateExistenceComplete("sillas", seatIds, seats.stream().map(SeatEntity::getId).collect(Collectors.toList()));
 
         validateSameRoomAndSameLocation(seats);
-        validateSeatStatus(seats, userEmail);
+        validateSeatStatus(seats, userEmail, request.getScreeningId());
 
         BigDecimal generalPrice = seats.get(0).getRoom().getMultiplex().getGeneralSeatPrice();
         BigDecimal preferentialPrice = seats.get(0).getRoom().getMultiplex().getPreferentialSeatPrice();
@@ -112,6 +114,8 @@ public class CheckoutService {
         BigDecimal totalSnacks = BigDecimal.ZERO;
 
         if (!snackRequests.isEmpty()) {
+            // Validar que los snacks pertenezcan al mismo multiplex de las sillas seleccionadas
+            UUID multiplexId = seats.get(0).getRoom().getMultiplex().getId();
             List<UUID> snackIds = snackRequests.stream()
                     .map(SnackSelectionRequest::getSnackId)
                     .collect(Collectors.toList());
@@ -125,7 +129,18 @@ public class CheckoutService {
                     .collect(Collectors.toMap(SnackEntity::getId, s -> s));
 
             for (SnackSelectionRequest snackRequest : snackRequests) {
+                // Asegurar que el cliente envíe el multiplexId y que coincida con la función elegida
+                if (snackRequest.getMultiplexId() == null) {
+                    throw new CinePachoException("El multiplexId del snack es obligatorio");
+                }
+                if (!multiplexId.equals(snackRequest.getMultiplexId())) {
+                    throw new CinePachoException("El snack no pertenece al multiplex de la función seleccionada");
+                }
                 SnackEntity snack = snackMap.get(snackRequest.getSnackId());
+                // Validar que el snack realmente pertenece al multiplex indicado
+                if (snack.getMultiplex() == null || !multiplexId.equals(snack.getMultiplex().getId())) {
+                    throw new CinePachoException("El snack no pertenece al multiplex indicado");
+                }
                 if (snack.getQuantity() < snackRequest.getQuantity()) {
                     throw new CinePachoException(
                             "Stock insuficiente para el snack '" + snack.getName() + "'");
@@ -185,15 +200,18 @@ public class CheckoutService {
         }
     }
 
-    private void validateSeatStatus(List<SeatEntity> seats, String userEmail) {
-        // Valida disponibilidad y bloqueo por usuario antes de continuar
+    private void validateSeatStatus(List<SeatEntity> seats, String userEmail, java.util.UUID screeningId) {
+        // Valida disponibilidad y bloqueo por usuario antes de continuar — ahora por función
         for (SeatEntity seat : seats) {
-            if (seat.getStatus() == SeatStatus.SOLD) {
-                throw new CinePachoException("La silla " + seat.getId() + " ya fue vendida");
-            }
-            if (seat.getStatus() == SeatStatus.BLOCKED) {
-                if (seat.getBlockedByUserEmail() == null || !seat.getBlockedByUserEmail().equals(userEmail)) {
-                    throw new CinePachoException("La silla " + seat.getId() + " está bloqueada por otro usuario");
+            var ss = seatScreeningManager.getSeatScreening(seat.getId(), screeningId);
+            if (ss != null) {
+                if (ss.getStatus() == SeatStatus.SOLD) {
+                    throw new CinePachoException("La silla " + seat.getId() + " ya fue vendida para esta función");
+                }
+                if (ss.getStatus() == SeatStatus.BLOCKED) {
+                    if (ss.getBlockedByUserEmail() == null || !ss.getBlockedByUserEmail().equals(userEmail)) {
+                        throw new CinePachoException("La silla " + seat.getId() + " está bloqueada por otro usuario para esta función");
+                    }
                 }
             }
         }

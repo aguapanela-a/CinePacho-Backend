@@ -1,6 +1,7 @@
 package CinePacho.demo.multiplex.controller;
 
 import jakarta.validation.Valid;
+import CinePacho.demo.shared.auxiliaryClass.DTOResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -44,8 +45,13 @@ public class MultiplexController {
     }
  
     @DeleteMapping("/admin/multiplexes/{id}")
-    public ResponseEntity<Void> delete(@PathVariable UUID id) {
+    public ResponseEntity<DTOResponse> delete(@PathVariable UUID id) {
         multiplexService.delete(id);
-        return ResponseEntity.noContent().build();
+        // Respuesta estándar para eliminación
+        DTOResponse response = DTOResponse.withStatus(
+                "Multiplex eliminado correctamente",
+                HttpStatus.OK.value()
+        );
+        return ResponseEntity.ok(response);
     }
 }

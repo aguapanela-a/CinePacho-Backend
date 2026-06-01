@@ -22,7 +22,7 @@ public class BuyerEntity {
     private UserEntity user;
 
     @Column
-    private long points;
+    private Integer points = 0;
 
     @Column(name = "correo", unique = true, nullable = false)
     private String email;

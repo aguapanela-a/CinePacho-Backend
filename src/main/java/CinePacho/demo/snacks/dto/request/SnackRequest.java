@@ -30,4 +30,8 @@ public class SnackRequest {
 
     @NotNull(message = "El id del multiplex es obligatorio")
     private UUID multiplexId;
+
+    // Puntos asociados al snack (puede ser null si no se ha configurado)
+    @NotNull(message = "Los puntos del snack son obligatorios")
+    private Integer pointsSnack;
 }

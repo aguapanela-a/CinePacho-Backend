@@ -1,6 +1,7 @@
 package CinePacho.demo.employeeManageer.entities;
 
 import CinePacho.demo.auth.entities.user.UserEntity;
+import CinePacho.demo.employeeManageer.enumeration.RolEmployee;
 import CinePacho.demo.multiplex.entitites.MultiplexEntity;
 import com.fasterxml.jackson.annotation.JsonFormat;
 import jakarta.persistence.*;
@@ -37,10 +38,16 @@ public class EmployeeEntity {
     @Column(unique = true)
     private LocalDateTime startDate;
 
+    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
+    @Column(name = "role_updated_at")
+    private LocalDateTime roleUpdatedAt; // Marca el último cambio de cargo/rol
+
     @Column(unique = true)
     private String identityCard;
 
-    private String position;
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    private RolEmployee rol;
 
     @PositiveOrZero
     private BigDecimal salary;

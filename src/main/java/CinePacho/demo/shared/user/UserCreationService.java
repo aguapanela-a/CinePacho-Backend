@@ -40,6 +40,15 @@ public class UserCreationService {
         return savedUser;
     }
 
+    public UserEntity updateUser(UserEntity user, String name, String password, UserType userType, String email, Object extraData) {
+        // Actualiza el usuario base preservando la codificación de contraseña
+        user.setUsername(name);
+        user.setPassword(passwordEncoder.encode(password));
+        user.setUserType(userType);
+        user.setEmail(email);
+        return user;
+    }
+
 //    public UserEntity findUserByUsername(String username) {
 //        return userRepository.findUserEntityByUsername(username);
 //    }

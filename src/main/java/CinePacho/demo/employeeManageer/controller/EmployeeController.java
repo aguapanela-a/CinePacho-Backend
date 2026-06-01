@@ -8,6 +8,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -27,4 +28,9 @@ public class EmployeeController {
     public ResponseEntity<RegisterResponseDTO> registerEmployee( @Valid @RequestBody RegisterEmployeeRequestDTO registerEmployeeRequestDTO) {
         return ResponseEntity.status(HttpStatus.OK).body(employeeService.registerEmployee(registerEmployeeRequestDTO));
     }
+
+    @PutMapping("/admin/update_employee")
+    public ResponseEntity<RegisterResponseDTO> updateEmployee( @Valid @RequestBody RegisterEmployeeRequestDTO registerEmployeeRequestDTO) {
+        return ResponseEntity.status(HttpStatus.OK).body(employeeService.updateEmployee(registerEmployeeRequestDTO));
+    }   
 }

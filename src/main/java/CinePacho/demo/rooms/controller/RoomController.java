@@ -1,8 +1,9 @@
 package CinePacho.demo.rooms.controller;
 
+import CinePacho.demo.shared.auxiliaryClass.DTOResponse;
 import jakarta.validation.Valid;
-import jakarta.validation.constraints.NotBlank;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -26,23 +27,26 @@ public class RoomController {
 
 
     @PostMapping("admin/{multiplexId}/rooms")
-    public ResponseEntity<ResponseSummary> create(@Valid @PathVariable UUID multiplexId) {
+    public ResponseEntity<DTOResponse> create(@Valid @PathVariable UUID multiplexId) {
 
-        RoomDetailResponse detail = roomService.create(multiplexId);
-        // Se elimina la segunda creación para evitar duplicar salas
-
-        return ResponseEntity.ok(new ResponseSummary("Sala de cine creada con éxito", detail.getIdRoom()));
+        roomService.create(multiplexId);
+        
+        // Respuesta estándar para creación de sala
+        DTOResponse response = DTOResponse.withStatus(
+                "Sala de cine creada con éxito",
+                HttpStatus.CREATED.value()
+        );
+        return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
- 
+  
     @DeleteMapping("admin/rooms/{id}")
-    public ResponseEntity<ResponseSummary> delete(@PathVariable UUID id) {
+    public ResponseEntity<DTOResponse> delete(@PathVariable UUID id) {
         roomService.delete(id);
-        return ResponseEntity.ok(new ResponseSummary("Sala de cine eliminada con éxito", id));
+        // Respuesta estándar para eliminación de sala
+        DTOResponse response = DTOResponse.withStatus(
+                "Sala de cine eliminada con éxito",
+                HttpStatus.OK.value()
+        );
+        return ResponseEntity.ok(response);
     }
-
-    public record ResponseSummary(
-            String message,
-            @NotBlank(message = "El id de la sala es requerido")
-            UUID roomId
-    ) {}
 }

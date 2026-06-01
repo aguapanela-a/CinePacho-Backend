@@ -21,4 +21,5 @@ public interface SeatManager {
     void scheduleRelease(UUID screeningId, UUID roomId, LocalDateTime screeningStartTime);
     void releaseAllSeatsInRoom(UUID roomId);
     SeatEntity getSeatById(UUID seatId);
+    String getSeatNumber(UUID seatId);
 }

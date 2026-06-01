@@ -17,4 +17,5 @@ public interface MovieManager {
     MovieScreening getMovieScreeningById(UUID id);
     List<MovieScreening> findByDateTimeAfter(LocalDateTime dateTime);
     List<MovieScreening> findByDateBefore(LocalDateTime dateTime);
+    void save(MovieScreening movieScreening);
 }

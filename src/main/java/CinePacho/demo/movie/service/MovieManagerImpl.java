@@ -67,4 +67,9 @@ public class MovieManagerImpl implements MovieManager {
     public List<MovieScreening> findByDateBefore(LocalDateTime dateTime) {
         return movieScreeningRepository.findAllByDateTimeBefore(dateTime);
     }
+
+    @Override
+    public void save(MovieScreening movieScreening) {
+        movieScreeningRepository.save(movieScreening);
+    }
 }

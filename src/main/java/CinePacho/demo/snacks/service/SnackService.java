@@ -68,6 +68,7 @@ public class SnackService {
                 .description(request.getDescriptionSnack())
                 .price(request.getPriceSnack())
                 .quantity(request.getQuantitySnack())
+                .points(request.getPointsSnack())
                 .multiplex(multiplexProvider.getMultiplexById(request.getMultiplexId()))
                 .build();
         return toResponse(snackRepository.save(snack));

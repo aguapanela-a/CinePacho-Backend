@@ -16,6 +16,13 @@ import CinePacho.demo.movie.repository.MovieScreeningRepository;
 import CinePacho.demo.rooms.entities.RoomEntity;
 import CinePacho.demo.shared.auxiliaryClass.RoomManager;
 import CinePacho.demo.shared.serviceSecurity.AccessValidator;
+import CinePacho.demo.seats.entities.SeatEntity;
+import CinePacho.demo.seats.enumeration.SeatStatus;
+import CinePacho.demo.seats.repository.SeatRepository;
+import CinePacho.demo.seats.repository.SeatScreeningRepository;
+import CinePacho.demo.seats.entities.SeatScreeningEntity;
+
+
 import org.jspecify.annotations.NonNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -35,18 +42,22 @@ public class MovieAdminService {
     private final WebClient webClient;
     private final RoomManager roomManager;
     private final AccessValidator accessValidator;
+    private final SeatRepository seatRepository;
+    private final SeatScreeningRepository seatScreeningRepository;
 
     @Value("${tmdb.access.token}")
     private String accessToken;
 
     @Autowired
-    public MovieAdminService(MovieRepository movieRepository, MovieScreeningRepository movieScreeningRepository, WebClient webClient, RoomManager roomManager, AccessValidator accessValidator) {
+    public MovieAdminService(MovieRepository movieRepository, MovieScreeningRepository movieScreeningRepository, WebClient webClient, RoomManager roomManager, AccessValidator accessValidator, SeatRepository seatRepository, SeatScreeningRepository seatScreeningRepository) {
         this.movieRepository = movieRepository;
         this.movieScreeningRepository = movieScreeningRepository;
         this.webClient = webClient;
 
         this.roomManager = roomManager;
         this.accessValidator = accessValidator;
+        this.seatRepository = seatRepository;
+        this.seatScreeningRepository = seatScreeningRepository;
     }
 
 
@@ -128,6 +139,17 @@ public class MovieAdminService {
         movieScreening.setStatus(ScreeningStatus.ACTIVE);
 
         MovieScreening screening = movieScreeningRepository.save(movieScreening);
+
+        // ✅ Crear SeatScreeningEntity por cada silla de la sala
+        List<SeatEntity> seats = seatRepository.getAllByRoom_Id(room.getId());
+        List<SeatScreeningEntity> seatScreenings = seats.stream()
+                .map(seat -> SeatScreeningEntity.builder()
+                        .seat(seat)
+                        .screening(screening)
+                        .status(SeatStatus.AVAILABLE)
+                        .build())
+                .toList();
+        seatScreeningRepository.saveAll(seatScreenings);
 
         return new ScreeningResponseDTO(
                 screening.getId(),

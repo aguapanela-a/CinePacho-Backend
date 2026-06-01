@@ -17,6 +17,11 @@ public class CheckoutSummaryResponse {
     private String message;
     private String sessionId;
     private String sessionUrl;
+    private UUID billingId;
+
+    // ID del pago creado en backend - necesario para webhook de confirmación
+    // Se utiliza en POST /api/checkout/stripe/webhook para confirmar el pago
+    private UUID paymentId;
 
     // Multiplex asociado a las sillas seleccionadas
     private UUID multiplexId;
