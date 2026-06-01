@@ -15,7 +15,7 @@ public class EmployeesResponseDTO {
     String name;
     String email;
     String phoneNumber;
-    String role;
+    String rol;
     Long uniqueCode;
     String nameMultiplex;
     LocalDate startDate;
