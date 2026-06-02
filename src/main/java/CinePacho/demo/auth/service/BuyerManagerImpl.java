@@ -4,6 +4,7 @@ import CinePacho.demo.auth.entities.customers.BuyerEntity;
 import CinePacho.demo.auth.entities.customers.repository.BuyerRepository;
 import CinePacho.demo.exception.CinePachoException;
 import CinePacho.demo.shared.auxiliaryClass.BuyerManager;
+import CinePacho.demo.shared.serviceSecurity.JwtService;
 import org.springframework.stereotype.Component;
 
 import java.util.ArrayList;
@@ -14,13 +15,18 @@ public class BuyerManagerImpl implements BuyerManager {
 
     private final BuyerRepository buyerRepository;
 
+
     public BuyerManagerImpl(BuyerRepository buyerRepository) {
         this.buyerRepository = buyerRepository;
     }
 
     @Override
     public BuyerEntity getBuyerById(UUID id) {
-        return buyerRepository.findByUser_UserId(id);
+        try {
+            return buyerRepository.findByBuyerId(id);
+        }catch (CinePachoException e){
+            throw new CinePachoException("Buyer not found with id :" + id + " " + e.getMessage());
+        }
     }
 
     @Override
