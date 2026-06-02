@@ -31,7 +31,7 @@ public record UpdateEmployeeRequestDTO(
     
     
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
-    @NotBlank LocalDateTime startDate,
+    @NotNull LocalDateTime startDate,
     
     @NotNull UUID multiplexId
 ) {}

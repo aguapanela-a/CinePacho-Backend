@@ -44,7 +44,7 @@ public class RoomManagerImpl implements RoomManager {
         // Usa el numberRoom proporcionado, o genera uno automáticamente
         String roomNumberStr = numberRoom != null 
             ? String.valueOf(numberRoom)
-            : "room: " + (existingRooms + 1);
+            : " - " + (existingRooms + 1);
 
         RoomEntity room = RoomEntity.builder()
                 .multiplex(multiplex)
