@@ -78,12 +78,12 @@ public class Config {
                         .requestMatchers(HttpMethod.GET, "/api/review/movie/**").permitAll()
 
                         // Portal buyer y portal empleado: cartelera, sillas, snacks y checkout.
+                        .requestMatchers(HttpMethod.GET, "/api/movie/multiplex/**").permitAll()
+
                         // Todos los employees (EMPLOYEE y MANAGER) pueden acceder, EXCEPTO CLEANER y ROOM_ATTENDANT.
-                        .requestMatchers(HttpMethod.GET, "/api/movie/multiplex/**")
-                        .access(new WebExpressionAuthorizationManager(SELL_PORTAL_ACCESS))
                         .requestMatchers("/api/movie/multiplex/*/selectors").hasAnyAuthority(BUYER, EMPLOYEE, MANAGER)
                         .requestMatchers("/api/movie/multiplex/*/selectors/**").hasAnyAuthority(BUYER, EMPLOYEE, MANAGER)
-                        .requestMatchers("/api/movie/trailer/**").hasAnyAuthority(BUYER, EMPLOYEE, MANAGER)
+                        .requestMatchers("/api/movie/trailer/**").permitAll()
                         .requestMatchers("/api/topRatedMovies").permitAll()
                         .requestMatchers("/api/seats/**").hasAnyAuthority(BUYER, EMPLOYEE, MANAGER)
                         .requestMatchers("/api/snacks")
@@ -103,6 +103,7 @@ public class Config {
                         //Visualización de multiplexes: ADMIN, MANAGER, EMPLOYEE y BUYER.
                         .requestMatchers(HttpMethod.GET, "/api/multiplexes").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/multiplexes/**").hasAnyAuthority(ADMIN, MANAGER, EMPLOYEE, BUYER)
+
 
 
                         // Administracion por multiplex asignado.//
