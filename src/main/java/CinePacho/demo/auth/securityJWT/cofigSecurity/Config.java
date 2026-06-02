@@ -80,11 +80,12 @@ public class Config {
                         // Todos los employees (EMPLOYEE y MANAGER) pueden acceder, EXCEPTO CLEANER y ROOM_ATTENDANT.
                         .requestMatchers(HttpMethod.GET, "/api/movie/multiplex/**")
                         .access(new WebExpressionAuthorizationManager(SELL_PORTAL_ACCESS))
-                        .requestMatchers("api/movie/multiplex/*/selectors").hasAnyAuthority(BUYER, EMPLOYEE, MANAGER)
+                        .requestMatchers("/api/movie/multiplex/*/selectors").hasAnyAuthority(BUYER, EMPLOYEE, MANAGER)
                         .requestMatchers("/api/movie/multiplex/*/selectors/**").hasAnyAuthority(BUYER, EMPLOYEE, MANAGER)
+                        .requestMatchers("/api/movie/trailer/**").hasAnyAuthority(BUYER, EMPLOYEE, MANAGER)
                         .requestMatchers("/api/topRatedMovies").permitAll()
                         .requestMatchers("/api/seats/**").hasAnyAuthority(BUYER, EMPLOYEE, MANAGER)
-                        .requestMatchers(HttpMethod.GET, "/api/snacks")
+                        .requestMatchers("/api/snacks")
                         .access(new WebExpressionAuthorizationManager(SELL_PORTAL_ACCESS))
                         .requestMatchers("/api/checkout/**")
                         .access(new WebExpressionAuthorizationManager(SELL_PORTAL_ACCESS))
@@ -109,10 +110,10 @@ public class Config {
                         // Snacks aun no estan modelados por multiplex, por eso el CRUD queda global para ADMIN y MANAGER local.
                         .requestMatchers("/api/admin/snacks/**").hasAnyAuthority(ADMIN, MANAGER)
                         .requestMatchers(HttpMethod.GET, "/api/admin/snacks").hasAnyAuthority(ADMIN, MANAGER)
-                        .requestMatchers(HttpMethod.POST, "/api/checkout/stripe").hasAnyAuthority(SELL_PORTAL_ACCESS)
-                        .requestMatchers(HttpMethod.POST, "/api/checkout/stripe/success").hasAnyAuthority(SELL_PORTAL_ACCESS)
-                        .requestMatchers(HttpMethod.POST, "/api/checkout/stripe/cancel").hasAnyAuthority(SELL_PORTAL_ACCESS)
-                        .requestMatchers(HttpMethod.PUT, "/api/checkout/employee/*/scan").hasAnyAuthority(EMPLOYEE, MANAGER)
+                        .requestMatchers(HttpMethod.POST, "/api/checkout/stripe").access(new WebExpressionAuthorizationManager(SELL_PORTAL_ACCESS))
+                        .requestMatchers(HttpMethod.POST, "/api/checkout/stripe/success").access(new WebExpressionAuthorizationManager(SELL_PORTAL_ACCESS))
+                        .requestMatchers(HttpMethod.GET, "/api/checkout/stripe/cancel").access(new WebExpressionAuthorizationManager(SELL_PORTAL_ACCESS))
+                        .requestMatchers(HttpMethod.PUT, "/api/checkout/employee/billing/*/scan").hasAnyAuthority(EMPLOYEE, MANAGER)
 
                         // Endpoints de points: admin y buyer
                         .requestMatchers("/api/points/admin/**").hasAuthority(ADMIN)

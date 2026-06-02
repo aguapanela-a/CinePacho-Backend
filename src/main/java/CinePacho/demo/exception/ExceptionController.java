@@ -6,7 +6,6 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
-import tools.jackson.databind.exc.InvalidTypeIdException;
 
 @RestControllerAdvice
 
@@ -26,12 +25,6 @@ public class ExceptionController {
         return ResponseEntity.status(HttpStatus.FORBIDDEN).body(error);
     }
 
-    //Validar tipos de usuario de entrada al registro
-    @ExceptionHandler(InvalidTypeIdException.class)
-    public ResponseEntity<ErrorDTO> handleInvalidUserType(InvalidTypeIdException ex) {
-       ErrorDTO error = new ErrorDTO(HttpStatus.BAD_REQUEST.value(), "Tipo de usuario no válido para auto-registro. " + ex.getMessage());
-       return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(error);
-    }
 
     // Atrapa el error cuando Spring no puede convertir el String al Enum
     @ExceptionHandler(MethodArgumentTypeMismatchException.class)

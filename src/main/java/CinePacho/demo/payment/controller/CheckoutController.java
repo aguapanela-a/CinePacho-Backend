@@ -77,7 +77,7 @@ public class CheckoutController {
     }
 
     //redireccionamiento de stripe al cancelar el pago
-    @GetMapping("/stripie/cancel")
+    @GetMapping("/stripe/cancel")
     public ResponseEntity<Map<String, String>> cancel() {
         return ResponseEntity.ok(Map.of("message", "Pago cancelado"));
     }
