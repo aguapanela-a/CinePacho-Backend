@@ -47,20 +47,10 @@ public class Config {
         CorsConfiguration config = new CorsConfiguration();
         String frontendUrl = System.getenv("FRONTEND_URL");
 
-        // URLs permitidas: desarrollo local, producción Vercel y localhost
-        List<String> allowedOrigins = List.of(
-            frontendUrl != null ? frontendUrl : "http://localhost:5173",
-            "http://localhost:5173",
-            "http://localhost:3000",
-            "https://cine-pacho-frontend.vercel.app",
-            "https://cinepacho.vercel.app"
-        );
-        
-        config.setAllowedOrigins(allowedOrigins);
-        config.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"));
+        config.setAllowedOrigins(List.of(frontendUrl != null ? frontendUrl : "http://localhost:5173"));
+        config.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
         config.setAllowedHeaders(List.of("*"));
         config.setAllowCredentials(true);
-        config.setMaxAge(3600L); // Cache preflight por 1 hora
 
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/**", config);

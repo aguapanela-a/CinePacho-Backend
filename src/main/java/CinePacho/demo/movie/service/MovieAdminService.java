@@ -15,6 +15,7 @@ import CinePacho.demo.movie.repository.MovieRepository;
 import CinePacho.demo.movie.repository.MovieScreeningRepository;
 import CinePacho.demo.rooms.entities.RoomEntity;
 import CinePacho.demo.shared.auxiliaryClass.RoomManager;
+import CinePacho.demo.shared.auxiliaryClass.SeatManager;
 import CinePacho.demo.shared.serviceSecurity.AccessValidator;
 import CinePacho.demo.seats.entities.SeatEntity;
 import CinePacho.demo.seats.enumeration.SeatStatus;
@@ -42,21 +43,21 @@ public class MovieAdminService {
     private final WebClient webClient;
     private final RoomManager roomManager;
     private final AccessValidator accessValidator;
-    private final SeatRepository seatRepository;
+    private final SeatManager seatManager;
     private final SeatScreeningRepository seatScreeningRepository;
 
     @Value("${tmdb.access.token}")
     private String accessToken;
 
     @Autowired
-    public MovieAdminService(MovieRepository movieRepository, MovieScreeningRepository movieScreeningRepository, WebClient webClient, RoomManager roomManager, AccessValidator accessValidator, SeatRepository seatRepository, SeatScreeningRepository seatScreeningRepository) {
+    public MovieAdminService(MovieRepository movieRepository, MovieScreeningRepository movieScreeningRepository, WebClient webClient, RoomManager roomManager, AccessValidator accessValidator, SeatManager seatManager, SeatScreeningRepository seatScreeningRepository) {
         this.movieRepository = movieRepository;
         this.movieScreeningRepository = movieScreeningRepository;
         this.webClient = webClient;
 
         this.roomManager = roomManager;
         this.accessValidator = accessValidator;
-        this.seatRepository = seatRepository;
+        this.seatManager = seatManager;
         this.seatScreeningRepository = seatScreeningRepository;
     }
 
@@ -142,7 +143,7 @@ public class MovieAdminService {
         MovieScreening screening = movieScreeningRepository.save(movieScreening);
 
         // ✅ Crear SeatScreeningEntity por cada silla de la sala
-        List<SeatEntity> seats = seatRepository.getAllByRoom_Id(room.getId());
+        List<SeatEntity> seats = seatManager.findAllByRoomId(room.getId());
         List<SeatScreeningEntity> seatScreenings = seats.stream()
                 .map(seat -> SeatScreeningEntity.builder()
                         .seat(seat)

@@ -160,5 +160,10 @@ public class SeatManagerImpl implements SeatManager {
         return seatRepository.findById(seatId).orElseThrow(()-> new CinePachoException("Silla no encontrada")).getSeatNumber().toString();
     }
 
+    @Override
+    public List<SeatEntity> findAllByRoomId(UUID roomId) {
+        return seatRepository.getAllByRoom_Id(roomId);
+    }
+
 
 }

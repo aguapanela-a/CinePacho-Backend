@@ -22,4 +22,5 @@ public interface SeatManager {
     void releaseAllSeatsInRoom(UUID roomId);
     SeatEntity getSeatById(UUID seatId);
     String getSeatNumber(UUID seatId);
+    List<SeatEntity> findAllByRoomId(UUID roomId);
 }
