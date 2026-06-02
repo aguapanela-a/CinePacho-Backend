@@ -41,7 +41,6 @@ public class MultiplexService {
     // ── GET BY ID ────────────────────────────────────────────────────────────────
     public MultiplexDetailResponse getById(UUID id) {
         // El gerente sólo puede consultar su multiplex
-        accessValidator.validateMultiplexAccess(id);
         MultiplexEntity multiplex = findOrThrow(id);
         return toDetail(multiplex);
     }

@@ -101,10 +101,11 @@ public class Config {
                         .requestMatchers(HttpMethod.POST, "/api/admin/multiplexes").hasAnyAuthority(ADMIN)
 
                         //Visualización de multiplexes: ADMIN, MANAGER, EMPLOYEE y BUYER.
-                        .requestMatchers(HttpMethod.GET, "/api/multiplexes","/api/multiplexes/**").hasAnyAuthority(ADMIN, MANAGER,BUYER,EMPLOYEE)
+                        .requestMatchers(HttpMethod.GET, "/api/multiplexes").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/multiplexes/**").hasAnyAuthority(ADMIN, MANAGER, EMPLOYEE, BUYER)
 
 
-                        // Administracion por multiplex asignado.
+                        // Administracion por multiplex asignado.//
                         .requestMatchers(HttpMethod.POST, "/api/admin/*/rooms").hasAnyAuthority(ADMIN, MANAGER)
                         .requestMatchers(HttpMethod.DELETE, "/api/admin/rooms/**").hasAnyAuthority(ADMIN, MANAGER)
                         .requestMatchers("/api/admin/register_employee").hasAnyAuthority(ADMIN, MANAGER)
