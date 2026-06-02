@@ -20,8 +20,7 @@ public class BuyerManagerImpl implements BuyerManager {
 
     @Override
     public BuyerEntity getBuyerById(UUID id) {
-        return buyerRepository.findById(id)
-                .orElseThrow(() -> new CinePachoException("Buyer not found"));
+        return buyerRepository.findByUser_UserId(id);
     }
 
     @Override
