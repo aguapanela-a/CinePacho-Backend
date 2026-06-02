@@ -13,7 +13,7 @@ public class MultiplexSummaryResponse {
     private String idMultiplex;
     private String nameMultiplex;
     private String cityMultiplex;
-    private Integer NumberOfRooms;
+    private Integer numberOfRooms;
     private BigDecimal generalSeatPrice;
     private BigDecimal preferentialSeatPrice;
 }
