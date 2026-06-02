@@ -5,6 +5,7 @@ import CinePacho.demo.auth.dto.request.LoginRequestDTO;
 import CinePacho.demo.auth.dto.response.RegisterResponseDTO;
 import CinePacho.demo.auth.entities.user.UserEntity;
 import CinePacho.demo.auth.entities.token.VerificationToken;
+import CinePacho.demo.auth.entities.customers.repository.BuyerRepository;
 import CinePacho.demo.shared.auxiliaryClass.EmailService;
 import CinePacho.demo.shared.user.UserRepository;
 import CinePacho.demo.auth.repository.VerificationTokenRepository;
@@ -23,6 +24,7 @@ import org.springframework.stereotype.Service;
 public class AuthService {
     private final UserCreationService userCreationService;
     private final UserRepository userRepository;
+    private final BuyerRepository buyerRepository;
     private final PasswordEncoder passwordEncoder;
     private final EmailService emailService;
     private final VerificationTokenRepository tokenRepository;
@@ -120,11 +122,18 @@ public class AuthService {
             throw new CinePachoException("Credenciales incorrectas");
         }
 
+        java.util.UUID responseId = user.getUserId();
+        if (user.getUserType() == UserType.BUYER) {
+            responseId = buyerRepository.getBuyerByEmail(user.getEmail())
+                .orElseThrow(() -> new CinePachoException("Buyer not found for email: " + user.getEmail()))
+                .getBuyerId();
+        }
+
         return new AuthResponseDTO(
             jwtService.generateToken(user),
                 user.getUserType(),
                 user.getUsername(),
-                user.getUserId()
+                responseId
         );
     }
 
