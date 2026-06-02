@@ -44,7 +44,6 @@ public class EmployeeController {
 
     @PutMapping("/admin/update_employee")
     public ResponseEntity<RegisterResponseDTO> updateEmployee(
-            @PathVariable Long uniqueCode,
             @Valid @RequestBody RegisterEmployeeRequestDTO registerEmployeeRequestDTO
     ) {
         return ResponseEntity.status(HttpStatus.OK).body(employeeService.updateEmployee(registerEmployeeRequestDTO));
