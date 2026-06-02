@@ -44,15 +44,15 @@ public class EmployeeController {
 
     @PutMapping("/admin/update_employee")
     public ResponseEntity<RegisterResponseDTO> updateEmployee(
-            @PathVariable UUID employeeId,
+            @PathVariable Long uniqueCode,
             @Valid @RequestBody RegisterEmployeeRequestDTO registerEmployeeRequestDTO
     ) {
         return ResponseEntity.status(HttpStatus.OK).body(employeeService.updateEmployee(registerEmployeeRequestDTO));
     }   
 
-    @DeleteMapping("/admin/delete_employee/{employeeId}")
-    public ResponseEntity<Void> deleteEmployee(@PathVariable UUID employeeId) {
-        employeeService.deleteEmployee(employeeId);
+    @DeleteMapping("/admin/delete_employee/{uniqueCode}")
+    public ResponseEntity<Void> deleteEmployee(@PathVariable Long uniqueCode) {
+        employeeService.deleteEmployeeByUniqueCode(uniqueCode);
         return ResponseEntity.noContent().build();
     }
 }
