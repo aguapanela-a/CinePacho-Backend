@@ -38,18 +38,18 @@ public class RoomService {
     }
 
 
-    public RoomDetailResponse create(UUID multiplexId) {
+    public RoomResponse create(UUID multiplexId, Integer numberRoom) {
 
         // Valida que el gerente sólo cree salas en su multiplex
         accessValidator.validateMultiplexAccess(multiplexId);
 
         //Crea y guarda una sala con todas sus sillas
-        roomManager.createRoom(multiplexProvider.getMultiplexById(multiplexId));
+        roomManager.createRoom(multiplexProvider.getMultiplexById(multiplexId), numberRoom);
 
         //Trae la ultima sala creada de este multiplex
         RoomEntity roomSaved = roomRepository.findTopByMultiplexIdOrderByCreatedAtDesc(multiplexId);
 
-        return toDetail(roomSaved);
+        return toSummary(roomSaved);
     }
 
 

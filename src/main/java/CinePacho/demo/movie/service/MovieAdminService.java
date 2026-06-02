@@ -136,6 +136,7 @@ public class MovieAdminService {
         movieScreening.setMovie(movie);
         movieScreening.setRoom(room);
         movieScreening.setDateTime(createScreeningDTO.dateTime());
+        movieScreening.setFormat(createScreeningDTO.format());
         movieScreening.setStatus(ScreeningStatus.ACTIVE);
 
         MovieScreening screening = movieScreeningRepository.save(movieScreening);

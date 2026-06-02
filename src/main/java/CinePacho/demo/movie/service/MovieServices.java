@@ -150,6 +150,7 @@ public class MovieServices {
                 .roomNumber(screeningMovie.getRoom().getRoomNumber())
                 .screeningDate(screeningMovie.getDateTime())
                 .status(screeningMovie.getStatus())
+                .format(screeningMovie.getFormat() != null ? screeningMovie.getFormat().getDisplayName() : "2D")
                 .build();
     }
 

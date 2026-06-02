@@ -1,6 +1,7 @@
 package CinePacho.demo.movie.dto.response;
 
 import CinePacho.demo.movie.enumeration.ScreeningStatus;
+import com.fasterxml.jackson.annotation.JsonFormat;
 import lombok.Builder;
 
 import java.time.LocalDateTime;
@@ -10,7 +11,9 @@ public record ScreeningInfoDTO(
         UUID screeningId,
         UUID roomId,
         String roomNumber,
+        @JsonFormat(pattern = "yyyy-MM-dd'T'HH:mm:ss")
         LocalDateTime screeningDate,
-        ScreeningStatus status
+        ScreeningStatus status,
+        String format
 ) {
 }

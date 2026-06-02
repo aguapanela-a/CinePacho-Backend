@@ -12,7 +12,7 @@ import java.util.UUID;
 @Builder
 public class RoomRequest {
  
-    @NotNull(message = "El id del multiplex es obligatorio")
-    private UUID multiplexId;
+    @NotNull(message = "El número de sala es obligatorio")
+    private Integer numberRoom;
  
 }
