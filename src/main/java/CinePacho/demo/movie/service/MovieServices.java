@@ -48,6 +48,8 @@ public class MovieServices {
     private List<MovieScreening> movieScreeningsByMultiplexId(UUID multiplexId) {
         List<UUID> roomIdsByMultiplex = roomManager.getRoomIdsByMultiplexId(multiplexId);
 
+        System.out.println("<============roomIdsByMultiplex: "+" "+roomIdsByMultiplex + "===============>");
+
         if (roomIdsByMultiplex.isEmpty()) {
             return List.of();
         }
@@ -116,6 +118,8 @@ public class MovieServices {
                 .stream()
                 .filter(movieScreening -> movieScreening.getMovie().getId().equals(movieId))
                 .toList();
+
+        System.out.println("<============movieScreeningsByMovie: "+" "+movieScreeningsByMovie + "===============>");
 
         if (movieScreeningsByMovie.isEmpty()) {
             throw new CinePachoException("No tenemos funciones disponibles en este multiplex para la película seleccionada");
