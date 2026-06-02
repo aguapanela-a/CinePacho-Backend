@@ -141,12 +141,13 @@ public class EmployeeService {
             // Se registra la fecha del cambio real de cargo/rol
             employee.setRoleUpdatedAt(LocalDateTime.now(ZoneOffset.UTC));
         }
+        
 
         // Actualiza campos del usuario y entidad concreta de empleado o gerente.
         userCreationService.updateUser(
                 user,
                 registerEmployeeRequestDTO.name(),
-                registerEmployeeRequestDTO.password(),
+//  registerEmployeeRequestDTO.password(),
                 registerEmployeeRequestDTO.userType(),
                 registerEmployeeRequestDTO.email(),
                 registerEmployeeRequestDTO
@@ -163,5 +164,23 @@ public class EmployeeService {
         employeeRepository.save(employee);
 
         return new RegisterResponseDTO(user.getUserType(), user.getUsername(), "Se ha actualizado correctamente el empleado");
+    }
+
+    public void deleteEmployeeByUniqueCode(Long uniqueCode) {
+        EmployeeEntity employee = employeeRepository.findEmployeeEntityByUniqueCode(uniqueCode)
+                .orElseThrow(() -> new CinePachoException("No se encontró un empleado con el código único proporcionado"));
+
+        // Valida que solo un MANAGER pueda eliminar EMPLOYEEs de su multiplex.
+        accessValidator.validateEmployeeDeletionAccess(employee.getMultiplex().getId());
+
+        if (employee.getUser() != null) {
+            UserEntity user = employee.getUser();
+            user.setEmployee(null);
+            userRepository.save(user);
+        }
+
+
+
+        employeeRepository.delete(employee);
     }
 }

@@ -68,4 +68,9 @@ public class RoomManagerImpl implements RoomManager {
         return roomRepository.findByMultiplexId(multiplexId).stream()
                 .map(RoomEntity::getId).toList();
     }
+
+    @Override
+    public Integer countByMultiplexId(UUID multiplexId) {
+        return roomRepository.countByMultiplex_Id(multiplexId);
+    }
 }

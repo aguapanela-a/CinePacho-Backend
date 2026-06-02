@@ -13,4 +13,5 @@ public interface RoomManager {
      void createRoom(MultiplexEntity multiplex);
      void createRoom(MultiplexEntity multiplex, Integer numberRoom);
      List<UUID> getRoomIdsByMultiplexId(UUID multiplexId);
+     Integer countByMultiplexId(UUID multiplexId);
 }
