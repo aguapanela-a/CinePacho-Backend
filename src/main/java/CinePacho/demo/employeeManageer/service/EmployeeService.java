@@ -19,6 +19,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
 import java.util.List;
+import java.util.UUID;
 import java.util.stream.Collectors;
 
 @Service
@@ -44,9 +45,9 @@ public class EmployeeService {
 
 
 
-    public List<EmployeesResponseDTO> getAllEmployees() {
+    public List<EmployeesResponseDTO> getAllEmployeesByMultiplex(UUID multiplexId) {
 
-        List<EmployeeEntity> employees = employeeRepository.findAll();
+        List<EmployeeEntity> employees = employeeRepository.findAllByMultiplex_Id(multiplexId);
 
         employees.forEach(employee -> {
             System.out.println(employee.getUser().getName());

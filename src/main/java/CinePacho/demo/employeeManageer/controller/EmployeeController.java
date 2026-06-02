@@ -7,16 +7,12 @@ import CinePacho.demo.employeeManageer.service.EmployeeService;
 import jakarta.validation.Valid;
 
 import java.util.List;
+import java.util.UUID;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.PutMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/api")
@@ -28,9 +24,11 @@ public class EmployeeController {
         this.employeeService = employeeService;
     }
 
-    @GetMapping("/admin/employees")
-    public ResponseEntity<List<EmployeesResponseDTO>> getAllEmployees() {
-        return ResponseEntity.ok(employeeService.getAllEmployees());
+    @GetMapping("/admin/employees/{multiplexId}")
+    public ResponseEntity<List<EmployeesResponseDTO>> getAllEmployees(
+            @PathVariable UUID multiplexId
+    ) {
+        return ResponseEntity.ok(employeeService.getAllEmployeesByMultiplex(multiplexId));
     }
 
     //Necesita aplicar filtro JWT

@@ -1,6 +1,7 @@
 package CinePacho.demo.auth.securityJWT.cofigSecurity;
 
 import CinePacho.demo.auth.securityJWT.JwtAuthenticationFilter;
+import com.beust.ah.A;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
@@ -95,16 +96,19 @@ public class Config {
                         .requestMatchers(HttpMethod.POST, "/api/*/review/**").hasAuthority(BUYER)
 
                         // Administracion de multiplex: ADMIN global, MANAGER limitado por AccessValidator.
-                        .requestMatchers(HttpMethod.POST, "/api/admin/multiplexes").hasAuthority(ADMIN)
+                        .requestMatchers(HttpMethod.POST, "/api/multiplexes").hasAnyAuthority(BUYER, ADMIN, EMPLOYEE, MANAGER)
                         .requestMatchers(HttpMethod.DELETE, "/api/admin/multiplexes/**").hasAnyAuthority(ADMIN, EMPLOYEE, MANAGER)
                         .requestMatchers(HttpMethod.GET, "/api/admin/multiplexes", "/api/admin/multiplexes/**")
                         .hasAnyAuthority(ADMIN, MANAGER)
                         .requestMatchers(HttpMethod.PUT, "/api/admin/multiplexes/**").hasAnyAuthority(ADMIN, MANAGER)
 
+
                         // Administracion por multiplex asignado.
                         .requestMatchers(HttpMethod.POST, "/api/admin/*/rooms").hasAnyAuthority(ADMIN, MANAGER)
                         .requestMatchers(HttpMethod.DELETE, "/api/admin/rooms/**").hasAnyAuthority(ADMIN, MANAGER)
                         .requestMatchers("/api/admin/register_employee").hasAnyAuthority(ADMIN, MANAGER)
+                        .requestMatchers(HttpMethod.GET, "/api/admin/employees/**").hasAnyAuthority(ADMIN, MANAGER)
+                        .requestMatchers(HttpMethod.POST, "/api/admin/update_employee").hasAnyAuthority(ADMIN, MANAGER)
                         .requestMatchers("/api/admin/movie/**").hasAnyAuthority(ADMIN, MANAGER)
 
                         // Snacks aun no estan modelados por multiplex, por eso el CRUD queda global para ADMIN y MANAGER local.
