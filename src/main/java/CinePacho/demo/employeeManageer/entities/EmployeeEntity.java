@@ -24,7 +24,7 @@ public class EmployeeEntity {
     private UUID employeeId;
 
     @JoinColumn(name = "userId", unique = true)
-    @OneToOne(mappedBy = "employee", cascade = CascadeType.ALL, orphanRemoval = true)   
+    @OneToOne()   
     private UserEntity user;
 
     @ManyToOne(fetch = FetchType.LAZY)
