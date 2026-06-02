@@ -147,7 +147,7 @@ public class MultiplexService {
                 .idMultiplex(m.getId().toString())
                 .nameMultiplex(m.getName())
                 .cityMultiplex(m.getCity())
-                .NumberOfRooms(roomManager.countByMultiplexId(m.getId()))
+                .numberOfRooms(roomManager.countByMultiplexId(m.getId()))
                 .generalSeatPrice(m.getGeneralSeatPrice())
                 .preferentialSeatPrice(m.getPreferentialSeatPrice())
                 .build();
