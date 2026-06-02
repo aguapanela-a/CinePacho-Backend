@@ -32,7 +32,7 @@ public class RoomService {
     //Obtener todas las salas de un multiplex
     // ── GET ALL ─────────────────────────────────────────────────────────────────
     public List<RoomResponse> getAllByMultiplexId(UUID multiplexId) {
-        return roomRepository.findByMultiplexId(multiplexId).stream()
+        return roomRepository.findByMultiplex_Id(multiplexId).stream()
                 .map(this::toSummary)
                 .collect(Collectors.toList());
     }
@@ -47,7 +47,7 @@ public class RoomService {
         roomManager.createRoom(multiplexProvider.getMultiplexById(multiplexId), numberRoom);
 
         //Trae la ultima sala creada de este multiplex
-        RoomEntity roomSaved = roomRepository.findTopByMultiplexIdOrderByCreatedAtDesc(multiplexId);
+        RoomEntity roomSaved = roomRepository.findTopByMultiplex_IdOrderByCreatedAtDesc(multiplexId);
 
         return toSummary(roomSaved);
     }

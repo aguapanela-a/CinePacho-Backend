@@ -65,7 +65,7 @@ public class RoomManagerImpl implements RoomManager {
 
     @Override
     public List<UUID> getRoomIdsByMultiplexId(UUID multiplexId) {
-        return roomRepository.findByMultiplexId(multiplexId).stream()
+        return roomRepository.findByMultiplex_Id(multiplexId).stream()
                 .map(RoomEntity::getId).toList();
     }
 

@@ -10,11 +10,11 @@ import java.util.UUID;
 @Repository
 public interface RoomRepository extends JpaRepository<RoomEntity, UUID> {
  
-    boolean existsByMultiplexId(UUID multiplexId);
+    boolean existsByMultiplex_Id(UUID multiplexId);
 
-    List<RoomEntity> findByMultiplexId(UUID multiplexId);
+    List<RoomEntity> findByMultiplex_Id(UUID multiplexId);
 
-    RoomEntity findTopByMultiplexIdOrderByCreatedAtDesc(UUID multiplexId);
+    RoomEntity findTopByMultiplex_IdOrderByCreatedAtDesc(UUID multiplexId);
 
     int countByMultiplex_Id(UUID multiplexId);
 }

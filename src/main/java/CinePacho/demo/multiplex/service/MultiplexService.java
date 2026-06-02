@@ -159,7 +159,7 @@ public class MultiplexService {
     }
  
     private MultiplexDetailResponse toDetail(MultiplexEntity m) {
-        List<RoomResponse> rooms = roomRepository.findByMultiplexId(m.getId())
+        List<RoomResponse> rooms = roomRepository.findByMultiplex_Id(m.getId())
                 .stream()
                 .map(r -> RoomResponse.builder()
                         .idRoom(r.getId())
