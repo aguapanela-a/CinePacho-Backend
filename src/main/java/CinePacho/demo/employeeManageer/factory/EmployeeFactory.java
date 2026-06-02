@@ -42,12 +42,15 @@ public class EmployeeFactory implements UserFactory<RegisterEmployeeRequestDTO> 
             throw new CinePachoException("El multiplex es obligatorio para registrar personal");
         }
         employee.setMultiplex(multiplexProvider.getMultiplexById(extraData.multiplexId()));
+        // Asignar nombre completo del empleado al username del usuario
+        user.setUsername(extraData.name());
 
         employee.setIdentityCard(extraData.indentityCard());
         employee.setPhoneNumber(extraData.phoneNumber());
         employee.setSalary(extraData.salary());
         employee.setRol(extraData.rol());
         employee.setUniqueCode(nextUniqueCode());
+        employee.setStartDate(extraData.startDate());
         // Se registra la fecha del último cambio de cargo/rol al momento de crear el empleado
         employee.setRoleUpdatedAt(LocalDateTime.now(ZoneOffset.UTC));
 

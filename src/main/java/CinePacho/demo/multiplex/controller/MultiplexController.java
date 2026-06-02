@@ -23,16 +23,12 @@ public class MultiplexController {
     private final MultiplexService multiplexService;
  
     @GetMapping("/multiplexes")
-    public ResponseEntity<List<MultiplexSummaryResponse>> getAllPublic() {
-        return ResponseEntity.ok(multiplexService.getAll());
-    }
 
-    @GetMapping("/admin/multiplexes")
     public ResponseEntity<List<MultiplexSummaryResponse>> getAll() {
         return ResponseEntity.ok(multiplexService.getAll());
     }
  
-    @GetMapping("/admin/multiplexes/{id}")
+    @GetMapping("/multiplexes/{id}")
     public ResponseEntity<MultiplexDetailResponse> getById(@PathVariable UUID id) {
         return ResponseEntity.ok(multiplexService.getById(id));
     }

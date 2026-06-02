@@ -29,18 +29,12 @@ public class RoomService {
     private final SeatManager seatManager;
     private final AccessValidator accessValidator;
 
+    //Obtener todas las salas de un multiplex
     // ── GET ALL ─────────────────────────────────────────────────────────────────
-    public List<RoomResponse> getAll() {
-        return roomRepository.findAll()
-                .stream()
+    public List<RoomResponse> getAllByMultiplexId(UUID multiplexId) {
+        return roomRepository.findByMultiplexId(multiplexId).stream()
                 .map(this::toSummary)
                 .collect(Collectors.toList());
-    }
- 
-    // ── GET BY ID ────────────────────────────────────────────────────────────────
-    public RoomDetailResponse getById(UUID id) {
-        RoomEntity room = findOrThrow(id);
-        return toDetail(room);
     }
 
 
@@ -78,6 +72,7 @@ public class RoomService {
         return RoomResponse.builder()
                 .idRoom(room.getId())
                 .isRoomActive(room.getActive())
+                .roomNumber(room.getRoomNumber())
                 .build();
     }
 

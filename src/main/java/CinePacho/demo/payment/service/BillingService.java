@@ -3,6 +3,7 @@ package CinePacho.demo.payment.service;
 import CinePacho.demo.auth.entities.customers.BuyerEntity;
 import CinePacho.demo.exception.CinePachoException;
 import CinePacho.demo.movie.entities.MovieScreening;
+import CinePacho.demo.payment.dto.response.BillingDTO;
 import CinePacho.demo.payment.dto.response.CheckoutSummaryResponse;
 import CinePacho.demo.payment.entities.BillingEntity;
 import CinePacho.demo.payment.entities.PaymentEntity;
@@ -15,6 +16,7 @@ import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
 import java.time.ZoneId;
+import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
@@ -102,5 +104,46 @@ public class BillingService {
         billingRepository.save(billing);
 
         return Map.of("message", "Entrada válida. Bienvenido a CinePacho");
+    }
+
+    public List<BillingDTO> getAllBillingsByUserId(UUID userId){
+        // Obtener todas las facturas del usuario (userId corresponde al id de UserEntity)
+        List<BillingEntity> billings = billingRepository.findAllByBuyer_User_UserIdOrderByCreatedAtDesc(userId);
+        return billings.stream().map(billing -> {
+            String status = billing.getPayment() != null && billing.getPayment().getStatus() != null
+                    ? billing.getPayment().getStatus().name()
+                    : "UNKNOWN";
+            String message;
+            switch (status) {
+                case "COMPLETED":
+                    message = "Pago completado";
+                    break;
+                case "PENDING":
+                    message = "Pago pendiente";
+                    break;
+                case "FAILED":
+                    message = "Pago fallido";
+                    break;
+                case "CANCELLED":
+                    message = "Pago cancelado";
+                    break;
+                default:
+                    message = "Estado desconocido";
+            }
+
+            return BillingDTO.builder()
+                    .status(status)
+                    .message(message)
+                    .totalSeats(billing.getTotalSeats())
+                    .totalSnacks(billing.getTotalSnacks())
+                    .totalPurchase(billing.getTotalPurchase())
+                    .seats(null)
+                    .snacks(null)
+                    .roomNumber(billing.getRoomNumber())
+                    .seatsNumbers(null)
+                    .movieTitle(billing.getMovieTitle())
+                    .screeningDate(billing.getScreeningDate())
+                    .build();
+        }).toList();
     }
 }

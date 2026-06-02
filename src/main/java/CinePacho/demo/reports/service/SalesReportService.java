@@ -2,7 +2,7 @@ package CinePacho.demo.reports.service;
 
 import CinePacho.demo.exception.CinePachoException;
 import CinePacho.demo.multiplex.entitites.MultiplexEntity;
-import CinePacho.demo.multiplex.repository.MultiplexRepository;
+import CinePacho.demo.shared.auxiliaryClass.MultiplexProvider;
 import CinePacho.demo.reports.dto.response.DailySalesReport;
 import CinePacho.demo.reports.dto.response.MultiplexSalesReport;
 import CinePacho.demo.reports.dto.response.SalesReportResponse;
@@ -31,7 +31,7 @@ import java.util.UUID;
 public class SalesReportService {
 
     private final TicketSaleRepository ticketSaleRepository;
-    private final MultiplexRepository multiplexRepository;
+    private final MultiplexProvider multiplexProvider;
 
     /**
      * Construye el reporte agrupado por multiplex, día y función.
@@ -53,30 +53,56 @@ public class SalesReportService {
         List<LocalDate> days = buildDaysRange(startDate, endDate);
 
         List<MultiplexSalesReport> multiplexReports = new ArrayList<>();
-        for (MultiplexEntity multiplex : multiplexRepository.findAll()) {
-            Map<LocalDate, Map<UUID, AggregatedScreeningSales>> byDay = aggregated
-                    .getOrDefault(multiplex.getId(), new HashMap<>());
-
-            List<DailySalesReport> dayReports = new ArrayList<>();
-            for (LocalDate day : days) {
-                Map<UUID, AggregatedScreeningSales> screenings = byDay.getOrDefault(day, new HashMap<>());
-                dayReports.add(DailySalesReport.builder()
-                        .date(day)
-                        .screenings(toScreeningReports(screenings))
-                        .build());
-            }
-
-            multiplexReports.add(MultiplexSalesReport.builder()
-                    .multiplexId(multiplex.getId())
-                    .multiplexName(multiplex.getName())
-                    .days(dayReports)
-                    .build());
+        for (MultiplexEntity multiplex : multiplexProvider.findAllMultiplexes()) {
+            multiplexReports.add(buildMultiplexReport(multiplex, aggregated, days));
         }
 
         return SalesReportResponse.builder()
                 .startDate(startDate)
                 .endDate(endDate)
                 .multiplexes(multiplexReports)
+                .build();
+    }
+
+    //filtro de reportes por multiplex
+    public MultiplexSalesReport buildMonthlySalesReportByMultiplex(UUID multiplexId, LocalDate endDate) {
+        if (endDate == null) {
+            throw new CinePachoException("La fecha final del reporte es obligatoria");
+        }
+
+        LocalDate startDate = endDate.withDayOfMonth(1);
+        LocalDateTime startDateTime = startDate.atStartOfDay();
+        LocalDateTime endDateTime = endDate.atTime(LocalTime.MAX);
+
+        List<TicketSaleEntity> sales = ticketSaleRepository
+                .findAllBySoldAtBetweenWithDetails(startDateTime, endDateTime);
+
+        Map<UUID, Map<LocalDate, Map<UUID, AggregatedScreeningSales>>> aggregated = aggregateSales(sales);
+        List<LocalDate> days = buildDaysRange(startDate, endDate);
+
+        MultiplexEntity multiplex = multiplexProvider.getMultiplexById(multiplexId);
+        return buildMultiplexReport(multiplex, aggregated, days);
+    }
+
+    private MultiplexSalesReport buildMultiplexReport(MultiplexEntity multiplex,
+                                                     Map<UUID, Map<LocalDate, Map<UUID, AggregatedScreeningSales>>> aggregated,
+                                                     List<LocalDate> days) {
+        Map<LocalDate, Map<UUID, AggregatedScreeningSales>> byDay = aggregated
+                .getOrDefault(multiplex.getId(), new HashMap<>());
+
+        List<DailySalesReport> dayReports = new ArrayList<>();
+        for (LocalDate day : days) {
+            Map<UUID, AggregatedScreeningSales> screenings = byDay.getOrDefault(day, new HashMap<>());
+            dayReports.add(DailySalesReport.builder()
+                    .date(day)
+                    .screenings(toScreeningReports(screenings))
+                    .build());
+        }
+
+        return MultiplexSalesReport.builder()
+                .multiplexId(multiplex.getId())
+                .multiplexName(multiplex.getName())
+                .days(dayReports)
                 .build();
     }
 

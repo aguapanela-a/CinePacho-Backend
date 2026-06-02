@@ -6,6 +6,9 @@ import CinePacho.demo.payment.dto.response.CheckoutSummaryResponse;
 import CinePacho.demo.payment.service.BillingService;
 import CinePacho.demo.payment.service.StripeService;
 import CinePacho.demo.shared.auxiliaryClass.DTOResponse;
+import CinePacho.demo.payment.dto.response.BillingDTO;
+import java.util.List;
+import java.util.UUID;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 
@@ -99,4 +102,11 @@ public class CheckoutController {
     //     token = token.replace("Bearer ", "");
     //     return ResponseEntity.ok(checkoutService.confirm(request, token));
     // }
+
+// Obtener todas las facturas de un usuario por userId (UserEntity.userId)
+    @GetMapping("/billings/user/{userId}")
+    public ResponseEntity<List<BillingDTO>> getAllBillingsByUserId(@PathVariable UUID userId) {
+        List<BillingDTO> list = billingService.getAllBillingsByUserId(userId);
+        return ResponseEntity.ok(list);
+    }
 }

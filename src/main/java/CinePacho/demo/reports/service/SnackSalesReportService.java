@@ -54,29 +54,56 @@ public class SnackSalesReportService {
 
         List<MultiplexSnackSalesReport> multiplexReports = new ArrayList<>();
         for (MultiplexEntity multiplex : multiplexRepository.findAll()) {
-            Map<LocalDate, Map<UUID, AggregatedSnackSales>> byDay = aggregated
-                    .getOrDefault(multiplex.getId(), new HashMap<>());
-
-            List<DailySnackSalesReport> dayReports = new ArrayList<>();
-            for (LocalDate day : days) {
-                Map<UUID, AggregatedSnackSales> snacks = byDay.getOrDefault(day, new HashMap<>());
-                dayReports.add(DailySnackSalesReport.builder()
-                        .date(day)
-                        .snacks(toSnackReports(snacks))
-                        .build());
-            }
-
-            multiplexReports.add(MultiplexSnackSalesReport.builder()
-                    .multiplexId(multiplex.getId())
-                    .multiplexName(multiplex.getName())
-                    .days(dayReports)
-                    .build());
+            multiplexReports.add(buildMultiplexSnackReport(multiplex, aggregated, days));
         }
 
         return SnackSalesReportResponse.builder()
                 .startDate(startDate)
                 .endDate(endDate)
                 .multiplexes(multiplexReports)
+                .build();
+    }
+
+    // devolver snacks por multiplex
+    public MultiplexSnackSalesReport buildMonthlySnackSalesReportByMultiplex(UUID multiplexId, LocalDate endDate) {
+        if (endDate == null) {
+            throw new CinePachoException("La fecha final del reporte es obligatoria");
+        }
+
+        LocalDate startDate = endDate.withDayOfMonth(1);
+        LocalDateTime startDateTime = startDate.atStartOfDay();
+        LocalDateTime endDateTime = endDate.atTime(LocalTime.MAX);
+
+        List<SnackSaleEntity> sales = snackSaleRepository
+                .findAllBySoldAtBetweenWithDetails(startDateTime, endDateTime);
+
+        Map<UUID, Map<LocalDate, Map<UUID, AggregatedSnackSales>>> aggregated = aggregateSales(sales);
+        List<LocalDate> days = buildDaysRange(startDate, endDate);
+
+        MultiplexEntity multiplex = multiplexRepository.findById(multiplexId)
+                .orElseThrow(() -> new CinePachoException("Multiplex no encontrado"));
+        return buildMultiplexSnackReport(multiplex, aggregated, days);
+    }
+
+    private MultiplexSnackSalesReport buildMultiplexSnackReport(MultiplexEntity multiplex,
+                                                               Map<UUID, Map<LocalDate, Map<UUID, AggregatedSnackSales>>> aggregated,
+                                                               List<LocalDate> days) {
+        Map<LocalDate, Map<UUID, AggregatedSnackSales>> byDay = aggregated
+                .getOrDefault(multiplex.getId(), new HashMap<>());
+
+        List<DailySnackSalesReport> dayReports = new ArrayList<>();
+        for (LocalDate day : days) {
+            Map<UUID, AggregatedSnackSales> snacks = byDay.getOrDefault(day, new HashMap<>());
+            dayReports.add(DailySnackSalesReport.builder()
+                    .date(day)
+                    .snacks(toSnackReports(snacks))
+                    .build());
+        }
+
+        return MultiplexSnackSalesReport.builder()
+                .multiplexId(multiplex.getId())
+                .multiplexName(multiplex.getName())
+                .days(dayReports)
                 .build();
     }
 

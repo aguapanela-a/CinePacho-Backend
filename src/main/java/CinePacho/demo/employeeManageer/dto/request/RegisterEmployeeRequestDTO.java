@@ -5,7 +5,10 @@ import CinePacho.demo.shared.enumeration.UserType;
 import jakarta.validation.constraints.*;
 
 import java.math.BigDecimal;
+import java.time.LocalDateTime;
 import java.util.UUID;
+
+import com.fasterxml.jackson.annotation.JsonFormat;
 
 public record RegisterEmployeeRequestDTO (
 
@@ -34,6 +37,10 @@ public record RegisterEmployeeRequestDTO (
 
         @PositiveOrZero(message = "El salario debe ser positivo")
         BigDecimal salary,
+
+        @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
+        @NotNull(message = "La fecha de inicio es obligatoria")
+        LocalDateTime startDate,
 
         @NotNull(message = "El rol del empleado es obligatorio y debe ser válido")
         RolEmployee rol,

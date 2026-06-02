@@ -1,6 +1,7 @@
 package CinePacho.demo.auth.securityJWT.cofigSecurity;
 
 import CinePacho.demo.auth.securityJWT.JwtAuthenticationFilter;
+import com.beust.ah.A;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
@@ -78,12 +79,16 @@ public class Config {
                         .requestMatchers(HttpMethod.GET, "/api/review/movie/**").permitAll()
 
                         // Portal buyer y portal empleado: cartelera, sillas, snacks y checkout.
+                        .requestMatchers(HttpMethod.GET, "/api/movie/multiplex/**").permitAll()
+
                         // Todos los employees (EMPLOYEE y MANAGER) pueden acceder, EXCEPTO CLEANER y ROOM_ATTENDANT.
-                        .requestMatchers(HttpMethod.GET, "/api/movie/multiplex/**")
-                        .access(new WebExpressionAuthorizationManager(SELL_PORTAL_ACCESS))
-                        .requestMatchers("/api/seats/**")
-                        .access(new WebExpressionAuthorizationManager(SELL_PORTAL_ACCESS))
-                        .requestMatchers(HttpMethod.GET, "/api/snacks/**")
+
+                        .requestMatchers("/api/movie/multiplex/*/selectors").hasAnyAuthority(BUYER, EMPLOYEE, MANAGER)
+                        .requestMatchers("/api/movie/multiplex/*/selectors/**").hasAnyAuthority(BUYER, EMPLOYEE, MANAGER)
+                        .requestMatchers("/api/movie/trailer/**").permitAll()
+                        .requestMatchers("/api/topRatedMovies").permitAll()
+                        .requestMatchers("/api/seats/**").hasAnyAuthority(BUYER, EMPLOYEE, MANAGER)
+                        .requestMatchers("/api/snacks")
                         .access(new WebExpressionAuthorizationManager(SELL_PORTAL_ACCESS))
                         .requestMatchers("/api/checkout/**")
                         .access(new WebExpressionAuthorizationManager(SELL_PORTAL_ACCESS))
@@ -93,30 +98,38 @@ public class Config {
                         .requestMatchers(HttpMethod.POST, "/api/*/review/**").hasAuthority(BUYER)
 
                         // Administracion de multiplex: ADMIN global, MANAGER limitado por AccessValidator.
-                        .requestMatchers(HttpMethod.POST, "/api/admin/multiplexes").hasAuthority(ADMIN)
-                        .requestMatchers(HttpMethod.DELETE, "/api/admin/multiplexes/**").hasAuthority(ADMIN)
-                        .requestMatchers(HttpMethod.GET, "/api/admin/multiplexes", "/api/admin/multiplexes/**")
-                        .hasAnyAuthority(ADMIN, MANAGER)
+                        .requestMatchers(HttpMethod.DELETE, "/api/admin/multiplexes/**").hasAnyAuthority(ADMIN, MANAGER)
                         .requestMatchers(HttpMethod.PUT, "/api/admin/multiplexes/**").hasAnyAuthority(ADMIN, MANAGER)
+                        .requestMatchers(HttpMethod.POST, "/api/admin/multiplexes").hasAnyAuthority(ADMIN)
 
-                        // Administracion por multiplex asignado.
+                        //Visualización de multiplexes: ADMIN, MANAGER, EMPLOYEE y BUYER.
+                        .requestMatchers(HttpMethod.GET, "/api/multiplexes").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/multiplexes/**").hasAnyAuthority(ADMIN, MANAGER, EMPLOYEE, BUYER)
+
+
+
+                        // Administracion por multiplex asignado.//
                         .requestMatchers(HttpMethod.POST, "/api/admin/*/rooms").hasAnyAuthority(ADMIN, MANAGER)
                         .requestMatchers(HttpMethod.DELETE, "/api/admin/rooms/**").hasAnyAuthority(ADMIN, MANAGER)
                         .requestMatchers("/api/admin/register_employee").hasAnyAuthority(ADMIN, MANAGER)
+                        .requestMatchers(HttpMethod.GET, "/api/admin/employees/**").hasAnyAuthority(ADMIN, MANAGER)
+                        .requestMatchers(HttpMethod.POST, "/api/admin/update_employee").hasAnyAuthority(ADMIN, MANAGER)
                         .requestMatchers("/api/admin/movie/**").hasAnyAuthority(ADMIN, MANAGER)
 
                         // Snacks aun no estan modelados por multiplex, por eso el CRUD queda global para ADMIN y MANAGER local.
                         .requestMatchers("/api/admin/snacks/**").hasAnyAuthority(ADMIN, MANAGER)
                         .requestMatchers(HttpMethod.GET, "/api/admin/snacks").hasAnyAuthority(ADMIN, MANAGER)
-                        .requestMatchers(HttpMethod.POST, "/api/checkout/stripe").hasAnyAuthority(SELL_PORTAL_ACCESS)
-                        .requestMatchers(HttpMethod.POST, "/api/checkout/stripe/success").hasAnyAuthority(SELL_PORTAL_ACCESS)
-                        .requestMatchers(HttpMethod.POST, "/api/checkout/stripe/cancel").hasAnyAuthority(SELL_PORTAL_ACCESS)
-                        .requestMatchers(HttpMethod.PUT, "/api/checkout/employee/*/scan").hasAnyAuthority(EMPLOYEE, MANAGER)
+                        .requestMatchers(HttpMethod.POST, "/api/checkout/stripe").access(new WebExpressionAuthorizationManager(SELL_PORTAL_ACCESS))
+                        .requestMatchers(HttpMethod.POST, "/api/checkout/stripe/success").access(new WebExpressionAuthorizationManager(SELL_PORTAL_ACCESS))
+                        .requestMatchers(HttpMethod.GET, "/api/checkout/stripie/cancel").access(new WebExpressionAuthorizationManager(SELL_PORTAL_ACCESS))
+                        .requestMatchers(HttpMethod.PUT, "/api/checkout/employee/billing/*/scan").hasAnyAuthority(EMPLOYEE, MANAGER)
 
                         // Endpoints de points: admin y buyer
                         .requestMatchers("/api/points/admin/**").hasAuthority(ADMIN)
                         .requestMatchers("/api/points/redeem", "/api/points").hasAuthority(BUYER)
                         .requestMatchers("/api/points/validate").hasAnyAuthority(EMPLOYEE, MANAGER)
+
+                        .requestMatchers("/api/snacks/**").hasAnyAuthority(BUYER, EMPLOYEE, MANAGER)
 
                         // Cualquier endpoint administrativo no clasificado queda reservado para ADMIN.
                         .requestMatchers("/api/admin/**").hasAuthority(ADMIN)
