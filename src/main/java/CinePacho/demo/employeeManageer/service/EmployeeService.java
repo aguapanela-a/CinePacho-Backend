@@ -43,6 +43,21 @@ public class EmployeeService {
         this.multiplexProvider = multiplexProvider;
     }
 
+    public List<EmployeesResponseDTO> getAll(){
+        List<EmployeeEntity> employees = employeeRepository.findAll();
+
+        // Implementación pendiente: se debe obtener la lista de empleados y mapearla a EmployeesResponseDTO
+        return employees.stream().map(employee -> new EmployeesResponseDTO(
+                employee.getUser().getName(),
+                employee.getUser().getEmail(),
+                employee.getPhoneNumber(),
+                employee.getRol().toString(),
+                employee.getUniqueCode(),
+                employee.getMultiplex().getName(),
+                employee.getStartDate() != null ? employee.getStartDate().toLocalDate() : null,
+                employee.getRoleUpdatedAt() != null ? employee.getRoleUpdatedAt().toLocalDate() : null
+        )).collect(Collectors.toList());
+    }
 
 
     public List<EmployeesResponseDTO> getAllEmployeesByMultiplex(UUID multiplexId) {

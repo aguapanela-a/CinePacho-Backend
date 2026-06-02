@@ -24,6 +24,11 @@ public class EmployeeController {
         this.employeeService = employeeService;
     }
 
+    @GetMapping("/admin/employees")
+    public ResponseEntity<List<EmployeesResponseDTO>> getAllEmployees() {
+        return ResponseEntity.ok(employeeService.getAll());
+    }
+
     @GetMapping("/admin/employees/{multiplexId}")
     public ResponseEntity<List<EmployeesResponseDTO>> getAllEmployees(
             @PathVariable UUID multiplexId
