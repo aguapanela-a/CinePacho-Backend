@@ -17,5 +17,7 @@ public interface RoomRepository extends JpaRepository<RoomEntity, UUID> {
     RoomEntity findTopByMultiplex_IdOrderByCreatedAtDesc(UUID multiplexId);
 
     int countByMultiplex_Id(UUID multiplexId);
+
+    List<UUID> getAllByMultiplex_Id(UUID multiplexId);
 }
  
