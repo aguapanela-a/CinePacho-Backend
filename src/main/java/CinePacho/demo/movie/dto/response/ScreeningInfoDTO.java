@@ -11,7 +11,7 @@ public record ScreeningInfoDTO(
         UUID screeningId,
         UUID roomId,
         String roomNumber,
-        @JsonFormat(pattern = "yyyy-MM-dd'T'HH:mm:ss")
+        @JsonFormat(pattern = "yyyy-MM-dd' 'HH:mm:ss")
         LocalDateTime screeningDate,
         ScreeningStatus status,
         String format
