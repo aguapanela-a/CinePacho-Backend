@@ -31,12 +31,7 @@ public class MultiplexService {
  
     // ── GET ALL ──────────────────────────────────────────────────────────────────
     public List<MultiplexSummaryResponse> getAll() {
-        UUID scopedMultiplexId = accessValidator.getScopedMultiplexIdForAdminOrManager();
-        if (scopedMultiplexId != null) {
-            // El gerente sólo puede ver su multiplex asignado
-            MultiplexEntity multiplex = findOrThrow(scopedMultiplexId);
-            return List.of(toSummary(multiplex));
-        }
+
         return multiplexRepository.findAll()
                 .stream()
                 .map(this::toSummary)
