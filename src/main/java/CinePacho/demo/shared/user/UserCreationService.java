@@ -2,6 +2,7 @@ package CinePacho.demo.shared.user;
 
 import CinePacho.demo.auth.entities.user.UserEntity;
 import CinePacho.demo.employeeManageer.dto.request.RegisterEmployeeRequestDTO;
+import CinePacho.demo.employeeManageer.dto.request.UpdateEmployeeRequestDTO;
 import CinePacho.demo.shared.enumeration.UserType;
 import CinePacho.demo.shared.factory.UserFactoryRegistry;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -41,7 +42,7 @@ public class UserCreationService {
         return savedUser;
     }
 
-    public void updateUser(UserEntity user, String name, UserType userType, String email, RegisterEmployeeRequestDTO dto) {
+    public void updateUser(UserEntity user, String name, UserType userType, String email, UpdateEmployeeRequestDTO dto) {
     user.setUsername(name);
     user.setUserType(userType);
     user.setEmail(email);

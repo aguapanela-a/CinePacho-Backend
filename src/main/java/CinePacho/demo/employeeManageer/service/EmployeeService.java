@@ -3,6 +3,7 @@ package CinePacho.demo.employeeManageer.service;
 import CinePacho.demo.auth.dto.response.RegisterResponseDTO;
 import CinePacho.demo.auth.entities.user.UserEntity;
 import CinePacho.demo.employeeManageer.dto.request.RegisterEmployeeRequestDTO;
+import CinePacho.demo.employeeManageer.dto.request.UpdateEmployeeRequestDTO;
 import CinePacho.demo.employeeManageer.dto.response.EmployeesResponseDTO;
 import CinePacho.demo.employeeManageer.entities.EmployeeEntity;
 import CinePacho.demo.employeeManageer.repository.EmployeeRepository;
@@ -113,38 +114,38 @@ public class EmployeeService {
     }
 
     @Transactional
-public RegisterResponseDTO updateEmployee(RegisterEmployeeRequestDTO registerEmployeeRequestDTO) {
-    if (registerEmployeeRequestDTO.userType() != UserType.EMPLOYEE
-            && registerEmployeeRequestDTO.userType() != UserType.MANAGER) {
+public RegisterResponseDTO updateEmployee(UpdateEmployeeRequestDTO updateEmployeeRequestDTO) {
+    if (updateEmployeeRequestDTO.userType() != UserType.EMPLOYEE
+            && updateEmployeeRequestDTO.userType() != UserType.MANAGER) {
         throw new CinePachoException("El tipo de usuario no es valido para este registro");
     }
 
     // Valida rol y alcance
     accessValidator.validateEmployeeRegistrationAccess(
-            registerEmployeeRequestDTO.userType(),
-            registerEmployeeRequestDTO.multiplexId()
+            updateEmployeeRequestDTO.userType(),
+            updateEmployeeRequestDTO.multiplexId()
     );
 
-    UserEntity user = userRepository.findByEmail(registerEmployeeRequestDTO.email())
+    UserEntity user = userRepository.findByEmail(updateEmployeeRequestDTO.email())
             .orElseThrow(() -> new CinePachoException("No se encontró un usuario con el email proporcionado"));
-    EmployeeEntity employee = employeeRepository.findByUser_Email(registerEmployeeRequestDTO.email());
+    EmployeeEntity employee = employeeRepository.findByUser_Email(updateEmployeeRequestDTO.email());
     if (employee == null) {
         throw new CinePachoException("No se encontró el empleado asociado al email proporcionado");
     }
 
-    boolean userTypeChanged = user.getUserType() != registerEmployeeRequestDTO.userType();
-    boolean roleChanged = employee.getRol() != registerEmployeeRequestDTO.rol();
+    boolean userTypeChanged = user.getUserType() != updateEmployeeRequestDTO.userType();
+    boolean roleChanged = employee.getRol() != updateEmployeeRequestDTO.rol();
     if (userTypeChanged || roleChanged) {
-        accessValidator.validateEmployeeUpdateFrequency(registerEmployeeRequestDTO.email());
+        accessValidator.validateEmployeeUpdateFrequency(updateEmployeeRequestDTO.email());
         employee.setRoleUpdatedAt(LocalDateTime.now(ZoneOffset.UTC));
     }
 
     // --- NUEVA LÓGICA PARA LA CONTRASEÑA ---
     // Verificamos que no sea nula, que no esté vacía y que no sean solo espacios en blanco
-    if (registerEmployeeRequestDTO.password() != null && !registerEmployeeRequestDTO.password().trim().isEmpty()) {
+    if (updateEmployeeRequestDTO.password() != null && !updateEmployeeRequestDTO.password().trim().isEmpty()) {
         // Opción A: Si tu userCreationService.updateUser ya maneja la contraseña, descoméntala allá.
         // Opción B: Si usas Spring Security, encríptala directamente aquí antes de guardar:
-        // String encryptedPassword = passwordEncoder.encode(registerEmployeeRequestDTO.password());
+        // String encryptedPassword = passwordEncoder.encode(updateEmployeeRequestDTO.password());
         // user.setPassword(encryptedPassword);
         
         // Nota: Si vas a usar la opción de abajo (Paso 2), simplemente descomenta la línea en el servicio:
@@ -153,18 +154,18 @@ public RegisterResponseDTO updateEmployee(RegisterEmployeeRequestDTO registerEmp
     // Actualiza campos del usuario utilizando tu servicio existente
     userCreationService.updateUser(
             user,
-            registerEmployeeRequestDTO.name(),
-            registerEmployeeRequestDTO.userType(),
-            registerEmployeeRequestDTO.email(),
-            registerEmployeeRequestDTO
+            updateEmployeeRequestDTO.name(),
+            updateEmployeeRequestDTO.userType(),
+            updateEmployeeRequestDTO.email(),
+            updateEmployeeRequestDTO
     );
 
     // Actualiza datos del empleado
-    employee.setIdentityCard(registerEmployeeRequestDTO.indentityCard());
-    employee.setPhoneNumber(registerEmployeeRequestDTO.phoneNumber());
-    employee.setSalary(registerEmployeeRequestDTO.salary());
-    employee.setRol(registerEmployeeRequestDTO.rol());
-    employee.setMultiplex(multiplexProvider.getMultiplexById(registerEmployeeRequestDTO.multiplexId()));
+    employee.setIdentityCard(updateEmployeeRequestDTO.indentityCard());
+    employee.setPhoneNumber(updateEmployeeRequestDTO.phoneNumber());
+    employee.setSalary(updateEmployeeRequestDTO.salary());
+    employee.setRol(updateEmployeeRequestDTO.rol());
+    employee.setMultiplex(multiplexProvider.getMultiplexById(updateEmployeeRequestDTO.multiplexId()));
 
     userRepository.save(user);
     employeeRepository.save(employee);

@@ -2,6 +2,7 @@ package CinePacho.demo.employeeManageer.controller;
 
 import CinePacho.demo.auth.dto.response.RegisterResponseDTO;
 import CinePacho.demo.employeeManageer.dto.request.RegisterEmployeeRequestDTO;
+import CinePacho.demo.employeeManageer.dto.request.UpdateEmployeeRequestDTO;
 import CinePacho.demo.employeeManageer.dto.response.EmployeesResponseDTO;
 import CinePacho.demo.employeeManageer.service.EmployeeService;
 import jakarta.validation.Valid;
@@ -44,9 +45,9 @@ public class EmployeeController {
 
     @PutMapping("/admin/update_employee")
     public ResponseEntity<RegisterResponseDTO> updateEmployee(
-            @Valid @RequestBody RegisterEmployeeRequestDTO registerEmployeeRequestDTO
+            @Valid @RequestBody UpdateEmployeeRequestDTO updateEmployeeRequestDTO
     ) {
-        return ResponseEntity.status(HttpStatus.OK).body(employeeService.updateEmployee(registerEmployeeRequestDTO));
+        return ResponseEntity.status(HttpStatus.OK).body(employeeService.updateEmployee(updateEmployeeRequestDTO));
     }   
 
     @DeleteMapping("/admin/delete_employee/{uniqueCode}")
