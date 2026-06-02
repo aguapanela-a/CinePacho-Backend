@@ -161,7 +161,8 @@ public class MovieAdminService {
                 movie.getOverview(),
                 movie.getRating(),
                 screening.getStatus(),
-                getGenreList(movie)
+                getGenreList(movie),
+                screening.getFormat()
         );
     }
 

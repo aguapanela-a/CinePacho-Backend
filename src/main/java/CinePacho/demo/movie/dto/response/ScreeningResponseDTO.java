@@ -1,8 +1,10 @@
 package CinePacho.demo.movie.dto.response;
 
+import CinePacho.demo.movie.enumeration.ScreeningFormat;
 import CinePacho.demo.movie.enumeration.ScreeningStatus;
 import com.fasterxml.jackson.annotation.JsonFormat;
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -37,6 +39,9 @@ public record ScreeningResponseDTO(
         ScreeningStatus status,
 
         @NotBlank(message = "La función debe tener lista de géneros")
-        List<String> genres
+        List<String> genres,
+
+        @NotNull(message = "El formato de la función es obligatorio (2D, 3D o IMAX)")
+        ScreeningFormat format  // Formato de proyección
 ) {
 }
