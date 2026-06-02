@@ -38,6 +38,22 @@ public class AccessValidator {
         }
     }
 
+    public void validateEmployeeDeletionAccess(UUID employeeMultiplexId) {
+        // Regla central para restringir eliminación de empleados por parte de gerentes
+        UserEntity user = getCurrentUser();
+        if (user.getUserType() == UserType.ADMIN) {
+            return; // El admin tiene acceso global
+        }
+        if (user.getUserType() != UserType.MANAGER) {
+            throw new CinePachoException("No tienes permisos para eliminar empleados");
+        }
+
+        UUID managerMultiplexId = getManagerMultiplexId(user);
+        if (!managerMultiplexId.equals(employeeMultiplexId)) {
+            throw new CinePachoException("No puedes eliminar empleados de otro multiplex");
+        }
+    }
+
     public UUID getScopedMultiplexIdForAdminOrManager() {
         // Permite filtrar listados cuando el usuario es gerente
         UserEntity user = getCurrentUser();
