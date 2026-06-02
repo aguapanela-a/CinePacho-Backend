@@ -10,7 +10,7 @@ import CinePacho.demo.employeeManageer.enumeration.RolEmployee;
 import CinePacho.demo.shared.enumeration.UserType;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
-import jakarta.validation.constraints.Size;
+import jakarta.validation.constraints.Pattern;
 
 public record UpdateEmployeeRequestDTO(
     String uniqueCode, // por si lo necesitas
@@ -20,7 +20,7 @@ public record UpdateEmployeeRequestDTO(
     String name,
 
     // AQUÍ: Permite vacío para la edición
-    @Size(min = 8, message = "La contraseña debe tener mínimo 8 caracteres")
+    @Pattern(regexp = "^$|.{8,}", message = "La contraseña debe tener mínimo 8 caracteres si decides cambiarla")
     String password,
 
     @NotNull UserType userType,
