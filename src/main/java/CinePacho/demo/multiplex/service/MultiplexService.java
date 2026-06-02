@@ -15,6 +15,7 @@ import CinePacho.demo.multiplex.repository.MultiplexRepository;
 import CinePacho.demo.rooms.dto.response.RoomResponse;
 import CinePacho.demo.rooms.repository.RoomRepository;
 
+import java.io.Console;
 import java.math.BigDecimal;
 import java.util.List;
 import java.util.UUID;
@@ -37,8 +38,8 @@ public class MultiplexService {
                 .map(this::toSummary)
                 .collect(Collectors.toList());
     }
- 
-    // ── GET BY ID ────────────────────────────────────────────────────────────────
+
+    // ── TRAE INFO DE CADA SALA DE UN MULTIPLEX ────────────────────────────────────────────────────────────────
     public MultiplexDetailResponse getById(UUID id) {
         // El gerente sólo puede consultar su multiplex
         MultiplexEntity multiplex = findOrThrow(id);
@@ -141,13 +142,17 @@ public class MultiplexService {
         return multiplexRepository.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException("Multiplex no encontrado con id: " + id));
     }
- 
+
     private MultiplexSummaryResponse toSummary(MultiplexEntity m) {
+
+        long totalRooms = roomManager.countByMultiplexId(m.getId());
+
         return MultiplexSummaryResponse.builder()
                 .idMultiplex(m.getId().toString())
                 .nameMultiplex(m.getName())
                 .cityMultiplex(m.getCity())
-                .numberOfRooms(roomManager.countByMultiplexId(m.getId()))
+                .numberOfRooms(totalRooms) // Usamos la variable optimizada
+                .addressMultiplex(m.getAddress())
                 .generalSeatPrice(m.getGeneralSeatPrice())
                 .preferentialSeatPrice(m.getPreferentialSeatPrice())
                 .build();
@@ -159,6 +164,7 @@ public class MultiplexService {
                 .map(r -> RoomResponse.builder()
                         .idRoom(r.getId())
                         .isRoomActive(r.getActive())
+                        .roomNumber(r.getRoomNumber())
                         .build())
                 .collect(Collectors.toList());
  
