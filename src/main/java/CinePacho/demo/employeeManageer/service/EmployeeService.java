@@ -164,4 +164,14 @@ public class EmployeeService {
 
         return new RegisterResponseDTO(user.getUserType(), user.getUsername(), "Se ha actualizado correctamente el empleado");
     }
+
+    public void deleteEmployee(UUID employeeId) {
+        EmployeeEntity employee = employeeRepository.findById(employeeId)
+                .orElseThrow(() -> new CinePachoException("No se encontró un empleado con el ID proporcionado"));
+
+        // Valida que solo un MANAGER pueda eliminar EMPLOYEEs de su multiplex.
+        accessValidator.validateEmployeeDeletionAccess(employee.getMultiplex().getId());
+
+        employeeRepository.delete(employee);
+    }
 }
