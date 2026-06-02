@@ -72,6 +72,7 @@ public class Config {
                         ).permitAll()
                         // Top 10 peliculas (home) publico
                         .requestMatchers(HttpMethod.GET, "/api/topRatedMovies").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/multiplexes").permitAll()
 
                         // Visualizacion publica de reviews por pelicula.
                         .requestMatchers(HttpMethod.GET, "/api/review/movie/**").permitAll()
@@ -82,7 +83,7 @@ public class Config {
                         .access(new WebExpressionAuthorizationManager(SELL_PORTAL_ACCESS))
                         .requestMatchers("/api/seats/**")
                         .access(new WebExpressionAuthorizationManager(SELL_PORTAL_ACCESS))
-                        .requestMatchers(HttpMethod.GET, "/api/snacks")
+                        .requestMatchers(HttpMethod.GET, "/api/snacks/**")
                         .access(new WebExpressionAuthorizationManager(SELL_PORTAL_ACCESS))
                         .requestMatchers("/api/checkout/**")
                         .access(new WebExpressionAuthorizationManager(SELL_PORTAL_ACCESS))

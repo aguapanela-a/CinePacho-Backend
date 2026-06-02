@@ -75,6 +75,9 @@ public class StripeService {
     @Value("${app.base-url}")
     private String baseUrl;
 
+    @Value("${app.frontend-url}")
+    private String frontendUrl;
+
     private static final String CURRENCY = "COP";
 
     @Autowired
@@ -194,9 +197,27 @@ public class StripeService {
             }
         }
 
-        // construye las URLs aquí donde baseUrl ya está inyectado
-        String successUrl = baseUrl + "/api/checkout/stripe/success";
-        String cancelUrl = baseUrl + "/api/checkout/stripe/cancel";
+        // El pago se asocia al buyer correcto según el rol del actor
+        String buyerEmailForPayment;
+        if (actorUser.getUserType() != UserType.BUYER) {
+            // actor es empleado/manager → buyerEmail ya fue validado arriba
+            buyerEmailForPayment = request.getBuyerEmail();
+        } else {
+            buyerEmailForPayment = actorEmail;
+        }
+
+        // Crear y persistir el PaymentEntity ANTES de crear la sesión Stripe,
+        // para poder incluir el paymentId en la successUrl de retorno.
+        PaymentEntity payment = new PaymentEntity();
+        payment.setUserId(buyerManager.getBuyerByEmail(buyerEmailForPayment).getBuyerId());
+        payment.setAmount(summary.getTotalPurchase());
+        payment.setPaymentMethod("STRIPE");
+        payment.setStatus(PaymentStatus.PENDING);
+        paymentRepository.save(payment);
+
+        // Las URLs apuntan al FRONTEND (React) con el paymentId en la query string
+        String successUrl = frontendUrl + "/stripe/success?paymentId=" + payment.getPaymentId();
+        String cancelUrl  = frontendUrl + "/stripe/cancel";
 
         SessionCreateParams params = SessionCreateParams.builder()
                 .setMode(SessionCreateParams.Mode.PAYMENT)
@@ -207,34 +228,7 @@ public class StripeService {
 
         Session session = Session.create(params);
 
-        // CORRECCIÓN: Se crea el pago con estado PENDING.
-        // IMPORTANTE: El cambio a COMPLETED debería ocurrir en el webhook de Stripe después de confirmación exitosa.
-        // Por ahora se mantiene PENDING aquí y se actualiza cuando la sesión es confirmada.
-        PaymentEntity payment = new PaymentEntity();
-
-        String buyerEmailForPayment = actorEmail; // por defecto
-        if (actorUser.getUserType() != UserType.BUYER) {
-            // actor es empleado/manager -> requiere buyerEmail en request
-            if (request.getBuyerEmail() == null) {
-                throw new CinePachoException("Cuando un empleado realiza la venta, debe proveer el email del comprador");
-            }
-            buyerEmailForPayment = request.getBuyerEmail();
-            // validar que el empleado pertenece al multiplex de la función
-            MovieScreening screeningForValidation = movieManager.getMovieScreeningById(request.getScreeningId());
-            UUID empMultiplex = employeeMultiplexProvider.getMultiplexIdByUserEmail(actorEmail);
-            if (!empMultiplex.equals(screeningForValidation.getRoom().getMultiplex().getId())) {
-                throw new CinePachoException("El empleado no pertenece a este multiplex");
-            }
-        }
-
-        payment.setUserId(buyerManager.getBuyerByEmail(buyerEmailForPayment).getBuyerId());
-        payment.setAmount(summary.getTotalPurchase());
-        payment.setPaymentMethod("STRIPE");
-        payment.setStatus(PaymentStatus.PENDING);
-        paymentRepository.save(payment);
-
-        // Se retorna la sesión de Stripe sin procesar cambios de estado ni registrar ventas.
-        // Los cambios de estado y registro de ventas ocurrirán SOLO después de que Stripe confirme el pago.
+        // Poblar la respuesta con los datos de la sesión y el pago
         summary.setStatus("PENDING");
         summary.setMessage("Checkout creado correctamente. Complete el pago en Stripe.");
         summary.setSessionId(session.getId());
@@ -247,9 +241,10 @@ public class StripeService {
         //agrega el id de la fatura para que el front lo reciba
         summary.setBillingId(billing.getId());
 
-        // NO registrar películas ni cambiar estados aquí: la confirmación y cambios se realizan cuando Stripe notifica el pago (handlePaymentSuccess)
+        // NO registrar películas ni cambiar estados aquí: la confirmación y cambios se realizan cuando el frontend confirma (handlePaymentSuccess)
         return summary;
     }
+
 
         /**
          * Método invocado cuando Stripe confirma el pago exitoso (via webhook).
@@ -408,7 +403,7 @@ public class StripeService {
                     screening.getRoom().getId(),
                     screening.getDateTime()
             );
-            return Map.of("message:", "Pago realizado con éxito");
+            return Map.of("message", "Pago realizado con éxito");
         }
 
 
