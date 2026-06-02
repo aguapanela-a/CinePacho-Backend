@@ -18,6 +18,6 @@ public interface RoomRepository extends JpaRepository<RoomEntity, UUID> {
 
     int countByMultiplex_Id(UUID multiplexId);
 
-    List<UUID> getAllByMultiplex_Id(UUID multiplexId);
+    List<RoomEntity> getAllByMultiplex_Id(UUID multiplexId);
 }
  
