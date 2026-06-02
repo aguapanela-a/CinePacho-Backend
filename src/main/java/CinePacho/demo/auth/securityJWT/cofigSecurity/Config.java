@@ -96,11 +96,12 @@ public class Config {
                         .requestMatchers(HttpMethod.POST, "/api/*/review/**").hasAuthority(BUYER)
 
                         // Administracion de multiplex: ADMIN global, MANAGER limitado por AccessValidator.
-                        .requestMatchers(HttpMethod.POST, "/api/multiplexes").hasAnyAuthority(BUYER, ADMIN, EMPLOYEE, MANAGER)
-                        .requestMatchers(HttpMethod.DELETE, "/api/admin/multiplexes/**").hasAnyAuthority(ADMIN, EMPLOYEE, MANAGER)
-                        .requestMatchers(HttpMethod.GET, "/api/admin/multiplexes", "/api/admin/multiplexes/**")
-                        .hasAnyAuthority(ADMIN, MANAGER)
+                        .requestMatchers(HttpMethod.DELETE, "/api/admin/multiplexes/**").hasAnyAuthority(ADMIN, MANAGER)
                         .requestMatchers(HttpMethod.PUT, "/api/admin/multiplexes/**").hasAnyAuthority(ADMIN, MANAGER)
+                        .requestMatchers(HttpMethod.POST, "/api/admin/multiplexes").hasAnyAuthority(ADMIN)
+
+                        //Visualización de multiplexes: ADMIN, MANAGER, EMPLOYEE y BUYER.
+                        .requestMatchers(HttpMethod.GET, "/api/multiplexes","/api/multiplexes/**").hasAnyAuthority(ADMIN, MANAGER,BUYER,EMPLOYEE)
 
 
                         // Administracion por multiplex asignado.
