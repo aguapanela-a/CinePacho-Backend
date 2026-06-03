@@ -22,6 +22,7 @@ public class SnackSelectionRequest {
     @Min(value = 1, message = "La cantidad debe ser mínimo 1")
     private Integer quantity;
 
+    //si
     // Multiplex al que pertenece el snack seleccionado (requerido para validar inventario por sede)
     @NotNull(message = "El multiplexId del snack es obligatorio")
     private UUID multiplexId;
