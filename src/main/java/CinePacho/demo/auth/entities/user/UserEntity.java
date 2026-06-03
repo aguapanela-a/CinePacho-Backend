@@ -42,7 +42,7 @@ public class UserEntity implements UserDetails {
     @Column(unique = true)
     private String email;
 
-    @Getter
+    
     @Column(nullable = false)
     private boolean enabled = false;
 

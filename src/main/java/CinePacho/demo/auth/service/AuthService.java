@@ -5,10 +5,12 @@ import CinePacho.demo.auth.dto.request.LoginRequestDTO;
 import CinePacho.demo.auth.dto.response.RegisterResponseDTO;
 import CinePacho.demo.auth.entities.user.UserEntity;
 import CinePacho.demo.auth.entities.token.VerificationToken;
+import CinePacho.demo.auth.entities.customers.BuyerEntity;
 import CinePacho.demo.auth.entities.customers.repository.BuyerRepository;
 import CinePacho.demo.shared.auxiliaryClass.EmailService;
 import CinePacho.demo.shared.user.UserRepository;
 import CinePacho.demo.auth.repository.VerificationTokenRepository;
+import CinePacho.demo.employeeManageer.entities.EmployeeEntity;
 import CinePacho.demo.shared.serviceSecurity.JwtService;
 import CinePacho.demo.shared.enumeration.UserType;
 import CinePacho.demo.exception.CinePachoException;
@@ -129,12 +131,13 @@ public class AuthService {
                 .getBuyerId();
         }
 
-
+        EmployeeEntity employee = user.getEmployee();
+        
         return new AuthResponseDTO(
             jwtService.generateToken(user),
                 user.getUserType(),
                 user.getUsername(),
-                user.getEmployee() != null ? user.getEmployee().getMultiplex().getId() : null,
+                employee != null ? employee.getMultiplex().getId() : null,
                 responseId
         );
     }
