@@ -14,7 +14,7 @@ public record CreateScreeningDTO(
         @NotNull(message = "El UUID de la sala es obligatorio para crear la función")
         UUID roomId,            // sala donde se proyecta
 
-        @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
+        @JsonFormat(pattern = "yyyy-MM-dd HH:mm")
         @NotNull(message = "La hora de la función es obligatoria para crearla")
         LocalDateTime dateTime,
 

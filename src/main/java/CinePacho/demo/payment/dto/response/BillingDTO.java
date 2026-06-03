@@ -16,5 +16,6 @@ public record BillingDTO(
         String roomNumber,
         List<Integer> seatsNumbers,
         String movieTitle,
-        String screeningDate
+        String screeningDate,
+        Long movieId
 ) {}

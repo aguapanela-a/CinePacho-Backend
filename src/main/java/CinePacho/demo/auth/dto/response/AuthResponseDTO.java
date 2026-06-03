@@ -20,9 +20,11 @@ public class AuthResponseDTO {
     @NotNull(message = "El tipo de usuario es obligatorio")
     UserType userType;
 
+
     @NotBlank(message = "El nombre de usuario no puede estar vacío")
     String name;
 
+    @NotNull(message = "El id del usuario es obligatorio")
     UUID userId;
     UUID multiplexId; // Solo para EMPLOYEE/MANAGER, null para BUYER
 }

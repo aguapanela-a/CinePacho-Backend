@@ -9,7 +9,11 @@ import CinePacho.demo.payment.entities.BillingEntity;
 import CinePacho.demo.payment.entities.PaymentEntity;
 import CinePacho.demo.payment.enumeration.QrStatus;
 import CinePacho.demo.payment.repository.BillingRepository;
+import CinePacho.demo.shared.auxiliaryClass.EmployeeMultiplexProvider;
+import CinePacho.demo.shared.auxiliaryClass.MovieManager;
+import CinePacho.demo.shared.auxiliaryClass.UserManager;
 import CinePacho.demo.shared.enumeration.UserType;
+import CinePacho.demo.shared.serviceSecurity.JwtService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
@@ -27,9 +31,10 @@ public class BillingService {
 
     private final BillingRepository billingRepository;
     private final QrGeneratorService qrGeneratorService;
-    private final CinePacho.demo.shared.auxiliaryClass.EmployeeMultiplexProvider employeeMultiplexProvider;
-    private final CinePacho.demo.shared.auxiliaryClass.UserManager userManager;
-    private final CinePacho.demo.shared.serviceSecurity.JwtService jwtService;
+    private final EmployeeMultiplexProvider employeeMultiplexProvider;
+    private final UserManager userManager;
+    private final JwtService jwtService;
+    private final MovieManager movieManager;
 
     @Value("${app.base-url}")
     private String baseUrl;
@@ -145,6 +150,7 @@ public class BillingService {
                     .seatsNumbers(null)
                     .movieTitle(billing.getMovieTitle())
                     .screeningDate(billing.getScreeningDate())
+                    .movieId(movieManager.getMovieIdByScreeningId(billing.getScreeningId()))
                     .build();
         }).toList();
     }

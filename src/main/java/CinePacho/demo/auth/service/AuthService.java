@@ -115,6 +115,8 @@ public class AuthService {
     @Transactional
     public AuthResponseDTO login(LoginRequestDTO loginDTO){
 
+        System.out.println("========>>> LoginDTO: " + loginDTO + "<<===========");
+
         UserEntity user = userRepository.findByEmail(loginDTO.email())
             .orElseThrow(() -> new CinePachoException("Usuario no encontrado"));
 
@@ -134,13 +136,15 @@ public class AuthService {
         }
 
         EmployeeEntity employee = user.getEmployee();
-        
+
+        System.out.println("========>>> ID de usuario eutenticado: " + responseId + "<<===========");
+
         return new AuthResponseDTO(
             jwtService.generateToken(user),
                 user.getUserType(),
                 user.getUsername(),
-                employee != null ? employee.getMultiplex().getId() : null,
-                responseId
+                responseId,
+                employee != null ? employee.getMultiplex().getId() : null
         );
     }
 
