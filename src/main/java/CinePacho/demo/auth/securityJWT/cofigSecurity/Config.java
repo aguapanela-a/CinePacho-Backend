@@ -69,7 +69,8 @@ public class Config {
                         .requestMatchers(
                                 "/api/auth/register",
                                 "/api/auth/login",
-                                "/api/auth/verify"
+                                "/api/auth/verify",
+                                "/api/snacks/**"
                         ).permitAll()
                         // Top 10 peliculas (home) publico
                         .requestMatchers(HttpMethod.GET, "/api/topRatedMovies").permitAll()
@@ -129,7 +130,7 @@ public class Config {
                         .requestMatchers("/api/points/redeem", "/api/points").hasAuthority(BUYER)
                         .requestMatchers("/api/points/validate").hasAnyAuthority(EMPLOYEE, MANAGER)
 
-                        .requestMatchers("/api/snacks/**").hasAnyAuthority(BUYER, EMPLOYEE, MANAGER)
+                        
 
                         // Cualquier endpoint administrativo no clasificado queda reservado para ADMIN.
                         .requestMatchers("/api/admin/**").hasAuthority(ADMIN)
