@@ -73,6 +73,9 @@ public class CheckoutService {
      * Méeodo interno que construye el resumen calculando los precios de sillas y snacks, validando su existencia y disponibilidad.
      */
     private CheckoutSummaryResponse buildSummary(CheckoutRequest request, String token) {
+
+        System.out.println("@@@@@@@@ multiplexId del snack: " + request.getSnacks().get(0).getMultiplexId());
+
         String userEmail = jwtService.extractEmail(token);
 
         List<UUID> seatIds = request.getSeats().stream()

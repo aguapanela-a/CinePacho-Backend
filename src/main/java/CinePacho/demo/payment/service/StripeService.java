@@ -112,6 +112,8 @@ public class StripeService {
     public CheckoutSummaryResponse checkoutProducts(CheckoutRequest request, String token) throws StripeException {
 
 
+        System.out.println("@@@@@@@@@@@@@@ multiplexid del snack: " + request.getSnacks().get(0).getMultiplexId() + "");
+
         Stripe.apiKey = stripeApiKey;
 
         CheckoutSummaryResponse summary = checkoutService.confirm(request, token);
