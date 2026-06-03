@@ -80,7 +80,7 @@ public class Config {
                         .requestMatchers(HttpMethod.GET, "/api/review/movie/**").permitAll()
 
                         // historial de comrpas
-                        .requestMatchers(HttpMethod.GET, "/api/billings/user/**").hasAnyAuthority(ADMIN, BUYER, EMPLOYEE, MANAGER)
+                        .requestMatchers(HttpMethod.GET, "/api/checkout/billings/user/**").hasAnyAuthority(ADMIN, BUYER, EMPLOYEE, MANAGER)
 
                         // Portal buyer y portal empleado: cartelera, sillas, snacks y checkout.
                         .requestMatchers(HttpMethod.GET, "/api/movie/multiplex/**").permitAll()
