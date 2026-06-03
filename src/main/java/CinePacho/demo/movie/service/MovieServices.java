@@ -75,7 +75,11 @@ public class MovieServices {
         if (movieKey == null || movieKey.results().isEmpty()) {
             return "No hay trailer disponible para esta pelicula";
         }
-        return movieKey.results().getFirst().key() != null ? movieKey.results().getFirst().key() : " ";
+        String key = movieKey.results().stream().filter(
+                results -> results.type().equals("Trailer")
+        ).findFirst().orElseThrow(() -> new CinePachoException("No hay trailer disponible para esta pelicula")).key();
+
+        return key != null ? key : " ";
     }
 
     // --- NUEVO: MÉTODO PARA OBTENER CRÉDITOS DE TMDB ---
