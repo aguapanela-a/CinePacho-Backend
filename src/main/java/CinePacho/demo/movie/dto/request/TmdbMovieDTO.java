@@ -31,9 +31,14 @@ public record TmdbMovieDTO(
         @JsonProperty("release_date")
         String releaseDate,
 
+<<<<<<< Updated upstream
         // Nuevos campos añadidos para el frontend
         String director,
         
+=======
+        // Campos para el frontend
+        String director,
+>>>>>>> Stashed changes
         String cast
 
 ) {

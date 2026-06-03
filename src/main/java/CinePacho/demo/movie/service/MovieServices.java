@@ -6,23 +6,17 @@ import CinePacho.demo.movie.dto.request.TmdbMovieDTO;
 import CinePacho.demo.movie.dto.response.MovieSelectorDTO;
 import CinePacho.demo.movie.dto.response.ScreeningInfoDTO;
 import CinePacho.demo.movie.dto.response.TrailerResponseDTO;
-import CinePacho.demo.movie.dto.response.MovieListingResponseDTO;
 import CinePacho.demo.movie.entities.MovieEntity;
 import CinePacho.demo.movie.entities.MovieScreening;
 import CinePacho.demo.movie.repository.MovieRepository;
 import CinePacho.demo.movie.repository.MovieScreeningRepository;
 import CinePacho.demo.shared.auxiliaryClass.RoomManager;
-import lombok.AllArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.reactive.function.client.WebClient;
 
-import java.util.Comparator;
-import java.util.List;
-import java.util.Locale;
-import java.util.Map;
-import java.util.UUID;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
@@ -46,7 +40,10 @@ public class MovieServices {
 
     private List<MovieScreening> movieScreeningsByMultiplexId(UUID multiplexId) {
         List<UUID> roomIdsByMultiplex = roomManager.getRoomIdsByMultiplexId(multiplexId);
+<<<<<<< Updated upstream
         System.out.println("<============roomIdsByMultiplex: " + " " + roomIdsByMultiplex + "===============>");
+=======
+>>>>>>> Stashed changes
         if (roomIdsByMultiplex.isEmpty()) {
             return List.of();
         }
@@ -85,7 +82,11 @@ public class MovieServices {
         return movieKey.results().getFirst().key() != null ? movieKey.results().getFirst().key() : " ";
     }
 
+<<<<<<< Updated upstream
     // --- NUEVO MÉTODO PARA OBTENER CRÉDITOS ---
+=======
+    // --- NUEVO: MÉTODO PARA OBTENER CRÉDITOS DE TMDB ---
+>>>>>>> Stashed changes
     private Map<String, String> getMovieCredits(Long movieId) {
         try {
             Map<String, Object> response = webClient.get()
@@ -95,23 +96,39 @@ public class MovieServices {
                     .bodyToMono(Map.class)
                     .block();
 
+<<<<<<< Updated upstream
             if (response == null) return Map.of("director", "N/A", "cast", "N/A");
+=======
+            if (response == null) return Map.of("director", "No disponible", "cast", "No disponible");
+>>>>>>> Stashed changes
 
             List<Map<String, Object>> crew = (List<Map<String, Object>>) response.get("crew");
             String director = crew != null ? crew.stream()
                     .filter(c -> "Director".equals(c.get("job")))
                     .map(c -> (String) c.get("name"))
+<<<<<<< Updated upstream
                     .findFirst().orElse("N/A") : "N/A";
+=======
+                    .findFirst().orElse("No disponible") : "No disponible";
+>>>>>>> Stashed changes
 
             List<Map<String, Object>> cast = (List<Map<String, Object>>) response.get("cast");
             String castList = cast != null ? cast.stream()
                     .limit(4)
                     .map(c -> (String) c.get("name"))
+<<<<<<< Updated upstream
                     .collect(Collectors.joining(", ")) : "N/A";
 
             return Map.of("director", director, "cast", castList);
         } catch (Exception e) {
             return Map.of("director", "N/A", "cast", "N/A");
+=======
+                    .collect(Collectors.joining(", ")) : "No disponible";
+
+            return Map.of("director", director, "cast", castList);
+        } catch (Exception e) {
+            return Map.of("director", "No disponible", "cast", "No disponible");
+>>>>>>> Stashed changes
         }
     }
 
@@ -174,7 +191,13 @@ public class MovieServices {
     }
 
     private TmdbMovieDTO toTmdbMovieDTO(MovieEntity movie) {
+<<<<<<< Updated upstream
         Map<String, String> credits = getMovieCredits(movie.getId());
+=======
+        // Obtenemos los créditos llamando al nuevo método
+        Map<String, String> credits = getMovieCredits(movie.getId());
+        
+>>>>>>> Stashed changes
         return TmdbMovieDTO.builder()
                 .id(movie.getId())
                 .backdropPath(movie.getBackdropPath())
