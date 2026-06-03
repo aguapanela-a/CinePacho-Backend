@@ -15,7 +15,7 @@ public record TmdbMovieDTO(
         String backdropPath,
 
         @JsonProperty("genres")
-        List<GenreDto> genreIds, // ← lista de los ids de los géneros
+        List<GenreDto> genreIds,
 
         @JsonProperty("original_language")
         String originalLanguage,
@@ -29,7 +29,12 @@ public record TmdbMovieDTO(
         String posterPath,
 
         @JsonProperty("release_date")
-        String releaseDate
+        String releaseDate,
+
+        // Nuevos campos añadidos para el frontend
+        String director,
+        
+        String cast
 
 ) {
 }
