@@ -36,7 +36,12 @@ public class MovieEntity {
     
     @Column(name = "release_date")
     private String releaseDate;
+    @Column(name = "director")
+    private String director;
 
+    @Column(name = "cast_list", columnDefinition = "TEXT")
+    private String castList;
+    
     //crea una tabla para los géneros (id y nombre) de las películas
     @ElementCollection(fetch = FetchType.EAGER)
     @CollectionTable(name = "movie_genres",

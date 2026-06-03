@@ -44,20 +44,15 @@ public class MovieServices {
         this.webClient = webClient;
     }
 
-    // Provee la lista de movieScreenings por multiplexId sin acoplar movie al repositorio de rooms.
     private List<MovieScreening> movieScreeningsByMultiplexId(UUID multiplexId) {
         List<UUID> roomIdsByMultiplex = roomManager.getRoomIdsByMultiplexId(multiplexId);
-
-        System.out.println("<============roomIdsByMultiplex: "+" "+roomIdsByMultiplex + "===============>");
-
+        System.out.println("<============roomIdsByMultiplex: " + " " + roomIdsByMultiplex + "===============>");
         if (roomIdsByMultiplex.isEmpty()) {
             return List.of();
         }
-
         return movieScreeningRepository.findDistinctByRoom_IdInOrderByDateTimeAsc(roomIdsByMultiplex);
     }
 
-    //metodo para obtener todas las MovieSelectorDTO en la cartelera de un multiplex
     @Transactional(readOnly = true)
     public List<MovieSelectorDTO> getMovieSelectorsByMultiplex(UUID multiplexId) {
         Map<Long, List<MovieScreening>> screeningsByMovie = movieScreeningsByMultiplexId(multiplexId)
@@ -74,33 +69,58 @@ public class MovieServices {
                 .toList();
     }
 
-    //metodo para buscar la key del trailer de una pelicula
     @Transactional(readOnly = true)
     public String getMovieTrailer(Long movieId) {
         TrailerResponseDTO movieKey = webClient.get()
-                .uri("/movie/"+movieId+"/videos?language=es-mx")
-                .header("Authorization","Bearer "+accessToken)
-                .header("accept" ,"application/json")
+                .uri("/movie/" + movieId + "/videos?language=es-mx")
+                .header("Authorization", "Bearer " + accessToken)
+                .header("accept", "application/json")
                 .retrieve()
                 .bodyToMono(TrailerResponseDTO.class)
                 .block();
 
-        if(movieKey.results().isEmpty()) {
+        if (movieKey == null || movieKey.results().isEmpty()) {
             return "No hay trailer disponible para esta pelicula";
         }
-
-        return movieKey.results().getFirst().key() != null ? movieKey.results().getFirst().key() : " " ;
+        return movieKey.results().getFirst().key() != null ? movieKey.results().getFirst().key() : " ";
     }
 
-    //metodo para buscar MovieSelectorDTO por multiplex y por titulo
+    // --- NUEVO MÉTODO PARA OBTENER CRÉDITOS ---
+    private Map<String, String> getMovieCredits(Long movieId) {
+        try {
+            Map<String, Object> response = webClient.get()
+                    .uri("/movie/" + movieId + "/credits?language=es-MX")
+                    .header("Authorization", "Bearer " + accessToken)
+                    .retrieve()
+                    .bodyToMono(Map.class)
+                    .block();
+
+            if (response == null) return Map.of("director", "N/A", "cast", "N/A");
+
+            List<Map<String, Object>> crew = (List<Map<String, Object>>) response.get("crew");
+            String director = crew != null ? crew.stream()
+                    .filter(c -> "Director".equals(c.get("job")))
+                    .map(c -> (String) c.get("name"))
+                    .findFirst().orElse("N/A") : "N/A";
+
+            List<Map<String, Object>> cast = (List<Map<String, Object>>) response.get("cast");
+            String castList = cast != null ? cast.stream()
+                    .limit(4)
+                    .map(c -> (String) c.get("name"))
+                    .collect(Collectors.joining(", ")) : "N/A";
+
+            return Map.of("director", director, "cast", castList);
+        } catch (Exception e) {
+            return Map.of("director", "N/A", "cast", "N/A");
+        }
+    }
+
     @Transactional(readOnly = true)
     public List<MovieSelectorDTO> searchMovieSelectorsByMultiplex(UUID multiplexId, String query) {
         if (query == null || query.isBlank()) {
             return getMovieSelectorsByMultiplex(multiplexId).stream().limit(LIMIT).toList();
         }
-
         String normalizedQuery = query.trim().toLowerCase(Locale.ROOT);
-
         return getMovieSelectorsByMultiplex(multiplexId)
                 .stream()
                 .filter(movieSelectorDTO -> titleContains(movieSelectorDTO, normalizedQuery))
@@ -108,7 +128,6 @@ public class MovieServices {
                 .toList();
     }
 
-    //metodo para obtener una unica "MovieSelectorDTO" de peli en la cartelera
     @Transactional(readOnly = true)
     public MovieSelectorDTO getMovieSelectorByMultiplexAndMovie(UUID multiplexId, Long movieId) {
         MovieEntity movie = movieRepository.findById(movieId)
@@ -119,16 +138,12 @@ public class MovieServices {
                 .filter(movieScreening -> movieScreening.getMovie().getId().equals(movieId))
                 .toList();
 
-        System.out.println("<============movieScreeningsByMovie: "+" "+movieScreeningsByMovie + "===============>");
-
         if (movieScreeningsByMovie.isEmpty()) {
             throw new CinePachoException("No tenemos funciones disponibles en este multiplex para la película seleccionada");
         }
-
         return toMovieSelectorDTO(movie, movieScreeningsByMovie);
     }
 
-    // metodos auxiliares aplicando separacion de responsabilidades
     private MovieSelectorDTO toMovieSelectorDTO(List<MovieScreening> movieScreenings) {
         MovieEntity movie = movieScreenings.getFirst().getMovie();
         return toMovieSelectorDTO(movie, movieScreenings);
@@ -159,6 +174,7 @@ public class MovieServices {
     }
 
     private TmdbMovieDTO toTmdbMovieDTO(MovieEntity movie) {
+        Map<String, String> credits = getMovieCredits(movie.getId());
         return TmdbMovieDTO.builder()
                 .id(movie.getId())
                 .backdropPath(movie.getBackdropPath())
@@ -168,6 +184,8 @@ public class MovieServices {
                 .overview(movie.getOverview())
                 .posterPath(movie.getPosterPath())
                 .releaseDate(movie.getReleaseDate())
+                .director(credits.get("director"))
+                .cast(credits.get("cast"))
                 .build();
     }
 
