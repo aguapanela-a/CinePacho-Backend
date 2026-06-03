@@ -13,8 +13,8 @@ public class MultiplexSummaryResponse {
     private String idMultiplex;
     private String nameMultiplex;
     private String cityMultiplex;
-
-    // Precios actuales por tipo de silla (útiles para listas administrativas)
+    private long numberOfRooms;
+    private String addressMultiplex;
     private BigDecimal generalSeatPrice;
     private BigDecimal preferentialSeatPrice;
 }

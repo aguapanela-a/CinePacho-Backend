@@ -11,5 +11,7 @@ import java.util.UUID;
 public interface RoomManager {
      RoomEntity getRoom(UUID id);
      void createRoom(MultiplexEntity multiplex);
+     void createRoom(MultiplexEntity multiplex, Integer numberRoom);
      List<UUID> getRoomIdsByMultiplexId(UUID multiplexId);
+     Integer countByMultiplexId(UUID multiplexId);
 }

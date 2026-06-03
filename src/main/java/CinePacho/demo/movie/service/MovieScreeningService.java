@@ -69,6 +69,7 @@ public class MovieScreeningService {
                 movie.getGenres().stream()
                         .map(GenreEmbeddable::getName)
                         .toList(),
+                movie.getRating(),
                 releaseYear(movie),
                 movie.getPosterPath(),
                 movie.getBackdropPath()

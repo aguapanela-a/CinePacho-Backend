@@ -1,5 +1,6 @@
 package CinePacho.demo.rooms.controller;
 
+import CinePacho.demo.rooms.dto.request.RoomRequest;
 import CinePacho.demo.rooms.dto.response.RoomResponse;
 import CinePacho.demo.shared.auxiliaryClass.DTOResponse;
 import jakarta.validation.Valid;
@@ -36,16 +37,12 @@ public class RoomController {
     }
 
     @PostMapping("/admin/{multiplexId}/rooms")
-    public ResponseEntity<DTOResponse> create(@Valid @PathVariable UUID multiplexId) {
-
-        roomService.create(multiplexId);
-        
-        // Respuesta estándar para creación de sala
-        DTOResponse response = DTOResponse.withStatus(
-                "Sala de cine creada con éxito",
-                HttpStatus.CREATED.value()
-        );
-        return ResponseEntity.status(HttpStatus.CREATED).body(response);
+    public ResponseEntity<RoomResponse> create(
+            @PathVariable UUID multiplexId,
+            @Valid @RequestBody RoomRequest request
+    ) {
+        RoomResponse roomCreated = roomService.create(multiplexId, request.getNumberRoom());
+        return ResponseEntity.status(HttpStatus.CREATED).body(roomCreated);
     }
   
     @DeleteMapping("/admin/rooms/{id}")

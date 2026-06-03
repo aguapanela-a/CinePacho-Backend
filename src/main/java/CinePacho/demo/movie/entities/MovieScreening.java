@@ -1,6 +1,7 @@
 package CinePacho.demo.movie.entities;
 
 import CinePacho.demo.movie.enumeration.ScreeningStatus;
+import CinePacho.demo.movie.enumeration.ScreeningFormat;
 import CinePacho.demo.rooms.entities.RoomEntity;
 import com.fasterxml.jackson.annotation.JsonFormat;
 import jakarta.persistence.*;
@@ -35,6 +36,10 @@ public class MovieScreening {
     @Enumerated(EnumType.STRING)
     @Column(length = 20)
     private ScreeningStatus status;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "format", length = 20, nullable = false)
+    private ScreeningFormat format;
 
 }
 

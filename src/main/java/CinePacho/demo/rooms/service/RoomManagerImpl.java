@@ -31,14 +31,24 @@ public class RoomManagerImpl implements RoomManager {
 
     @Override
     public void createRoom(MultiplexEntity multiplex) {
+        createRoom(multiplex, null);
+    }
+
+    @Override
+    public void createRoom(MultiplexEntity multiplex, Integer numberRoom) {
 
         int existingRooms = roomRepository.countByMultiplex_Id(multiplex.getId());
         int generalCapacity = 40;
         int preferentialCapacity = 20;
 
+        // Usa el numberRoom proporcionado, o genera uno automáticamente
+        String roomNumberStr = numberRoom != null 
+            ? String.valueOf(numberRoom)
+            : " - " + (existingRooms + 1);
+
         RoomEntity room = RoomEntity.builder()
                 .multiplex(multiplex)
-                .roomNumber("room: " + (existingRooms + 1) )
+                .roomNumber(roomNumberStr)
                 .generalCapacity(generalCapacity)
                 .preferentialCapacity(preferentialCapacity)
                 .build();
@@ -55,7 +65,13 @@ public class RoomManagerImpl implements RoomManager {
 
     @Override
     public List<UUID> getRoomIdsByMultiplexId(UUID multiplexId) {
-        return roomRepository.findByMultiplexId(multiplexId).stream()
+        return roomRepository.getAllByMultiplex_Id(multiplexId)
+                .stream()
                 .map(RoomEntity::getId).toList();
+    }
+
+    @Override
+    public Integer countByMultiplexId(UUID multiplexId) {
+        return roomRepository.countByMultiplex_Id(multiplexId);
     }
 }

@@ -106,10 +106,12 @@ public class BillingService {
         return Map.of("message", "Entrada válida. Bienvenido a CinePacho");
     }
 
-    public List<BillingDTO> getAllBillingsByUserId(UUID userId){
+    //Frons envía BUYER_ID para obtener todas las facturas del usuario
+    public List<BillingDTO> getAllBillingsByUserId(UUID buyerId){
         // Obtener todas las facturas del usuario (userId corresponde al id de UserEntity)
-        List<BillingEntity> billings = billingRepository.findAllByBuyer_User_UserIdOrderByCreatedAtDesc(userId);
-        return billings.stream().map(billing -> {
+        List<BillingEntity> billings = billingRepository.findAllByBuyer_BuyerId(buyerId);
+
+        return billings.stream().map(billing -> {
             String status = billing.getPayment() != null && billing.getPayment().getStatus() != null
                     ? billing.getPayment().getStatus().name()
                     : "UNKNOWN";

@@ -14,7 +14,7 @@ public interface EmployeeRepository extends  JpaRepository<EmployeeEntity, UUID>
 
     List<EmployeeEntity> findAllByMultiplex_Id(UUID multiplexId);
 
-    EmployeeEntity findEmployeeEntityByUniqueCode(long uniqueCode);
+    Optional<EmployeeEntity> findEmployeeEntityByUniqueCode(long uniqueCode);
 
     Optional<EmployeeEntity> findTopByOrderByUniqueCodeDesc();
 

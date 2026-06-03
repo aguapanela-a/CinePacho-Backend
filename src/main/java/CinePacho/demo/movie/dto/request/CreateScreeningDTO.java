@@ -1,5 +1,6 @@
 package CinePacho.demo.movie.dto.request;
 
+import CinePacho.demo.movie.enumeration.ScreeningFormat;
 import com.fasterxml.jackson.annotation.JsonFormat;
 import jakarta.validation.constraints.NotNull;
 
@@ -15,6 +16,9 @@ public record CreateScreeningDTO(
 
         @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
         @NotNull(message = "La hora de la función es obligatoria para crearla")
-        LocalDateTime dateTime
+        LocalDateTime dateTime,
+
+        @NotNull(message = "El formato de la función es obligatorio (2D, 3D o IMAX)")
+        ScreeningFormat format  // Formato de proyección
 
 ) {}

@@ -12,4 +12,6 @@ BillingEntity findByPayment_PaymentId(UUID paymentPaymentId);
 
 // Busca las facturas asociadas al usuario (userId) a través de la relación Buyer -> User
 List<BillingEntity> findAllByBuyer_User_UserIdOrderByCreatedAtDesc(UUID userId);
+
+List<BillingEntity> findAllByBuyer_BuyerId(UUID buyerBuyerId);
 }

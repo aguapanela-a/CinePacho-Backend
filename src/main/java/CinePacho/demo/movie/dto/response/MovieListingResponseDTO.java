@@ -13,6 +13,7 @@ public class MovieListingResponseDTO {
     private Long idMovie;
     private String originalTitle;
     private List<String> genres;
+    private Double rating;
     private Integer year;
     private String posterPath;
     private String backdropPath;

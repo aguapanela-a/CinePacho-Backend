@@ -23,8 +23,8 @@ public class EmployeeEntity {
     @GeneratedValue(strategy = GenerationType.UUID)
     private UUID employeeId;
 
-    @OneToOne
     @JoinColumn(name = "userId", unique = true)
+    @OneToOne()   
     private UserEntity user;
 
     @ManyToOne(fetch = FetchType.LAZY)

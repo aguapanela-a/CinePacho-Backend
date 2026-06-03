@@ -48,6 +48,8 @@ public class MovieServices {
     private List<MovieScreening> movieScreeningsByMultiplexId(UUID multiplexId) {
         List<UUID> roomIdsByMultiplex = roomManager.getRoomIdsByMultiplexId(multiplexId);
 
+        System.out.println("<============roomIdsByMultiplex: "+" "+roomIdsByMultiplex + "===============>");
+
         if (roomIdsByMultiplex.isEmpty()) {
             return List.of();
         }
@@ -117,6 +119,8 @@ public class MovieServices {
                 .filter(movieScreening -> movieScreening.getMovie().getId().equals(movieId))
                 .toList();
 
+        System.out.println("<============movieScreeningsByMovie: "+" "+movieScreeningsByMovie + "===============>");
+
         if (movieScreeningsByMovie.isEmpty()) {
             throw new CinePachoException("No tenemos funciones disponibles en este multiplex para la película seleccionada");
         }
@@ -150,6 +154,7 @@ public class MovieServices {
                 .roomNumber(screeningMovie.getRoom().getRoomNumber())
                 .screeningDate(screeningMovie.getDateTime())
                 .status(screeningMovie.getStatus())
+                .format(screeningMovie.getFormat() != null ? screeningMovie.getFormat().getDisplayName() : "2D")
                 .build();
     }
 

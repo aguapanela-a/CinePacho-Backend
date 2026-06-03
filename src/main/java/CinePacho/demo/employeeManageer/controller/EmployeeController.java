@@ -2,6 +2,7 @@ package CinePacho.demo.employeeManageer.controller;
 
 import CinePacho.demo.auth.dto.response.RegisterResponseDTO;
 import CinePacho.demo.employeeManageer.dto.request.RegisterEmployeeRequestDTO;
+import CinePacho.demo.employeeManageer.dto.request.UpdateEmployeeRequestDTO;
 import CinePacho.demo.employeeManageer.dto.response.EmployeesResponseDTO;
 import CinePacho.demo.employeeManageer.service.EmployeeService;
 import jakarta.validation.Valid;
@@ -24,6 +25,11 @@ public class EmployeeController {
         this.employeeService = employeeService;
     }
 
+    @GetMapping("/admin/employees")
+    public ResponseEntity<List<EmployeesResponseDTO>> getAllEmployees() {
+        return ResponseEntity.ok(employeeService.getAll());
+    }
+
     @GetMapping("/admin/employees/{multiplexId}")
     public ResponseEntity<List<EmployeesResponseDTO>> getAllEmployees(
             @PathVariable UUID multiplexId
@@ -38,7 +44,15 @@ public class EmployeeController {
     }
 
     @PutMapping("/admin/update_employee")
-    public ResponseEntity<RegisterResponseDTO> updateEmployee( @Valid @RequestBody RegisterEmployeeRequestDTO registerEmployeeRequestDTO) {
-        return ResponseEntity.status(HttpStatus.OK).body(employeeService.updateEmployee(registerEmployeeRequestDTO));
+    public ResponseEntity<RegisterResponseDTO> updateEmployee(
+            @Valid @RequestBody UpdateEmployeeRequestDTO updateEmployeeRequestDTO
+    ) {
+        return ResponseEntity.status(HttpStatus.OK).body(employeeService.updateEmployee(updateEmployeeRequestDTO));
     }   
+
+    @DeleteMapping("/admin/delete_employee/{uniqueCode}")
+    public ResponseEntity<Void> deleteEmployee(@PathVariable Long uniqueCode) {
+        employeeService.deleteEmployeeByUniqueCode(uniqueCode);
+        return ResponseEntity.noContent().build();
+    }
 }

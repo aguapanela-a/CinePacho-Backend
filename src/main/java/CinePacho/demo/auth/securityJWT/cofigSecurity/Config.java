@@ -1,7 +1,6 @@
 package CinePacho.demo.auth.securityJWT.cofigSecurity;
 
 import CinePacho.demo.auth.securityJWT.JwtAuthenticationFilter;
-import com.beust.ah.A;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
@@ -9,6 +8,7 @@ import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
+import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
@@ -61,7 +61,7 @@ public class Config {
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         return http
                 .cors(cors -> cors.configurationSource(corsConfigurationSource()))
-                .csrf(csrf -> csrf.disable())
+                .csrf(AbstractHttpConfigurer::disable)
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
 
@@ -78,6 +78,9 @@ public class Config {
 
                         // Visualizacion publica de reviews por pelicula.
                         .requestMatchers(HttpMethod.GET, "/api/review/movie/**").permitAll()
+
+                        // historial de comrpas
+                        .requestMatchers(HttpMethod.GET, "/api/checkout/billings/user/**").hasAnyAuthority(ADMIN, BUYER, EMPLOYEE, MANAGER)
 
                         // Portal buyer y portal empleado: cartelera, sillas, snacks y checkout.
                         .requestMatchers(HttpMethod.GET, "/api/movie/multiplex/**").permitAll()
