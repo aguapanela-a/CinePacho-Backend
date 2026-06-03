@@ -79,6 +79,9 @@ public class Config {
                         // Visualizacion publica de reviews por pelicula.
                         .requestMatchers(HttpMethod.GET, "/api/review/movie/**").permitAll()
 
+                        // historial de comrpas
+                        .requestMatchers(HttpMethod.GET, "/api/billings/user/**").hasAnyAuthority(SELL_PORTAL_ACCESS)
+
                         // Portal buyer y portal empleado: cartelera, sillas, snacks y checkout.
                         .requestMatchers(HttpMethod.GET, "/api/movie/multiplex/**").permitAll()
 
