@@ -3,6 +3,9 @@ package CinePacho.demo.points.service;
 import CinePacho.demo.auth.entities.customers.BuyerEntity;
 import CinePacho.demo.auth.entities.customers.repository.BuyerRepository;
 import CinePacho.demo.exception.CinePachoException;
+import CinePacho.demo.payment.dto.request.CheckoutRequest;
+import CinePacho.demo.payment.dto.request.SeatSelectionRequest;
+import CinePacho.demo.payment.dto.request.SnackSelectionRequest;
 import CinePacho.demo.points.entities.PointsConfigEntity;
 import CinePacho.demo.points.entities.PointsGainedEntity;
 import CinePacho.demo.points.entities.VoucherEntity;
@@ -40,74 +43,60 @@ public class PointsService implements PointsManager {
 
     @Override
     @Transactional
-    public void processPurchase(UUID buyerId, Object checkoutRequest) {
-        // Se espera que caller (StripeService) pase el CheckoutRequest para calcular puntos.
-        if (checkoutRequest == null) return;
-        try{
-            // Reflection-lite: intentar acceder a getSnacks y getSeats métodos del checkoutRequest
-            Method getSnacks = checkoutRequest.getClass().getMethod("getSnacks");
-            Method getSeats = checkoutRequest.getClass().getMethod("getSeats");
-            Method getScreeningId = checkoutRequest.getClass().getMethod("getScreeningId");
+    public void processPurchase(UUID buyerId, CheckoutRequest request) {
+        if (request == null) return;
 
-            List<?> snacks = (List<?>) getSnacks.invoke(checkoutRequest);
-            List<?> seats = (List<?>) getSeats.invoke(checkoutRequest);
-            UUID screeningId = (UUID) getScreeningId.invoke(checkoutRequest);
-
+        try {
             PointsConfigEntity cfg = pointsConfigRepository.findTopByOrderByIdDesc().orElse(null);
-            boolean byUnit = cfg == null || cfg.isByUnit();
+            boolean byUnit = (cfg == null || cfg.isByUnit());
 
             int totalPoints = 0;
 
-            if (snacks != null) {
-                for (Object s : snacks) {
-                    // cada s es SnackSelectionRequest con getSnackId() y getQuantity()
-                    Method getSnackId = s.getClass().getMethod("getSnackId");
-                    Method getQuantity = s.getClass().getMethod("getQuantity");
-                    UUID snackId = (UUID) getSnackId.invoke(s);
-                    Integer qty = (Integer) getQuantity.invoke(s);
-                    SnackEntity snack = snackRepository.findById(snackId)
-                            .orElse(null);
-                    if (snack == null) continue;
-                    Integer snackPoints = snack.getPoints() == null ? 0 : snack.getPoints();
-                    if (byUnit) {
-                        totalPoints += snackPoints * (qty == null ? 0 : qty);
-                    } else {
-                        if (qty != null && qty > 0) {
-                            totalPoints += snackPoints; // solo una vez por tipo de snack
+            // 1. Calcular puntos de los Snacks
+            if (request.getSnacks() != null) {
+                for (SnackSelectionRequest snackReq : request.getSnacks()) {
+                    SnackEntity snack = snackRepository.findById(snackReq.getSnackId()).orElse(null);
+
+                    if (snack != null && snack.getPoints() != null) {
+                        int qty = (snackReq.getQuantity() != null) ? snackReq.getQuantity() : 0;
+
+                        if (byUnit) {
+                            totalPoints += (snack.getPoints() * qty);
+                        } else if (qty > 0) {
+                            totalPoints += snack.getPoints();
                         }
                     }
                 }
             }
 
-            if (seats != null && !seats.isEmpty()){
-                if (byUnit){
-                    for (Object seatSel : seats){
-                        Method getSeatId = seatSel.getClass().getMethod("getSeatId");
-                        UUID seatId = (java.util.UUID) getSeatId.invoke(seatSel);
-                        SeatScreeningEntity ss = seatScreeningRepository.findById(seatId).orElse(null);
-                        if (ss == null) continue;
-                        Integer sp = ss.getPoints() == null ? 0 : ss.getPoints();
-                        totalPoints += sp;
+            // 2. Calcular puntos de las Sillas (Seats)
+            if (request.getSeats() != null && !request.getSeats().isEmpty()) {
+                if (byUnit) {
+                    for (SeatSelectionRequest seatReq : request.getSeats()) {
+                        SeatScreeningEntity seatEntity = seatScreeningRepository.findById(seatReq.getSeatId()).orElse(null);
+
+                        if (seatEntity != null && seatEntity.getPoints() != null) {
+                            totalPoints += seatEntity.getPoints();
+                        }
                     }
                 } else {
-                    // añadir puntos de screening una sola vez: tomar la primera silla
-                    Object first = seats.get(0);
-                    Method getSeatId = first.getClass().getMethod("getSeatId");
-                    UUID seatId = (UUID) getSeatId.invoke(first);
-                    SeatScreeningEntity ss = seatScreeningRepository.findById(seatId).orElse(null);
-                    if (ss != null) {
-                        Integer sp = ss.getPoints() == null ? 0 : ss.getPoints();
-                        totalPoints += sp;
+                    SeatSelectionRequest firstSeat = request.getSeats().get(0);
+                    SeatScreeningEntity seatEntity = seatScreeningRepository.findById(firstSeat.getSeatId()).orElse(null);
+
+                    if (seatEntity != null && seatEntity.getPoints() != null) {
+                        totalPoints += seatEntity.getPoints();
                     }
                 }
             }
 
+            // 3. Guardar los puntos en la base de datos
             if (totalPoints > 0) {
                 addPoints(buyerId, totalPoints, "Puntos por compra automática");
             }
-        } catch (Exception e){
-            // no bloquear flujo principal
-            System.out.printf("Advertencia: no fue posible calcular puntos automaticamente: %s", e.getMessage());
+
+        } catch (Exception e) {
+            System.err.println("Error al calcular puntos automáticamente: " + e.getMessage());
+            e.printStackTrace();
         }
     }
 

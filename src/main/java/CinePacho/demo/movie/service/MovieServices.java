@@ -3,9 +3,7 @@ package CinePacho.demo.movie.service;
 import CinePacho.demo.exception.CinePachoException;
 import CinePacho.demo.movie.dto.request.GenreDto;
 import CinePacho.demo.movie.dto.request.TmdbMovieDTO;
-import CinePacho.demo.movie.dto.response.MovieSelectorDTO;
-import CinePacho.demo.movie.dto.response.ScreeningInfoDTO;
-import CinePacho.demo.movie.dto.response.TrailerResponseDTO;
+import CinePacho.demo.movie.dto.response.*;
 import CinePacho.demo.movie.entities.MovieEntity;
 import CinePacho.demo.movie.entities.MovieScreening;
 import CinePacho.demo.movie.repository.MovieRepository;
@@ -16,7 +14,11 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.reactive.function.client.WebClient;
 
-import java.util.*;
+import java.util.Comparator;
+import java.util.List;
+import java.util.Locale;
+import java.util.Map;
+import java.util.UUID;
 import java.util.stream.Collectors;
 
 @Service
@@ -62,31 +64,33 @@ public class MovieServices {
                 .toList();
     }
 
+
     @Transactional(readOnly = true)
     public String getMovieTrailer(Long movieId) {
+
         TrailerResponseDTO movieKey = webClient.get()
-                .uri("/movie/" + movieId + "/videos?language=es-mx")
+                .uri("/movie/" + movieId + "/videos?language=es-MX")
                 .header("Authorization", "Bearer " + accessToken)
                 .header("accept", "application/json")
                 .retrieve()
                 .bodyToMono(TrailerResponseDTO.class)
                 .block();
 
-        if (movieKey == null || movieKey.results().isEmpty()) {
-            return "No hay trailer disponible para esta pelicula";
+        if (movieKey == null || movieKey.results() == null || movieKey.results().isEmpty()) {
+            return "No hay trailer disponible para esta película";
         }
-        String key = movieKey.results().stream().filter(
-                results -> results.type().equals("Trailer") &&
-                        results.iso_3166_1().equals("MX")
-        ).findFirst().orElseThrow(() -> new CinePachoException("No hay trailer disponible para esta pelicula")).key();
 
-        return key != null ? key : " ";
+        return movieKey.results().stream()
+                .filter(r -> "Trailer".equals(r.type()) && "MX".equals(r.iso_3166_1()))
+                .map(Results::key)
+                .findFirst()
+                .orElse("No hay trailer disponible para esta película");
     }
 
     // --- NUEVO: MÉTODO PARA OBTENER CRÉDITOS DE TMDB ---
     private Map<String, String> getMovieCredits(Long movieId) {
         try {
-            Map<String, Object> response = webClient.get()
+            Map response = webClient.get()
                     .uri("/movie/" + movieId + "/credits?language=es-MX")
                     .header("Authorization", "Bearer " + accessToken)
                     .retrieve()
@@ -174,7 +178,7 @@ public class MovieServices {
     private TmdbMovieDTO toTmdbMovieDTO(MovieEntity movie) {
         // Obtenemos los créditos llamando al nuevo método
         Map<String, String> credits = getMovieCredits(movie.getId());
-        
+
         return TmdbMovieDTO.builder()
                 .id(movie.getId())
                 .backdropPath(movie.getBackdropPath())

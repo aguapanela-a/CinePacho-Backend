@@ -1,5 +1,6 @@
 package CinePacho.demo.shared.auxiliaryClass;
 
+import CinePacho.demo.payment.dto.request.CheckoutRequest;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
@@ -10,7 +11,7 @@ import java.util.UUID;
 public interface PointsManager {
 
     // Procesa una compra y asigna puntos al comprador según la configuración actual.
-    void processPurchase(UUID buyerId, Object checkoutRequest);
+    void processPurchase(UUID buyerId, CheckoutRequest checkoutRequest);
 
     // Agrega puntos puntuales a un comprador con una descripcion.
     void addPoints(UUID buyerId, int points, String description);
