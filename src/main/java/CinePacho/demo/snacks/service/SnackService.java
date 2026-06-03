@@ -85,6 +85,7 @@ public class SnackService {
         snack.setDescription(request.getDescriptionSnack());
         snack.setPrice(request.getPriceSnack());
         snack.setQuantity(request.getQuantitySnack());
+        snack.setPoints(request.getPointsSnack());
         return toResponse(snackRepository.save(snack));
     }
  
@@ -106,6 +107,8 @@ public class SnackService {
                 .priceSnack(snack.getPrice())
                 .availableSnack(snack.getQuantity() > 0)
                 .quantitySnack(snack.getQuantity())
+                .pointsSnack(snack.getPoints())
+                .multiplexId(snack.getMultiplex().getId())
                 .build();
     }
 

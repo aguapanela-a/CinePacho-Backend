@@ -11,6 +11,7 @@ import CinePacho.demo.shared.auxiliaryClass.EmailService;
 import CinePacho.demo.shared.user.UserRepository;
 import CinePacho.demo.auth.repository.VerificationTokenRepository;
 import CinePacho.demo.employeeManageer.entities.EmployeeEntity;
+import CinePacho.demo.employeeManageer.repository.EmployeeRepository;
 import CinePacho.demo.shared.serviceSecurity.JwtService;
 import CinePacho.demo.shared.enumeration.UserType;
 import CinePacho.demo.exception.CinePachoException;
@@ -29,6 +30,7 @@ public class AuthService {
     private final UserCreationService userCreationService;
     private final UserRepository userRepository;
     private final BuyerRepository buyerRepository;
+    private final EmployeeRepository employeeRepository;
     private final PasswordEncoder passwordEncoder;
     private final EmailService emailService;
     private final VerificationTokenRepository tokenRepository;
@@ -120,6 +122,7 @@ public class AuthService {
         UserEntity user = userRepository.findByEmail(loginDTO.email())
             .orElseThrow(() -> new CinePachoException("Usuario no encontrado"));
 
+
         if(!user.isEnabled()) {
             throw new CinePachoException("Debes verificar tu correo antes de iniciar sesión");
         }
@@ -135,9 +138,8 @@ public class AuthService {
                 .getBuyerId();
         }
 
-        EmployeeEntity employee = user.getEmployee();
-
-        System.out.println("========>>> ID de usuario eutenticado: " + responseId + "<<===========");
+        EmployeeEntity employee = employeeRepository.findByUser_Email(loginDTO.email());
+        System.out.println("Empleado encontrado: " + (employee != null ? employee.getEmployeeId() : "No se encontró empleado para este usuario"));
 
         return new AuthResponseDTO(
             jwtService.generateToken(user),
