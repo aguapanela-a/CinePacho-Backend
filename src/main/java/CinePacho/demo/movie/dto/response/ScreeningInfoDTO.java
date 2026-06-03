@@ -14,6 +14,7 @@ public record ScreeningInfoDTO(
         @JsonFormat(pattern = "yyyy-MM-dd' 'HH:mm:ss")
         LocalDateTime screeningDate,
         ScreeningStatus status,
-        String format
+        String format,
+        UUID multiplexId
 ) {
 }

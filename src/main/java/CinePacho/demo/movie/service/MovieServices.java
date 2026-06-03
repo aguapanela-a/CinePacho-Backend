@@ -172,6 +172,7 @@ public class MovieServices {
                 .screeningDate(screeningMovie.getDateTime())
                 .status(screeningMovie.getStatus())
                 .format(screeningMovie.getFormat() != null ? screeningMovie.getFormat().getDisplayName() : "2D")
+                .multiplexId(screeningMovie.getRoom().getMultiplex().getId())
                 .build();
     }
 
