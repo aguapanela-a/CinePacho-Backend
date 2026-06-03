@@ -59,6 +59,8 @@ public class ReviewService {
     public ReviewResponseDto createServiceReview(UUID buyerID, CreateReviewDto dto, String token){
         validateUserIdentity(buyerID, token, "No puedes crear reviews a nombre de otros usuarios");
 
+        System.out.println("ReviewService: " + dto.toString());
+
         ReviewEntity review = generateReview(dto, buyerID, ReviewType.SERVICE);
         return new ReviewResponseDto(
                 review.getType(),
@@ -69,6 +71,8 @@ public class ReviewService {
 
 
     public ReviewResponseDto createMovieReview(UUID buyerID, CreateReviewDto dto, String token){
+
+        System.out.println("&&&&&&&&&&&& EJECUIÓN  DE CREATE MOVIE REVIEW &&&&&&&&&&&&");
 
         validateUserIdentity(buyerID, token, "No puedes crear reviews a nombre de otros usuarios");
 
@@ -90,8 +94,12 @@ public class ReviewService {
         //Tomo el rating actual de la peli
         Double currentRating = movieManager.getRating(dto.movieId());
 
+        System.out.println("/////////////-->> CURRENT RATING: " + currentRating + " <<--/////////////");
+
         //Sumo el nuevo rating y lo divido entre la cantidad de reviews
         Double newRating = (currentRating + dto.rating())/(reviewRepository.countByMovieId(dto.movieId()));
+
+        System.out.println("/////////////-->> NEW RATING: " + newRating + " <<--/////////////");
 
         //Guardo el nuevo rating en la BD
         movieManager.updateRating(dto.movieId(), newRating);

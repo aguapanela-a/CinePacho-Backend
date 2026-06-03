@@ -72,4 +72,9 @@ public class MovieManagerImpl implements MovieManager {
     public void save(MovieScreening movieScreening) {
         movieScreeningRepository.save(movieScreening);
     }
+
+    @Override
+    public Long movieIdByTitle(String title) {
+        return movieRepository.getByOriginalTitle(title);
+    }
 }

@@ -18,4 +18,5 @@ public interface MovieManager {
     List<MovieScreening> findByDateTimeAfter(LocalDateTime dateTime);
     List<MovieScreening> findByDateBefore(LocalDateTime dateTime);
     void save(MovieScreening movieScreening);
+    Long movieIdByTitle(String title);
 }

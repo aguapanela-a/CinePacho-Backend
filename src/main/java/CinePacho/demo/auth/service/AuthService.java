@@ -117,6 +117,8 @@ public class AuthService {
     @Transactional
     public AuthResponseDTO login(LoginRequestDTO loginDTO){
 
+        System.out.println("========>>> LoginDTO: " + loginDTO + "<<===========");
+
         UserEntity user = userRepository.findByEmail(loginDTO.email())
             .orElseThrow(() -> new CinePachoException("Usuario no encontrado"));
 
