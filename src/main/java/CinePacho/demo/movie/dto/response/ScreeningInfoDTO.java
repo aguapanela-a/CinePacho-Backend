@@ -17,7 +17,6 @@ public record ScreeningInfoDTO(
         LocalDateTime screeningDate,
         ScreeningStatus status,
         String format,
-        BigDecimal generalPrice,
-        BigDecimal preferentialPrice
+        
 ) {
 }
