@@ -164,7 +164,9 @@ public class MovieServices {
                 .build();
     }
 
-    private ScreeningInfoDTO toScreeningInfoDTO(MovieScreening screeningMovie) {
+     private ScreeningInfoDTO toScreeningInfoDTO(MovieScreening screeningMovie) {
+        var multiplex = screeningMovie.getRoom().getMultiplex();
+ 
         return ScreeningInfoDTO.builder()
                 .screeningId(screeningMovie.getId())
                 .roomId(screeningMovie.getRoom().getId())
@@ -172,6 +174,8 @@ public class MovieServices {
                 .screeningDate(screeningMovie.getDateTime())
                 .status(screeningMovie.getStatus())
                 .format(screeningMovie.getFormat() != null ? screeningMovie.getFormat().getDisplayName() : "2D")
+                .generalPrice(multiplex.getGeneralSeatPrice())
+                .preferentialPrice(multiplex.getPreferentialSeatPrice())
                 .build();
     }
 
