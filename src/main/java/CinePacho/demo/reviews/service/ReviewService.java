@@ -128,6 +128,8 @@ public class ReviewService {
         review.setType(type);
         review.setMovieTitle(movieManager.getMovieTitle(dto.movieId()));
 
+        System.out.println("[@@@@@@@@@@@@@@@@@] buyer id: " + buyerID + "[@@@@@@@@@@@@@@@@@]");
+        System.out.println("[@@@@@@@@@@@@@@@@@] movie id: " + dto.movieId() + "[@@@@@@@@@@@@@@@@@]");
         return reviewRepository.save(review);
     }
 
