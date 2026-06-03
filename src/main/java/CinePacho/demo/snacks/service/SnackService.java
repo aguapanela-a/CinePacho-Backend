@@ -27,25 +27,28 @@ public class SnackService {
     private final AccessValidator accessValidator;
     private final MultiplexProvider multiplexProvider;
 
-    //Obtener los snacks de la BD central listados por multiplex (SOLO ADMIN)
+    // --- NUEVO: Obtener todos los snacks públicos disponibles ---
+    public List<SnackResponse> findAllPublic() {
+        return snackRepository.findAll().stream()
+                .filter(snack -> snack.getQuantity() > 0)
+                .map(this::toResponse)
+                .collect(Collectors.toList());
+    }
+
+    // Obtener los snacks de la BD central listados por multiplex (SOLO ADMIN)
     public List<SnackByMultiplex> getAll() {
         return toSnackByMultiplexList(snackRepository.findAll());
     }
 
-    //Obtener los snaks de un multiplex (admin y manager)
+    // Obtener los snacks de un multiplex (admin y manager)
     public List<SnackResponse> getAllByMultiplex(UUID multiplexId){
-
         accessValidator.validateMultiplexAccess(multiplexId);
         List<SnackEntity> snacksByMultiplex = snackRepository.findAllByMultiplex_Id(multiplexId);
-
         return snacksByMultiplex.stream().map(this::toResponse).collect(Collectors.toList());
     }
 
-
     // Lista snacks disponibles para compra (cantidad > 0) en un multiplex
     public List<SnackResponse> getAllAvailable(UUID multiplexId) {
-
-
         return snackRepository.findByQuantityGreaterThanAndMultiplex_Id(0, multiplexId)
                 .stream()
                 .map(this::toResponse)
@@ -59,8 +62,6 @@ public class SnackService {
     }
  
     public SnackResponse create(SnackRequest request) {
-
-        //validar que si es manager solo pueda crear snacks en su multiplex
         accessValidator.validateMultiplexAccess(request.getMultiplexId());
 
         SnackEntity snack = SnackEntity.builder()
@@ -109,7 +110,6 @@ public class SnackService {
     }
 
     private List<SnackByMultiplex> toSnackByMultiplexList(List<SnackEntity> snack) {
-
         if (snack.isEmpty()) {
             return null;
         }
@@ -123,7 +123,6 @@ public class SnackService {
             List<SnackResponse> snackResponses = snacks.stream()
                     .map(this::toResponse)
                     .collect(Collectors.toList());
-
 
             SnackByMultiplex snackByMultiplex = SnackByMultiplex.builder()
                     .multiplexName(multiplex.getName())
