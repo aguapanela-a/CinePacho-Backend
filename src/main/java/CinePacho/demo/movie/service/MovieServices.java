@@ -76,7 +76,8 @@ public class MovieServices {
             return "No hay trailer disponible para esta pelicula";
         }
         String key = movieKey.results().stream().filter(
-                results -> results.type().equals("Trailer")
+                results -> results.type().equals("Trailer") &&
+                        results.iso_3166_1().equals("MX")
         ).findFirst().orElseThrow(() -> new CinePachoException("No hay trailer disponible para esta pelicula")).key();
 
         return key != null ? key : " ";

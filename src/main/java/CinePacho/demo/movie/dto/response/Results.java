@@ -6,6 +6,7 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
 public record Results(
         String key,
-        String type
+        String type,
+        String iso_3166_1
 ) {
 }
