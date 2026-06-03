@@ -3,6 +3,7 @@ package CinePacho.demo.points.controller;
 import CinePacho.demo.auth.entities.customers.BuyerEntity;
 import CinePacho.demo.auth.service.BuyerManagerImpl;
 import CinePacho.demo.exception.CinePachoException;
+import CinePacho.demo.points.dto.PointsSummaryDTO;
 import CinePacho.demo.shared.auxiliaryClass.PointsManager;
 import CinePacho.demo.shared.auxiliaryClass.PointsRecordDTO;
 import CinePacho.demo.shared.auxiliaryClass.VoucherDTO;
@@ -31,11 +32,8 @@ public class PointsController {
         String email = jwtService.extractEmail(token);
         BuyerEntity buyer = buyerManager.getBuyerByEmail(email);
         Integer points = pointsManager.getPoints(buyer.getBuyerId());
-        List<PointsRecordDTO> history = pointsManager.getPointsHistory(buyer.getBuyerId());
-        return ResponseEntity.ok().body(new Object(){
-            public final Integer pointsNow = points;
-            public final List<PointsRecordDTO> historyPoints = history;
-        });
+        
+        return ResponseEntity.ok(new PointsSummaryDTO(points));
     }
 
     // Comprador redime puntos por boleta (100 pts)
