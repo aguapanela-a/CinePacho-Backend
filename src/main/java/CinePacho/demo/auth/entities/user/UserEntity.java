@@ -18,6 +18,7 @@ import java.util.UUID;
 @Entity
 @Table(name = "users")
 @Setter
+@Getter
 @NoArgsConstructor
 public class UserEntity implements UserDetails {
 

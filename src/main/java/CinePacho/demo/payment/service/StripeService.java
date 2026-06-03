@@ -308,6 +308,8 @@ public class StripeService {
             payment.setStatus(PaymentStatus.COMPLETED);
             paymentRepository.save(payment);
 
+            
+
             // Restar snacks comprados del inventario por multiplex
             List<SnackSelectionRequest> snackSelections = checkoutRequest.getSnacks() == null
                     ? Collections.emptyList()

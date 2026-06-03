@@ -24,5 +24,5 @@ public class AuthResponseDTO {
     String name;
 
     UUID userId;
-
+    UUID multiplexId; // Solo para EMPLOYEE/MANAGER, null para BUYER
 }

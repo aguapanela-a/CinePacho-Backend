@@ -129,10 +129,12 @@ public class AuthService {
                 .getBuyerId();
         }
 
+
         return new AuthResponseDTO(
             jwtService.generateToken(user),
                 user.getUserType(),
                 user.getUsername(),
+                user.getEmployee() != null ? user.getEmployee().getMultiplex().getId() : null,
                 responseId
         );
     }
