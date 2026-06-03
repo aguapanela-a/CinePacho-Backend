@@ -1,6 +1,5 @@
 package CinePacho.demo.snacks.controller;
 
-
 import java.util.List;
 import java.util.UUID;
 
@@ -30,7 +29,13 @@ public class SnackController {
  
     private final SnackService snackService;
 
-    // Endpoint público para compradores: lista de snacks disponibles en un multiplex (solo admin)
+    // --- NUEVO: Endpoint público para obtener TODOS los snacks ---
+    @GetMapping("/snacks/all")
+    public ResponseEntity<List<SnackResponse>> getAllPublic() {
+        return ResponseEntity.ok(snackService.findAllPublic());
+    }
+
+    // Endpoint público para compradores: lista de snacks disponibles en un multiplex
     @GetMapping("/snacks/{multiplexId}")
     public ResponseEntity<List<SnackResponse>> getAvailable(
             @PathVariable UUID multiplexId
@@ -38,13 +43,13 @@ public class SnackController {
         return ResponseEntity.ok(snackService.getAllAvailable(multiplexId));
     }
 
-    //obtener todos los snacks de la BD central (ADMIN)
+    // obtener todos los snacks de la BD central (ADMIN)
     @GetMapping("/admin/snacks")
     public ResponseEntity<List<SnackByMultiplex>> getAll() {
         return ResponseEntity.ok(snackService.getAll());
     }
 
-    //obtener snacks de un multiplex para managers (ADMIN y MANAGER)
+    // obtener snacks de un multiplex para managers (ADMIN y MANAGER)
     @GetMapping("/admin/multiplexes/{multiplexId}/snacks")
     public ResponseEntity<List<SnackResponse>> getAllByMultiplex(
             @PathVariable UUID multiplexId
@@ -57,7 +62,7 @@ public class SnackController {
         return ResponseEntity.ok(snackService.getById(id));
     }
     
-    //Status y mensaje de error o exito
+    // Status y mensaje de error o exito
     @PostMapping("/admin/snacks")
     public ResponseEntity<DTOResponse> create(@Valid @RequestBody SnackRequest request) {
         snackService.create(request);
