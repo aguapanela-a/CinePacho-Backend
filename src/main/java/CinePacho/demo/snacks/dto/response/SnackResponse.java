@@ -20,4 +20,5 @@ public class SnackResponse {
     private Boolean availableSnack;
     // Puntos asignados al snack
     private Integer pointsSnack;
+    private UUID multiplexId;
 }

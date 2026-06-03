@@ -118,6 +118,7 @@ public class Config {
                         .requestMatchers("/api/admin/register_employee").hasAnyAuthority(ADMIN, MANAGER)
                         .requestMatchers(HttpMethod.GET, "/api/admin/employees/**").hasAnyAuthority(ADMIN, MANAGER)
                         .requestMatchers(HttpMethod.POST, "/api/admin/update_employee").hasAnyAuthority(ADMIN, MANAGER)
+                        .requestMatchers(HttpMethod.DELETE, "/api/admin/delete_employee/**").hasAnyAuthority(ADMIN, MANAGER)
                         .requestMatchers("/api/admin/movie/**").hasAnyAuthority(ADMIN, MANAGER)
 
                         // Snacks aun no estan modelados por multiplex, por eso el CRUD queda global para ADMIN y MANAGER local.
