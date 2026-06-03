@@ -111,6 +111,7 @@ public class ReviewService {
         //Extrae el UserEntity del targetUserId (que es buyer)
         UserEntity targetUser = buyerManager.getBuyerById(targetUserId).getUser();
 
+        //compara user id's de ambos
         if (currentUser.getUserType().name().equals("BUYER") && !currentUser.getUserId().equals(targetUser.getUserId())) {
                 throw new CinePachoException(errorMessage);
             }
@@ -121,15 +122,22 @@ public class ReviewService {
         ReviewEntity review = new ReviewEntity();
 
         review.setBuyer(buyerManager.getBuyerById(buyerID));
-        review.setMovieId(dto.movieId());
         review.setRating(dto.rating());
         review.setComment(dto.comment());
         review.setCreatedAt(LocalDateTime.now());
         review.setType(type);
-        review.setMovieTitle(movieManager.getMovieTitle(dto.movieId()));
+
+        // Solo buscar la película si la reseña es de tipo MOVIE y el ID no es null
+        if (type == ReviewType.MOVIE && dto.movieId() != null) {
+            review.setMovieId(dto.movieId());
+            review.setMovieTitle(movieManager.getMovieTitle(dto.movieId()));
+        }
 
         System.out.println("[@@@@@@@@@@@@@@@@@] buyer id: " + buyerID + "[@@@@@@@@@@@@@@@@@]");
+
+
         System.out.println("[@@@@@@@@@@@@@@@@@] movie id: " + dto.movieId() + "[@@@@@@@@@@@@@@@@@]");
+
         return reviewRepository.save(review);
     }
 
