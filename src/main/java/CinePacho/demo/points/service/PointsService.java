@@ -212,4 +212,19 @@ public class PointsService implements PointsManager {
         PointsConfigEntity cfg = pointsConfigRepository.findTopByOrderByIdDesc().orElse(null);
         return cfg == null || cfg.isByUnit();
     }
+
+    @Override
+    public boolean existsByID(UUID id) {
+        return pointsConfigRepository.existsById(id);
+    }
+
+    @Override
+    public UUID getID() {
+        return pointsConfigRepository.findTopByOrderByIdDesc().isEmpty() ? null : pointsConfigRepository.findTopByOrderByIdDesc().get().getId();
+    }
+
+    @Override
+    public void save(PointsConfigEntity entity) {
+        pointsConfigRepository.save(entity);
+    }
 }
