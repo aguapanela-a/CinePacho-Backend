@@ -88,9 +88,9 @@ public class Config {
                         // ── 3. Películas / cartelera ─────────────────────────────────────────────
                         // FIX: Los selectores (cajero) van ANTES del permitAll de multiplex/**
                         .requestMatchers(HttpMethod.GET, "/api/movie/multiplex/*/selectors")
-                                .hasAnyAuthority(BUYER, EMPLOYEE, MANAGER)
+                                .hasAnyAuthority(BUYER, EMPLOYEE, MANAGER, ADMIN)
                         .requestMatchers(HttpMethod.GET, "/api/movie/multiplex/*/selectors/**")
-                                .hasAnyAuthority(BUYER, EMPLOYEE, MANAGER)
+                                .hasAnyAuthority(BUYER, EMPLOYEE, MANAGER, ADMIN)
                         // Cartelera pública (top8, listado comprador)
                         .requestMatchers(HttpMethod.GET, "/api/movie/multiplex/**").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/movie/trailer/**").permitAll()
