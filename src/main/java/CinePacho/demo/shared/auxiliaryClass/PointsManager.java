@@ -1,6 +1,7 @@
 package CinePacho.demo.shared.auxiliaryClass;
 
 import CinePacho.demo.payment.dto.request.CheckoutRequest;
+import CinePacho.demo.points.entities.PointsConfigEntity;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
@@ -35,4 +36,8 @@ public interface PointsManager {
     // Toggle modo de acumulación: true = by unit, false = by purchase
     void setByUnitMode(boolean byUnit);
     boolean isByUnitMode();
+    boolean existsByID(UUID id);
+    UUID getID();
+
+    void save(PointsConfigEntity entity);
 }

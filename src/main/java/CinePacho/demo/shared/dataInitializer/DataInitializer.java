@@ -3,8 +3,10 @@ package CinePacho.demo.shared.dataInitializer;
 import CinePacho.demo.auth.entities.user.UserEntity;
 import CinePacho.demo.movie.entities.MovieScreening;
 import CinePacho.demo.movie.enumeration.ScreeningStatus;
+import CinePacho.demo.points.entities.PointsConfigEntity;
 import CinePacho.demo.seats.enumeration.SeatStatus;
 import CinePacho.demo.shared.auxiliaryClass.MovieManager;
+import CinePacho.demo.shared.auxiliaryClass.PointsManager;
 import CinePacho.demo.shared.auxiliaryClass.SeatManager;
 import CinePacho.demo.shared.enumeration.UserType;
 import CinePacho.demo.shared.user.UserCreationService;
@@ -17,6 +19,7 @@ import org.springframework.stereotype.Component;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.util.List;
+import java.util.UUID;
 
 // CommandLineRunner es una clase que ejecuta run() una unica vez después de que
 // el contexto de la app termina de inicializarse, es decir, luego de todos los beans
@@ -31,15 +34,17 @@ public class DataInitializer implements CommandLineRunner {
     private final MovieManager movieManager;
     private final CinePacho.demo.seats.repository.SeatScreeningRepository seatScreeningRepository;
     private final CinePacho.demo.shared.auxiliaryClass.SeatScreeningManager seatScreeningManager;
+    private final PointsManager pointsManager;
 
     @Autowired
-    public DataInitializer(UserCreationService userCreationService, UserRepository userRepository, SeatManager seatManager, MovieManager movieManager, CinePacho.demo.seats.repository.SeatScreeningRepository seatScreeningRepository, CinePacho.demo.shared.auxiliaryClass.SeatScreeningManager seatScreeningManager) {
+    public DataInitializer(UserCreationService userCreationService, UserRepository userRepository, SeatManager seatManager, MovieManager movieManager, CinePacho.demo.seats.repository.SeatScreeningRepository seatScreeningRepository, CinePacho.demo.shared.auxiliaryClass.SeatScreeningManager seatScreeningManager, PointsManager pointsManager) {
         this.userCreationService = userCreationService;
         this.userRepository = userRepository;
         this.seatManager = seatManager;
         this.movieManager = movieManager;
         this.seatScreeningRepository = seatScreeningRepository;
         this.seatScreeningManager = seatScreeningManager;
+        this.pointsManager = pointsManager;
     }
 
     @Value("${admin.email}")
@@ -66,6 +71,14 @@ public class DataInitializer implements CommandLineRunner {
 
             userRepository.save(admin);
         }
+
+
+        if ( pointsManager.getID() == null) {
+            PointsConfigEntity pointsConfig = PointsConfigEntity.builder().byUnit(true).build();
+            pointsManager.save(pointsConfig);
+        }
+
+
 
         // limpiar sillas bloqueadas huérfanas al arrancar (globales)
         seatManager.findByStatus(SeatStatus.BLOCKED).forEach(seat -> {
