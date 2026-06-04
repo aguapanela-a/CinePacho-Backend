@@ -6,6 +6,7 @@ import CinePacho.demo.movie.dto.request.TmdbMovieDTO;
 import CinePacho.demo.movie.dto.response.*;
 import CinePacho.demo.movie.entities.MovieEntity;
 import CinePacho.demo.movie.entities.MovieScreening;
+import CinePacho.demo.movie.enumeration.ScreeningStatus;
 import CinePacho.demo.movie.repository.MovieRepository;
 import CinePacho.demo.movie.repository.MovieScreeningRepository;
 import CinePacho.demo.shared.auxiliaryClass.RoomManager;
@@ -23,7 +24,6 @@ import java.util.stream.Collectors;
 
 @Service
 public class MovieServices {
-    private final RoomManager roomManager;
     private final MovieScreeningRepository movieScreeningRepository;
     private final MovieRepository movieRepository;
     private final WebClient webClient;
@@ -34,18 +34,18 @@ public class MovieServices {
     private static final int LIMIT = 4;
 
     public MovieServices(RoomManager roomManager, MovieScreeningRepository movieScreeningRepository, MovieRepository movieRepository, WebClient webClient) {
-        this.roomManager = roomManager;
         this.movieScreeningRepository = movieScreeningRepository;
         this.movieRepository = movieRepository;
         this.webClient = webClient;
     }
 
+    // ✅ FIX: Usar findAllByRoom_Multiplex_Id (igual que MovieScreeningService) y filtrar ACTIVE
     private List<MovieScreening> movieScreeningsByMultiplexId(UUID multiplexId) {
-        List<UUID> roomIdsByMultiplex = roomManager.getRoomIdsByMultiplexId(multiplexId);
-        if (roomIdsByMultiplex.isEmpty()) {
-            return List.of();
-        }
-        return movieScreeningRepository.findDistinctByRoom_IdInOrderByDateTimeAsc(roomIdsByMultiplex);
+        return movieScreeningRepository.findAllByRoom_Multiplex_Id(multiplexId)
+                .stream()
+                .filter(ms -> ms.getStatus() == ScreeningStatus.ACTIVE)
+                .sorted(Comparator.comparing(MovieScreening::getDateTime))
+                .toList();
     }
 
     @Transactional(readOnly = true)
@@ -63,7 +63,6 @@ public class MovieServices {
                 ))
                 .toList();
     }
-
 
     @Transactional(readOnly = true)
     public String getMovieTrailer(Long movieId) {
@@ -87,10 +86,10 @@ public class MovieServices {
                 .orElse("No hay trailer disponible para esta película");
     }
 
-    // --- NUEVO: MÉTODO PARA OBTENER CRÉDITOS DE TMDB ---
+    @SuppressWarnings("unchecked")
     private Map<String, String> getMovieCredits(Long movieId) {
         try {
-            Map response = webClient.get()
+            Map<String,Object> response = webClient.get()
                     .uri("/movie/" + movieId + "/credits?language=es-MX")
                     .header("Authorization", "Bearer " + accessToken)
                     .retrieve()
@@ -130,6 +129,7 @@ public class MovieServices {
                 .toList();
     }
 
+    // ✅ FIX: Manejar null en getMovie() antes de comparar IDs
     @Transactional(readOnly = true)
     public MovieSelectorDTO getMovieSelectorByMultiplexAndMovie(UUID multiplexId, Long movieId) {
         MovieEntity movie = movieRepository.findById(movieId)
@@ -137,7 +137,8 @@ public class MovieServices {
 
         List<MovieScreening> movieScreeningsByMovie = movieScreeningsByMultiplexId(multiplexId)
                 .stream()
-                .filter(movieScreening -> movieScreening.getMovie().getId().equals(movieId))
+                .filter(movieScreening -> movieScreening.getMovie() != null 
+                        && movieScreening.getMovie().getId().equals(movieId))
                 .toList();
 
         if (movieScreeningsByMovie.isEmpty()) {
@@ -177,7 +178,6 @@ public class MovieServices {
     }
 
     private TmdbMovieDTO toTmdbMovieDTO(MovieEntity movie) {
-        // Obtenemos los créditos llamando al nuevo método
         Map<String, String> credits = getMovieCredits(movie.getId());
 
         return TmdbMovieDTO.builder()
