@@ -84,6 +84,8 @@ public class Config {
                         // Admin CRUD de snacks
                         .requestMatchers("/api/admin/snacks/**").hasAnyAuthority(ADMIN, MANAGER)
                         .requestMatchers(HttpMethod.GET, "/api/admin/snacks").hasAnyAuthority(ADMIN, MANAGER)
+                        .requestMatchers("/api/admin/multiplexes/*/snacks/**").hasAnyAuthority(ADMIN, MANAGER)
+                        .requestMatchers(HttpMethod.GET, "/api/admin/multiplexes/*/snacks").hasAnyAuthority(ADMIN, MANAGER)
                         .requestMatchers(HttpMethod.GET, "/api/movie/multiplex/**").permitAll()
 
                         // ── 3. Películas / cartelera ─────────────────────────────────────────────
@@ -142,6 +144,9 @@ public class Config {
                         .requestMatchers(HttpMethod.POST, "/api/admin/update_employee").hasAnyAuthority(ADMIN, MANAGER)
                         .requestMatchers(HttpMethod.DELETE, "/api/admin/delete_employee/**").hasAnyAuthority(ADMIN, MANAGER)
                         .requestMatchers("/api/admin/movie/**").hasAnyAuthority(ADMIN, MANAGER)
+
+                        // ── 10. Reportes ─────────────────────────────────────────────────────────
+                        .requestMatchers("/api/admin/reports/**").hasAnyAuthority(ADMIN, MANAGER)
 
                         // ── 11. Puntos ───────────────────────────────────────────────────────────
                         .requestMatchers("/api/points/admin/**").hasAuthority(ADMIN)
