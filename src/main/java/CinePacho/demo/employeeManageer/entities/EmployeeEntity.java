@@ -35,7 +35,6 @@ public class EmployeeEntity {
     private Long uniqueCode;
 
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
-    @Column(unique = true)
     private LocalDateTime startDate;
 
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")

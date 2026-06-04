@@ -84,6 +84,7 @@ public class Config {
                         // Admin CRUD de snacks
                         .requestMatchers("/api/admin/snacks/**").hasAnyAuthority(ADMIN, MANAGER)
                         .requestMatchers(HttpMethod.GET, "/api/admin/snacks").hasAnyAuthority(ADMIN, MANAGER)
+                        .requestMatchers(HttpMethod.GET, "/api/movie/multiplex/**").permitAll()
 
                         // ── 3. Películas / cartelera ─────────────────────────────────────────────
                         // FIX: Los selectores (cajero) van ANTES del permitAll de multiplex/**
@@ -92,7 +93,6 @@ public class Config {
                         .requestMatchers(HttpMethod.GET, "/api/movie/multiplex/*/selectors/**")
                                 .hasAnyAuthority(BUYER, EMPLOYEE, MANAGER, ADMIN)
                         // Cartelera pública (top8, listado comprador)
-                        .requestMatchers(HttpMethod.GET, "/api/movie/multiplex/**").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/movie/trailer/**").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/topRatedMovies").permitAll()
 

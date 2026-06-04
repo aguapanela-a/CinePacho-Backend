@@ -23,7 +23,6 @@ public class MultiplexController {
     private final MultiplexService multiplexService;
  
     @GetMapping("/multiplexes")
-
     public ResponseEntity<List<MultiplexSummaryResponse>> getAll() {
         return ResponseEntity.ok(multiplexService.getAll());
     }
