@@ -182,7 +182,7 @@ public class StripeService {
             
         }
 
-        // Validación por función: asegurar que las reservas (SeatScreening) para esta función están bloqueadas por el buyer
+        // ✅ FIX: Validación por función usando actorEmail (quien realmente bloqueó la silla)
         List<UUID> seatIds = request.getSeats().stream()
                 .map(SeatSelectionRequest::getSeatId)
                 .collect(Collectors.toList());
@@ -194,7 +194,8 @@ public class StripeService {
             if (ss.getStatus() != SeatStatus.BLOCKED) {
                 throw new CinePachoException("La silla " + seatId + " no está bloqueada para esta función. Estado: " + ss.getStatus());
             }
-            if (ss.getBlockedByUserEmail() == null || !ss.getBlockedByUserEmail().equals(buyerEmail)) {
+            // ✅ FIX: Validar que el actor (cajero o buyer) sea quien bloqueó la silla
+            if (ss.getBlockedByUserEmail() == null || !ss.getBlockedByUserEmail().equals(actorEmail)) {
                 throw new CinePachoException("La silla " + seatId + " fue bloqueada por otro usuario. Por favor intente nuevamente.");
             }
         }
@@ -296,13 +297,23 @@ public class StripeService {
                 }
             }
 
-            //MOVER VALIDACION
-            // Validación por función: asegurar que las reservas (SeatScreening) para esta función están bloqueadas por el buyer
+            // ✅ FIX: Validar que las sillas siguen bloqueadas por el actor antes de marcar SOLD
             List<UUID> seatIds = checkoutRequest.getSeats().stream()
                     .map(SeatSelectionRequest::getSeatId)
                     .collect(Collectors.toList());
 
-            
+            for (UUID seatId : seatIds) {
+                var ss = seatScreeningManager.getSeatScreening(seatId, checkoutRequest.getScreeningId());
+                if (ss == null) {
+                    throw new CinePachoException("La silla " + seatId + " no está reservada para esta función");
+                }
+                if (ss.getStatus() != SeatStatus.BLOCKED) {
+                    throw new CinePachoException("La silla " + seatId + " no está bloqueada. Estado: " + ss.getStatus());
+                }
+                if (ss.getBlockedByUserEmail() == null || !ss.getBlockedByUserEmail().equals(actorEmail)) {
+                    throw new CinePachoException("La silla " + seatId + " fue bloqueada por otro usuario");
+                }
+            }
 
             // Actualizar el estado del pago a COMPLETED
             PaymentEntity payment = paymentRepository.findById(paymentId)
