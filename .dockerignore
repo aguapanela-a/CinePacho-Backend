@@ -2,7 +2,6 @@ target/
 *.log
 .git
 .gitignore
-.mvn
 .env
 README.md
 
