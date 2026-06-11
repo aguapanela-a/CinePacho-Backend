@@ -2,7 +2,8 @@
 FROM maven:3.9.6-eclipse-temurin-21 AS build
 WORKDIR /app
 COPY pom.xml .
-RUN mvn dependency:go-offline
+# Forzamos a Maven a descargar dependencias Y plugins/procesadores con tolerancia a fallos de red
+RUN mvn dependency:go-offline dependency:resolve-plugins -Dmaven.wagons.http.retryHandler.count=3
 COPY src ./src
 RUN mvn clean package -DskipTests
 
